@@ -1,4 +1,6 @@
 var UnlockModel = require('../models/unlockModel.js');
+var UserModel = require('../models/userModel.js');
+var LockerModel = require('../models/lockerModel.js');
 
 /**
  * unlockController.js
@@ -10,32 +12,26 @@ module.exports = {
     /**
      * unlockController.list()
      */
-    list: function (req, res) {
-        UnlockModel.find(function (err, unlocks) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when getting unlock.',
-                    error: err
-                });
-            }
-
+    list: async function (req, res) {
+        try {
+            const unlocks = await UnlockModel.find({});
             return res.json(unlocks);
-        });
+        } catch (err) {
+            return res.status(500).json({
+                message: 'Error when getting unlocks.',
+                error: err
+            });
+        }
     },
 
     /**
      * unlockController.show()
      */
-    show: function (req, res) {
-        var id = req.params.id;
+    show: async function (req, res) {
+        const id = req.params.id;
 
-        UnlockModel.findOne({_id: id}, function (err, unlock) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when getting unlock.',
-                    error: err
-                });
-            }
+        try {
+            const unlock = await UnlockModel.findOne({_id: id});
 
             if (!unlock) {
                 return res.status(404).json({
@@ -44,44 +40,43 @@ module.exports = {
             }
 
             return res.json(unlock);
-        });
+        } catch (err) {
+            return res.status(500).json({
+                message: 'Error when getting unlock.',
+                error: err
+            });
+        }
     },
 
     /**
      * unlockController.create()
      */
-    create: function (req, res) {
-        var unlock = new UnlockModel({
-			user : req.body.user,
-			locker : req.body.locker,
-			timestamp : req.body.timestamp
+    create: async function (req, res) {
+        const unlock = new UnlockModel({
+            user: req.body.user,
+            locker: req.body.locker,
+            timestamp: req.body.timestamp
         });
 
-        unlock.save(function (err, unlock) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when creating unlock',
-                    error: err
-                });
-            }
-
-            return res.status(201).json(unlock);
-        });
+        try {
+            const savedUnlock = await unlock.save();
+            return res.status(201).json(savedUnlock);
+        } catch (err) {
+            return res.status(500).json({
+                message: 'Error when creating unlock',
+                error: err
+            });
+        }
     },
 
     /**
      * unlockController.update()
      */
-    update: function (req, res) {
-        var id = req.params.id;
+    update: async function (req, res) {
+        const id = req.params.id;
 
-        UnlockModel.findOne({_id: id}, function (err, unlock) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when getting unlock',
-                    error: err
-                });
-            }
+        try {
+            const unlock = await UnlockModel.findOne({_id: id});
 
             if (!unlock) {
                 return res.status(404).json({
@@ -90,37 +85,65 @@ module.exports = {
             }
 
             unlock.user = req.body.user ? req.body.user : unlock.user;
-			unlock.locker = req.body.locker ? req.body.locker : unlock.locker;
-			unlock.timestamp = req.body.timestamp ? req.body.timestamp : unlock.timestamp;
-			
-            unlock.save(function (err, unlock) {
-                if (err) {
-                    return res.status(500).json({
-                        message: 'Error when updating unlock.',
-                        error: err
-                    });
-                }
+            unlock.locker = req.body.locker ? req.body.locker : unlock.locker;
+            unlock.timestamp = req.body.timestamp ? req.body.timestamp : unlock.timestamp;
 
-                return res.json(unlock);
+            const updatedUnlock = await unlock.save();
+            return res.json(updatedUnlock);
+        } catch (err) {
+            return res.status(500).json({
+                message: 'Error when updating unlock.',
+                error: err
             });
-        });
+        }
     },
 
     /**
      * unlockController.remove()
      */
-    remove: function (req, res) {
-        var id = req.params.id;
+    remove: async function (req, res) {
+        const id = req.params.id;
 
-        UnlockModel.findByIdAndRemove(id, function (err, unlock) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when deleting the unlock.',
-                    error: err
-                });
+        try {
+            await UnlockModel.findByIdAndRemove(id);
+            return res.status(204).json();
+        } catch (err) {
+            return res.status(500).json({
+                message: 'Error when deleting the unlock.',
+                error: err
+            });
+        }
+    },
+
+    createUnlock: async function (req, res) {
+        const { userId, lockerId } = req.body;
+
+        try {
+            const user = await UserModel.findById(userId);
+            const locker = await LockerModel.findById(lockerId);
+
+            if (!user || !locker) {
+                return res.status(404).json({ message: 'User or Locker not found.' });
             }
 
-            return res.status(204).json();
-        });
+            if (!locker.status) {
+                return res.status(400).json({ message: 'Locker is not available for unlocking.' });
+            }
+
+            const unlock = new UnlockModel({
+                user: userId,
+                locker: lockerId,
+                timestamp: new Date(),
+            });
+
+            await unlock.save();
+
+            locker.status = false;
+            await locker.save();
+
+            res.status(201).json({ message: 'Unlock recorded successfully', unlock });
+        } catch (error) {
+            res.status(500).json({ message: 'Internal server error' });
+        }
     }
 };

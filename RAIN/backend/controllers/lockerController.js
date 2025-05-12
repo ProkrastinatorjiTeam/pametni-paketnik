@@ -10,32 +10,26 @@ module.exports = {
     /**
      * lockerController.list()
      */
-    list: function (req, res) {
-        LockerModel.find(function (err, lockers) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when getting locker.',
-                    error: err
-                });
-            }
-
+    list: async function (req, res) {
+        try {
+            const lockers = await LockerModel.find({});
             return res.json(lockers);
-        });
+        } catch (err) {
+            return res.status(500).json({
+                message: 'Error when getting lockers.',
+                error: err
+            });
+        }
     },
 
     /**
      * lockerController.show()
      */
-    show: function (req, res) {
-        var id = req.params.id;
+    show: async function (req, res) {
+        const id = req.params.id;
 
-        LockerModel.findOne({_id: id}, function (err, locker) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when getting locker.',
-                    error: err
-                });
-            }
+        try {
+            const locker = await LockerModel.findOne({_id: id});
 
             if (!locker) {
                 return res.status(404).json({
@@ -44,46 +38,45 @@ module.exports = {
             }
 
             return res.json(locker);
-        });
+        } catch (err) {
+            return res.status(500).json({
+                message: 'Error when getting locker.',
+                error: err
+            });
+        }
     },
 
     /**
      * lockerController.create()
      */
-    create: function (req, res) {
-        var locker = new LockerModel({
-			name : req.body.name,
-			location : req.body.location,
-			label : req.body.label,
-			status : req.body.status,
-			createdAt : req.body.createdAt
+    create: async function (req, res) {
+        const locker = new LockerModel({
+            name: req.body.name,
+            location: req.body.location,
+            label: req.body.label,
+            status: req.body.status,
+            createdAt: req.body.createdAt
         });
 
-        locker.save(function (err, locker) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when creating locker',
-                    error: err
-                });
-            }
-
-            return res.status(201).json(locker);
-        });
+        try {
+            const savedLocker = await locker.save();
+            return res.status(201).json(savedLocker);
+        } catch (err) {
+            return res.status(500).json({
+                message: 'Error when creating locker',
+                error: err
+            });
+        }
     },
 
     /**
      * lockerController.update()
      */
-    update: function (req, res) {
-        var id = req.params.id;
+    update: async function (req, res) {
+        const id = req.params.id;
 
-        LockerModel.findOne({_id: id}, function (err, locker) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when getting locker',
-                    error: err
-                });
-            }
+        try {
+            const locker = await LockerModel.findOne({_id: id});
 
             if (!locker) {
                 return res.status(404).json({
@@ -92,39 +85,35 @@ module.exports = {
             }
 
             locker.name = req.body.name ? req.body.name : locker.name;
-			locker.location = req.body.location ? req.body.location : locker.location;
-			locker.label = req.body.label ? req.body.label : locker.label;
-			locker.status = req.body.status ? req.body.status : locker.status;
-			locker.createdAt = req.body.createdAt ? req.body.createdAt : locker.createdAt;
-			
-            locker.save(function (err, locker) {
-                if (err) {
-                    return res.status(500).json({
-                        message: 'Error when updating locker.',
-                        error: err
-                    });
-                }
+            locker.location = req.body.location ? req.body.location : locker.location;
+            locker.label = req.body.label ? req.body.label : locker.label;
+            locker.status = req.body.status ? req.body.status : locker.status;
+            locker.createdAt = req.body.createdAt ? req.body.createdAt : locker.createdAt;
 
-                return res.json(locker);
+            const updatedLocker = await locker.save();
+            return res.json(updatedLocker);
+        } catch (err) {
+            return res.status(500).json({
+                message: 'Error when updating locker.',
+                error: err
             });
-        });
+        }
     },
 
     /**
      * lockerController.remove()
      */
-    remove: function (req, res) {
-        var id = req.params.id;
+    remove: async function (req, res) {
+        const id = req.params.id;
 
-        LockerModel.findByIdAndRemove(id, function (err, locker) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when deleting the locker.',
-                    error: err
-                });
-            }
-
+        try {
+            await LockerModel.findByIdAndRemove(id);
             return res.status(204).json();
-        });
+        } catch (err) {
+            return res.status(500).json({
+                message: 'Error when deleting the locker.',
+                error: err
+            });
+        }
     }
 };
