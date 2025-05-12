@@ -15,8 +15,7 @@ router.get('/:id', unlockController.show);
 /*
  * POST
  */
-router.post('/', unlockController.create);
-router.post('/unlocks', unlockController.createUnlock);
+router.post('/', unlockController.createUnlock);
 
 /*
  * PUT

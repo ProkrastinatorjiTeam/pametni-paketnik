@@ -119,6 +119,7 @@ module.exports = {
         const { userId, lockerId } = req.body;
 
         try {
+            console.log(userId + "  " + lockerId);
             const user = await UserModel.findById(userId);
             const locker = await LockerModel.findById(lockerId);
 
