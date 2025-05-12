@@ -23,23 +23,24 @@ test_dataset = tf.keras.utils.image_dataset_from_directory(
     label_mode="categorical",
 )
 
+class_names = train_dataset.class_names
 normalization_layer = layers.Rescaling(1.0 / 255)
 train_dataset = train_dataset.map(lambda x, y: (normalization_layer(x), y))
 test_dataset = test_dataset.map(lambda x, y: (normalization_layer(x), y))
 
 model = models.Sequential([
-    layers.Conv2D(32, (3, 3), activation="relu", input_shape=(100, 100, 1)),
+    layers.Input(shape=(100, 100, 3)),
     layers.MaxPooling2D((2, 2)),
     layers.Conv2D(64, (3, 3), activation="relu"),
     layers.MaxPooling2D((2, 2)),
     layers.Conv2D(64, (3, 3), activation="relu"),
     layers.Flatten(),
     layers.Dense(64, activation="relu"),
-    layers.Dense(len(train_dataset.class_names), activation="softmax")
+    layers.Dense(len(class_names), activation='softmax')
 ])
 
 model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
 
 model.fit(train_dataset, steps_per_epoch=100, epochs=EPOCHS, validation_data=test_dataset, validation_steps=50)
 
-model.save("../models/person_recognition_model.h5")
+model.save('../models/person_recognition_model.keras')
