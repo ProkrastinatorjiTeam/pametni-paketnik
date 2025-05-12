@@ -17,6 +17,13 @@ def prepare_data():
         person_path = os.path.join(raw_data_dir, person)
 
         if os.path.isdir(person_path):
+            valid_exts = ('.jpg', '.jpeg', '.png', '.JPG', '.PNG')
+            images = [f for f in os.listdir(person_path) if f.lower().endswith(valid_exts)]
+
+            if len(images) < 2:
+                print(f"Skipping {person} (only {len(images)} image(s))")
+                continue
+
             train_person_path = os.path.join(train_dir, person)
             test_person_path = os.path.join(test_dir, person)
 
@@ -24,13 +31,6 @@ def prepare_data():
                 os.makedirs(train_person_path)
             if not os.path.exists(test_person_path):
                 os.makedirs(test_person_path)
-
-            valid_exts = ('.jpg', '.jpeg', '.png', '.JPG', '.PNG')
-            images = [f for f in os.listdir(person_path) if f.lower().endswith(valid_exts)]
-
-            if len(images) < 2:
-                print(f"Skipping {person} (only {len(images)} image(s))")
-                continue
 
             random.shuffle(images)
 
