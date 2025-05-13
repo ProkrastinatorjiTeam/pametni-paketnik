@@ -34,7 +34,7 @@ def prepare_data():
 
             random.shuffle(images)
 
-            split_index = int(len(images) * 0.8)
+            split_index = int(len(images) * 0.5)
             train_images = images[:split_index]
             test_images = images[split_index:]
 
