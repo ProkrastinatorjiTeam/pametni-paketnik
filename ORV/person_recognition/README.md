@@ -13,8 +13,17 @@
 - uporaba https://github.com/keras-team/keras/tree/v3.3.3 za izdelavo lastnega modela
 - nalaganje slik in izgradnja preprostega CNN modela
 
-### to FIX:
-> D:\School\Projekt\ORV\person_recognition\.venv\lib\site-packages\keras\src\trainers\epoch_iterator.py:107: UserWarning: Your input ran out of data; interrupting training. Make sure that your dataset or generator can generate at least `steps_per_epoch * epochs` batches. You may need to use the `.repeat()` function when building your dataset.
+## fixed
+- v model.fit(train_dataset, epochs=EPOCHS, validation_data=test_dataset) sem odstranil argumenta
+steps_per_epoch, tako zdaj Keras sam ugotovi koliko batchov je v datasetu
+> UserWarning: Your input ran out of data; interrupting training. Make sure that your dataset or generator can generate at least `steps_per_epoch * epochs` batches. You may need to use the `.repeat()` function when building your dataset.
   self._interrupted_warning()
 
-> Premalo data -> več slik na osebo
+# Opazki pri buildanju modela
+- Model se nauči na učnih podatkiv(accuracy je na koncu 77%(Epoch 20/20))
+- Slab rezultat na validaticiji(accurassy 17%)
+
+> Torej Model se uči - loss gre dol in accuracy narašča. Model si zapomni te učne primere ampak potem jih ne 
+> posplošiti na novih slikah(overfitting). Torej in IRL je useless tale model.
+
+
