@@ -26,4 +26,18 @@ steps_per_epoch, tako zdaj Keras sam ugotovi koliko batchov je v datasetu
 > Torej Model se uči - loss gre dol in accuracy narašča. Model si zapomni te učne primere ampak potem jih ne 
 > posplošiti na novih slikah(overfitting). Torej in IRL je useless tale model.
 
+# Kaj moram spremljati
 
+- loss, accuracy po epochs
+
+# Kaj moram spreminjat(se igrati)
+
+- EPOCH
+- BATCH_SIZE
+- Learning rate LR
+
+# Namigi za naš projekt
+
+- V->C1(32)->C2(64)->MP->V->C1(64)->C2(128)->MP->V->C1(129)->C2(256)->MP->1000->
+
+> Posodobil nevrnsko mrezo po zgornji arthitekturi

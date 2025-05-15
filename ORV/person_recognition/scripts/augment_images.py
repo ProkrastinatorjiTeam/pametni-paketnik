@@ -31,7 +31,7 @@ def augment_and_save(img_path, target_dir, image_name, aug_gen):
     for batch in aug_gen.flow(img_array, batch_size=1, save_to_dir=target_dir, save_prefix=image_name,
                               save_format='jpeg'):
         i += 1
-        if i > 7:
+        if i > 1:
             break
 
 
