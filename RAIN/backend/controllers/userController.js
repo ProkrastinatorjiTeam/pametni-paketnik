@@ -131,5 +131,58 @@ module.exports = {
                 error: err
             });
         }
+    },
+    showRegister: async function (req, res) {
+        res.render('user/register');
+    },
+    showLogin: async function (req, res) {
+        res.render('user/login');
+    },
+
+    login: async function (req, res, next) {
+        try {
+            const user = await UserModel.authenticate(req.body.username, req.body.password);
+
+            if (!user) {
+                const err = new Error('Wrong username or password');
+                err.status = 401;
+                return next(err);
+            }
+
+            req.session.userId = user._id;
+            return res.json(user);
+        } catch (err) {
+            return next(err);
+        }
+    },
+    logout: async function (req, res, next) {
+        try {
+            if (req.session) {
+                await new Promise((resolve, reject) => {
+                    req.session.destroy((err) => {
+                        if (err) reject(err);
+                        else resolve();
+                    });
+                });
+                return res.status(201).json({});
+            }
+        } catch (err) {
+            return next(err);
+        }
+    },
+    checkAuth: async function (req, res) {
+        if (req.session && req.session.userId) {
+            try {
+                const user = await UserModel.findById(req.session.userId);
+                if (!user) {
+                    return res.status(404).json({message: 'User not found'});
+                }
+                return res.json({isAuthenticated: true, user: user});
+            } catch (err) {
+                return res.status(500).json({message: 'Server error', error: err.message});
+            }
+        } else {
+            return res.json({isAuthenticated: false});
+        }
     }
 };
