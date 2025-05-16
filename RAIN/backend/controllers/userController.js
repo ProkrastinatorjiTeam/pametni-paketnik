@@ -55,6 +55,9 @@ module.exports = {
      */
     create: async function (req, res) {
         try {
+            if (req.session && req.session.userId) {
+                return res.status(400).json({ message: 'Before registering logout!' });
+            }
             const user = new UserModel({
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
@@ -140,19 +143,18 @@ module.exports = {
     },
 
     login: async function (req, res, next) {
-        try {
-            const user = await UserModel.authenticate(req.body.username, req.body.password);
 
-            if (!user) {
-                const err = new Error('Wrong username or password');
-                err.status = 401;
-                return next(err);
+        try {
+            if (req.session && req.session.userId) {
+                return res.status(400).json({ message: 'You are already logged in.' });
             }
 
+            const user = await UserModel.authenticate(req.body.username, req.body.password);
+
             req.session.userId = user._id;
-            return res.json(user);
+            return res.json({ message: 'Login successful', user: user });
         } catch (err) {
-            return next(err);
+            return res.status(401).json({ message: err.message });
         }
     },
     logout: async function (req, res, next) {
