@@ -1,13 +1,15 @@
 import tensorflow as tf
 from keras import layers, models, optimizers
 
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+
 train_dir = "../data/train"
 test_dir = "../data/test"
 
 IMAGE_SIZE = (100, 100)
 BATCH_SIZE = 32
 EPOCHS = 20
-LR = 0.01
+LR = 0.001
 
 # noinspection PyUnresolvedReferences
 train_dataset = tf.keras.utils.image_dataset_from_directory(
