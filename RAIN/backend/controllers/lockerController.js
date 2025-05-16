@@ -115,5 +115,9 @@ module.exports = {
                 error: err
             });
         }
+    },
+
+    add: async function (req, res) {
+        res.render('locker/add');
     }
 };

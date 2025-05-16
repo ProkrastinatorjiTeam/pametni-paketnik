@@ -8,6 +8,7 @@ var userSchema = new Schema({
     'username': {type: String, required: true, unique: true},
     'email': {type: String, required: true, unique: true},
     'password': {type: String, required: true},
+    'role': {type: String, enum: ['user', 'admin'], default: 'user'},
     'createdAt': {type: Date, default: Date.now},
 });
 
@@ -16,7 +17,7 @@ userSchema.statics.authenticate = async function (username, password) {
         const user = await this.findOne({ username: username }).exec();
 
         if (!user) {
-            throw new Error('User not found');
+            throw new Error('Username not found');
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -42,5 +43,5 @@ userSchema.pre('save', function (next) {
     });
 })
 
-var User = mongoose.model('User', userSchema);
+var User = mongoose.model('user', userSchema);
 module.exports = User;

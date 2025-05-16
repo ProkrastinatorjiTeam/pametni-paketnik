@@ -1,30 +1,55 @@
 var express = require('express');
 var router = express.Router();
 var unlockController = require('../controllers/unlockController.js');
+const UserModel = require("../models/userModel");
+
+function isAdmin(req, res, next) {
+    if (req.session && req.session.userId) {
+        UserModel.findById(req.session.userId)
+            .then(user => {
+                if (user && user.role === 'admin') {
+                    next();
+                } else {
+                    res.status(403).json({ message: 'Access denied. Admins only.' });
+                }
+            })
+            .catch(err => {
+                res.status(500).json({ message: 'Server error' });
+            });
+    } else {
+        res.status(401).json({ message: 'Not authenticated' });
+    }
+}
+function requiresLogin(req, res, next){
+    if(req.session && req.session.userId){
+        return next();
+    } else{
+        res.status(401).json({ message: 'You need to login to view this page.' });
+    }
+}
+/*
+ * GET
+ */
+router.get('/', isAdmin,unlockController.list);
 
 /*
  * GET
  */
-router.get('/', unlockController.list);
-
-/*
- * GET
- */
-router.get('/:id', unlockController.show);
+router.get('/:id', requiresLogin,unlockController.show);
 
 /*
  * POST
  */
-router.post('/', unlockController.createUnlock);
+router.post('/', requiresLogin,unlockController.createUnlock);
 
 /*
  * PUT
  */
-router.put('/:id', unlockController.update);
+router.put('/:id', isAdmin, unlockController.update);
 
 /*
  * DELETE
  */
-router.delete('/:id', unlockController.remove);
+router.delete('/:id', isAdmin, unlockController.remove);
 
 module.exports = router;

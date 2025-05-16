@@ -55,6 +55,9 @@ module.exports = {
      */
     create: async function (req, res) {
         try {
+            if (req.session && req.session.userId) {
+                return res.status(400).json({ message: 'Before registering logout!' });
+            }
             const user = new UserModel({
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
@@ -130,6 +133,58 @@ module.exports = {
                 message: 'Error when deleting the user.',
                 error: err
             });
+        }
+    },
+    showRegister: async function (req, res) {
+        res.render('user/register');
+    },
+    showLogin: async function (req, res) {
+        res.render('user/login');
+    },
+
+    login: async function (req, res, next) {
+
+        try {
+            if (req.session && req.session.userId) {
+                return res.status(400).json({ message: 'You are already logged in.' });
+            }
+
+            const user = await UserModel.authenticate(req.body.username, req.body.password);
+
+            req.session.userId = user._id;
+            return res.json({ message: 'Login successful', user: user });
+        } catch (err) {
+            return res.status(401).json({ message: err.message });
+        }
+    },
+    logout: async function (req, res, next) {
+        try {
+            if (req.session) {
+                await new Promise((resolve, reject) => {
+                    req.session.destroy((err) => {
+                        if (err) reject(err);
+                        else resolve();
+                    });
+                });
+                return res.status(201).json({});
+            }
+        } catch (err) {
+            return next(err);
+        }
+    },
+    checkAuth: async function (req, res) {
+        if (req.session && req.session.userId) {
+            try {
+                const user = await UserModel.findById(req.session.userId);
+                if (!user) {
+                    return res.status(404).json({message: 'User not found'});
+                }
+                return res.json({isAuthenticated: true, user: user});
+            } catch (err) {
+                return res.status(500).json({message: 'Server error', error: err.message});
+            }
+        } else {
+            return res.json({isAuthenticated: false});
         }
     }
 };
