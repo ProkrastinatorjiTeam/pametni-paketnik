@@ -3,7 +3,7 @@ var router = express.Router();
 var userController = require('../controllers/userController.js');
 const UserModel = require("../models/userModel");
 
-function isAdmin(req, res, next) {
+function requireAdmin(req, res, next) {
     if (req.session && req.session.userId) {
         UserModel.findById(req.session.userId)
             .then(user => {
@@ -20,35 +20,46 @@ function isAdmin(req, res, next) {
         res.status(401).json({ message: 'Not authenticated' });
     }
 }
-function preventLoginIfAuthenticated(req, res, next) {
+function requireAuth(req, res, next) {
+    if (req.session && req.session.userId) {
+        return next();
+    } else {
+        res.status(401).json({ message: 'You need to login to view this page.' });
+    }
+}
+function requireNotAuth(req, res, next) {
     if (req.session && req.session.userId) {
         return res.status(400).json({ message: 'You are already logged in.' });
     }
     next();
 }
+
+
 /*
  * GET
  */
 
-router.get('/list', isAdmin,userController.list);
-router.get('/register', preventLoginIfAuthenticated, userController.showRegister);
-router.get('/login', preventLoginIfAuthenticated,userController.showLogin);
+router.get('/list', requireAdmin, userController.listUsers);
+router.get('/register', requireNotAuth, userController.showRegisterForm);
+router.get('/login', requireNotAuth, userController.showLoginForm);
 router.get('/auth', userController.checkAuth);
-//router.get('/profile', userController.showProfile);
-router.get('/show/:id', userController.show);
+//router.get('/profile', userController.getSelfInfo);
+router.get('/profile/:id', userController.getUserInfo);
 
 /*
  * POST
  */
-router.post('/register', userController.create);
-router.post('/login', userController.login);
-router.post('/logout',userController.logout);
-router.post('/update/:id', userController.update);
+router.post('/register', userController.registerSelf);
+router.post('/login', userController.loginSelf);
+router.post('/logout', userController.logoutSelf);
+//router.post('/update', requireAuth, userController.updateSelf);
+router.post('/update/:id', requireAdmin, userController.updateUser);
 
 
 /*
  * DELETE
  */
-router.delete('/:id', userController.remove);
+//router.delete('/remove', requireAuth, userController.deleteSelf);
+router.delete('/remove/:id', requireAdmin, userController.removeUser);
 
 module.exports = router;

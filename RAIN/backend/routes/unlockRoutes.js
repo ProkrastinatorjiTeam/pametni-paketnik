@@ -3,7 +3,7 @@ var router = express.Router();
 var unlockController = require('../controllers/unlockController.js');
 const UserModel = require("../models/userModel");
 
-function isAdmin(req, res, next) {
+function requireAdmin(req, res, next) {
     if (req.session && req.session.userId) {
         UserModel.findById(req.session.userId)
             .then(user => {
@@ -20,7 +20,7 @@ function isAdmin(req, res, next) {
         res.status(401).json({ message: 'Not authenticated' });
     }
 }
-function requiresLogin(req, res, next){
+function requireAuth(req, res, next){
     if(req.session && req.session.userId){
         return next();
     } else{
@@ -30,26 +30,26 @@ function requiresLogin(req, res, next){
 /*
  * GET
  */
-router.get('/', isAdmin,unlockController.list);
+router.get('/', requireAdmin,unlockController.list);
 
 /*
  * GET
  */
-router.get('/:id', requiresLogin,unlockController.show);
+router.get('/:id', requireAuth,unlockController.show);
 
 /*
  * POST
  */
-router.post('/', requiresLogin,unlockController.createUnlock);
+router.post('/', requireAuth,unlockController.createUnlock);
 
 /*
  * PUT
  */
-router.put('/:id', isAdmin, unlockController.update);
+router.put('/:id', requireAdmin, unlockController.update);
 
 /*
  * DELETE
  */
-router.delete('/:id', isAdmin, unlockController.remove);
+router.delete('/:id', requireAdmin, unlockController.remove);
 
 module.exports = router;

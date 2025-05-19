@@ -3,7 +3,7 @@ var router = express.Router();
 var lockerController = require('../controllers/lockerController.js');
 var UserModel = require('../models/userModel');
 
-function isAdmin(req, res, next) {
+function reqireAdmin(req, res, next) {
     if (req.session && req.session.userId) {
         UserModel.findById(req.session.userId)
             .then(user => {
@@ -20,7 +20,7 @@ function isAdmin(req, res, next) {
         res.status(401).json({ message: 'Not authenticated' });
     }
 }
-function requiresLogin(req, res, next){
+function requireAuth(req, res, next){
     if(req.session && req.session.userId){
         return next();
     } else{
@@ -31,26 +31,26 @@ function requiresLogin(req, res, next){
  * GET
  */
 router.get('/',lockerController.list);
-router.get('/add', isAdmin, lockerController.add);
+router.get('/add', reqireAdmin, lockerController.add);
 
 /*
  * GET
  */
-router.get('/:id', requiresLogin,lockerController.show);
+router.get('/:id', requireAuth,lockerController.show);
 
 /*
  * POST
  */
-router.post('/', isAdmin, lockerController.create);
+router.post('/', reqireAdmin, lockerController.create);
 
 /*
  * PUT
  */
-router.put('/:id', isAdmin,lockerController.update);
+router.put('/:id', reqireAdmin,lockerController.update);
 
 /*
  * DELETE
  */
-router.delete('/:id', isAdmin, lockerController.remove);
+router.delete('/:id', reqireAdmin, lockerController.remove);
 
 module.exports = router;

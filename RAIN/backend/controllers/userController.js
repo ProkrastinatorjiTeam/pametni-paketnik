@@ -10,7 +10,7 @@ module.exports = {
     /**
      * userController.list()
      */
-    list: async function (req, res) {
+    listUsers: async function (req, res) {
         try {
             const users = await UserModel.find();  // Iskanje vseh uporabnikov
             return res.json(users);  // Vrne seznam uporabnikov
@@ -26,7 +26,7 @@ module.exports = {
     /**
      * userController.show()
      */
-    show: async function (req, res) {
+    getUserInfo: async function (req, res) {
         const id = req.params.id;
 
         try {
@@ -54,7 +54,7 @@ module.exports = {
     /**
      * userController.create()
      */
-    create: async function (req, res) {
+    registerSelf: async function (req, res) {
         try {
             if (req.session && req.session.userId) {
                 return res.status(400).json({ message: 'Before registering logout!' });
@@ -83,7 +83,7 @@ module.exports = {
     /**
      * userController.update()
      */
-    update: async function (req, res) {
+    updateUser: async function (req, res) {
         const id = req.params.id;
 
         try {
@@ -118,7 +118,7 @@ module.exports = {
     /**
      * userController.remove()
      */
-    remove: async function (req, res) {
+    removeUser: async function (req, res) {
         const id = req.params.id;
 
         try {
@@ -139,14 +139,14 @@ module.exports = {
             });
         }
     },
-    showRegister: async function (req, res) {
+    showRegisterForm: async function (req, res) {
         res.render('user/register');
     },
-    showLogin: async function (req, res) {
+    showLoginForm: async function (req, res) {
         res.render('user/login');
     },
 
-    login: async function (req, res, next) {
+    loginSelf: async function (req, res, next) {
 
         try {
             if (req.session && req.session.userId) {
@@ -161,7 +161,7 @@ module.exports = {
             return res.status(401).json({ message: err.message });
         }
     },
-    logout: async function (req, res, next) {
+    logoutSelf: async function (req, res, next) {
         try {
             if (req.session) {
                 await new Promise((resolve, reject) => {
