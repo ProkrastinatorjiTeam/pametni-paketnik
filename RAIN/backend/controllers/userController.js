@@ -15,6 +15,7 @@ module.exports = {
             const users = await UserModel.find();  // Iskanje vseh uporabnikov
             return res.json(users);  // Vrne seznam uporabnikov
         } catch (err) {
+            console.error(err);
             return res.status(500).json({
                 message: 'Error when getting user.',
                 error: err
@@ -39,13 +40,13 @@ module.exports = {
 
             return res.json(user);  // Vrne uporabnika
         } catch (err) {
+            console.error(err);
             return res.status(500).json({
                 message: 'Error when getting user.',
                 error: err
             });
         }
     },
-
 
     /**
      * userController.create()
@@ -70,6 +71,7 @@ module.exports = {
             const savedUser = await user.save();  // Čaka na shranjevanje uporabnika
             return res.status(201).json(savedUser);  // Vrne shranjenega uporabnika
         } catch (err) {
+            console.error(err);
             return res.status(500).json({
                 message: 'Error when creating user',
                 error: err
@@ -104,6 +106,7 @@ module.exports = {
             const updatedUser = await user.save();  // Čaka na posodobitev uporabnika
             return res.json(updatedUser);  // Vrne posodobljenega uporabnika
         } catch (err) {
+            console.error(err);
             return res.status(500).json({
                 message: 'Error when updating user.',
                 error: err
@@ -129,6 +132,7 @@ module.exports = {
 
             return res.status(204).json();  // Vračanje statusa 204 za uspešno brisanje
         } catch (err) {
+            console.error(err);
             return res.status(500).json({
                 message: 'Error when deleting the user.',
                 error: err
@@ -166,7 +170,7 @@ module.exports = {
                         else resolve();
                     });
                 });
-                return res.status(201).json({});
+                return res.status(200).json({ message: 'Logout successful' });
             }
         } catch (err) {
             return next(err);

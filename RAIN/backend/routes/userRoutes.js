@@ -29,27 +29,22 @@ function preventLoginIfAuthenticated(req, res, next) {
 /*
  * GET
  */
-router.get('/', isAdmin,userController.list);
+
+router.get('/list', isAdmin,userController.list);
 router.get('/register', preventLoginIfAuthenticated, userController.showRegister);
 router.get('/login', preventLoginIfAuthenticated,userController.showLogin);
-router.get('/logout',userController.logout);
 router.get('/auth', userController.checkAuth);
-
-/*
- * GET
- */
-router.get('/:id', userController.show);
+//router.get('/profile', userController.showProfile);
+router.get('/show/:id', userController.show);
 
 /*
  * POST
  */
-router.post('/', userController.create);
+router.post('/register', userController.create);
 router.post('/login', userController.login);
+router.post('/logout',userController.logout);
+router.post('/update/:id', userController.update);
 
-/*
- * PUT
- */
-router.put('/:id', userController.update);
 
 /*
  * DELETE
