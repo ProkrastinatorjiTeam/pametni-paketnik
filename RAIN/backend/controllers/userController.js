@@ -49,6 +49,24 @@ module.exports = {
     },
 
     /**
+     * userController.getSelfInfo()
+     */
+    getSelfInfo: async function (req, res) {
+        if (req.session && req.session.userId) {
+            try {
+                const user = await UserModel.findById(req.session.userId);  // Iskanje uporabnika po ID-ju iz seje
+                if (!user) {
+                    return res.status(404).json({message: 'User not found'});
+                }
+                return res.json(user);  // Vrne uporabnika
+            } catch (err) {
+                return res.status(500).json({message: 'Server error', error: err.message});
+            }
+        }
+        return res.status(401).json({message: 'Not authenticated'});
+    },
+
+    /**
      * userController.create()
      */
     /**

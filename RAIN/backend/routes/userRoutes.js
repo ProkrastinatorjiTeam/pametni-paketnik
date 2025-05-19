@@ -40,10 +40,10 @@ function requireNotAuth(req, res, next) {
  */
 
 router.get('/list', requireAdmin, userController.listUsers);
-router.get('/register', requireNotAuth, userController.showRegisterForm);
-router.get('/login', requireNotAuth, userController.showLoginForm);
-router.get('/auth', userController.checkAuth);
-//router.get('/profile', userController.getSelfInfo);
+router.get('/register', requireNotAuth, userController.showRegisterForm); // Why?
+router.get('/login', requireNotAuth, userController.showLoginForm); // Why?
+router.get('/auth', userController.checkAuth);  // Why?
+router.get('/profile', userController.getSelfInfo);
 router.get('/profile/:id', userController.getUserInfo);
 
 /*
