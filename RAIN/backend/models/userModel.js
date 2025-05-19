@@ -32,16 +32,18 @@ userSchema.statics.authenticate = async function (username, password) {
     }
 };
 
-userSchema.pre('save', function (next) {
+userSchema.pre('save', async function (next) {
     var user = this;
-    bcrypt.hash(user.password, 10, function (err, hash) {
-        if (err) {
-            return next(err);
-        }
+    if (!user.isModified('password')) return next();
+
+    try {
+        const hash = await bcrypt.hash(user.password, 10);
         user.password = hash;
         next();
-    });
-})
+    } catch (err) {
+        return next(err);
+    }
+});
 
 var User = mongoose.model('user', userSchema);
 module.exports = User;

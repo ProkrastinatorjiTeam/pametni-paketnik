@@ -51,15 +51,15 @@ router.get('/profile/:id', userController.getUserInfo);
  */
 router.post('/register', userController.registerSelf);
 router.post('/login', userController.loginSelf);
-router.post('/logout', userController.logoutSelf);
-//router.post('/update', requireAuth, userController.updateSelf);
+router.post('/logout', requireAuth, userController.logoutSelf);
+router.post('/update', requireAuth, userController.updateSelf);
 router.post('/update/:id', requireAdmin, userController.updateUser);
 
 
 /*
  * DELETE
  */
-//router.delete('/remove', requireAuth, userController.deleteSelf);
+router.delete('/remove', requireAuth, userController.removeSelf);
 router.delete('/remove/:id', requireAdmin, userController.removeUser);
 
 module.exports = router;
