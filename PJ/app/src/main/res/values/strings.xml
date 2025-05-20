@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Paketnik-app</string>
+    <string name="open_button_name">OPEN THE BOX</string>
 </resources>
