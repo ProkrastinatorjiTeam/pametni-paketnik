@@ -33,12 +33,14 @@ function requireAuth(req, res, next){
  */
 router.get('/list', lockerController.listLockers);
 router.get('/add', reqireAdmin, lockerController.showAddForm);  // Why?
+router.get('/authorize', lockerController.authorizeUser); 
 router.get('/show/:id', requireAuth, lockerController.showLockerInfo);
 
 /*
  * POST
  */
 router.post('/create', reqireAdmin, lockerController.createLocker);
+router.post('/assign/:id', reqireAdmin, lockerController.assignLocker);
 
 /*
  * PATCH

@@ -1,4 +1,5 @@
 var LockerModel = require('../models/lockerModel.js');
+var UserModel = require('../models/userModel.js');
 
 /**
  * lockerController.js
@@ -48,6 +49,69 @@ module.exports = {
         }
     },
 
+    assignLocker: async function (req, res) {
+        const lockerId = req.params.id;
+        const userId = req.body.userId;
+
+        try {
+            const locker = await LockerModel.findById(lockerId);
+            const user = await UserModel.findById(userId);
+
+            if (!locker) {
+                return res.status(404).json({ message: 'Locker not found' });
+            }
+
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            // Check if the user is already allowed to open the locker
+            if (locker.allowedToOpen.includes(userId)) {
+                return res.status(400).json({ message: 'User is already allowed to open this locker' });
+            }
+
+            locker.allowedToOpen.push(userId);
+            await locker.save();
+
+            return res.status(200).json({ message: 'User allowed to open locker successfully', locker: locker });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'Error allowing user to open locker', error: err.message });
+        }
+    },
+
+    authorizeUser: async function (req, res) {
+        const userId = req.body.userId;
+        const id = req.body.id;
+        const boxId = req.body.boxId;
+
+        try {
+            let locker;
+
+            if (id) {
+                // If lockerId is provided, use it to find the locker
+                locker = await LockerModel.findById(id);
+            } else if (boxId) {
+                // If boxId is provided, use it to find the locker
+                locker = await LockerModel.findOne({ boxId: boxId });
+            } else {
+                return res.status(400).json({ message: 'Locker ID or box ID is required' });
+            }
+
+            if (!locker) {
+                return res.status(404).json({ message: 'Locker not found' });
+            }
+
+            // Check if the user is allowed to open the locker
+            const isAllowed = locker.allowedToOpen.includes(userId);
+
+            return res.status(200).json({ authorized: isAllowed });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'Error checking authorization', error: err.message });
+        }
+    },
+
     /**
      * lockerController.create()
      */
@@ -57,8 +121,8 @@ module.exports = {
                 name: req.body.name,
                 location: req.body.location,
                 label: req.body.label,
+                boxId: req.body.boxId, // Add this line
                 status: req.body.status,
-                allowedToOpen: req.body.allowedToOpen || [],
             });
 
             const savedLocker = await locker.save();
@@ -95,8 +159,8 @@ module.exports = {
             if (req.body.name) updates.name = req.body.name;
             if (req.body.location) updates.location = req.body.location;
             if (req.body.label) updates.label = req.body.label;
+            if (req.body.boxId) updates.boxId = req.body.boxId; // Add this line
             if (req.body.status) updates.status = req.body.status;
-            if (req.body.allowedToOpen) updates.allowedToOpen = req.body.allowedToOpen; // Add this line
 
             // Update locker data
             Object.assign(locker, updates);
