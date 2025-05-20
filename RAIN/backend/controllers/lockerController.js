@@ -10,7 +10,7 @@ module.exports = {
     /**
      * lockerController.list()
      */
-    list: async function (req, res) {
+    listLockers: async function (req, res) {
         try {
             const lockers = await LockerModel.find({});
             return res.json(lockers);
@@ -25,7 +25,7 @@ module.exports = {
     /**
      * lockerController.show()
      */
-    show: async function (req, res) {
+    getLockerInfo: async function (req, res) {
         const id = req.params.id;
 
         try {
@@ -49,7 +49,7 @@ module.exports = {
     /**
      * lockerController.create()
      */
-    create: async function (req, res) {
+    createLocker: async function (req, res) {
         const locker = new LockerModel({
             name: req.body.name,
             location: req.body.location,
@@ -72,7 +72,7 @@ module.exports = {
     /**
      * lockerController.update()
      */
-    update: async function (req, res) {
+    updateLocker: async function (req, res) {
         const id = req.params.id;
 
         try {
@@ -103,7 +103,7 @@ module.exports = {
     /**
      * lockerController.remove()
      */
-    remove: async function (req, res) {
+    removeLocker: async function (req, res) {
         const id = req.params.id;
 
         try {
@@ -117,7 +117,7 @@ module.exports = {
         }
     },
 
-    add: async function (req, res) {
+    showAddForm: async function (req, res) {
         res.render('locker/add');
     }
 };
