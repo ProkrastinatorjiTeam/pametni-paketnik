@@ -6,7 +6,8 @@ var lockerSchema = new Schema({
     'location': {type: String, required: true},
     'label': {type: String, required: true},
     'status': {type: Boolean, required: true, default: false},
-    'createdAt': {type: Date, default: Date.now}
+    'createdAt': {type: Date, default: Date.now},
+    'allowedToOpen': [{ type: Schema.Types.ObjectId, ref: 'user' }]
 });
 
 module.exports = mongoose.model('locker', lockerSchema);

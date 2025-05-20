@@ -30,7 +30,7 @@ module.exports = {
         const id = req.params.id;
 
         try {
-            const locker = await LockerModel.findOne({_id: id});
+            const locker = await LockerModel.findOne({_id: id}).populate('allowedToOpen');
 
             if (!locker) {
                 return res.status(404).json({
@@ -58,6 +58,7 @@ module.exports = {
                 location: req.body.location,
                 label: req.body.label,
                 status: req.body.status,
+                allowedToOpen: req.body.allowedToOpen || [],
             });
 
             const savedLocker = await locker.save();
@@ -95,6 +96,7 @@ module.exports = {
             if (req.body.location) updates.location = req.body.location;
             if (req.body.label) updates.label = req.body.label;
             if (req.body.status) updates.status = req.body.status;
+            if (req.body.allowedToOpen) updates.allowedToOpen = req.body.allowedToOpen; // Add this line
 
             // Update locker data
             Object.assign(locker, updates);
