@@ -1,13 +1,13 @@
 import os
 import tensorflow as tf
 
-RAW_DIR = "../data/raw"
+RAW_DIR = "../data/train"
 PROCESSED_DIR = "../data/processed"
 TARGET_COUNT = 1000
 IMAGE_SIZE = (100, 100)
 image = tf.keras.preprocessing.image
 
-data_augmentation = tf.keras.preprocessing.image.ImageDataGenerator(
+data_augmentation = image.ImageDataGenerator(
     rescale=1. / 255,
     rotation_range=45,
     width_shift_range=0.25,
@@ -31,7 +31,7 @@ def augment_and_save(img_path, target_dir, image_name, aug_gen):
     for batch in aug_gen.flow(img_array, batch_size=1, save_to_dir=target_dir, save_prefix=image_name,
                               save_format='jpeg'):
         i += 1
-        if i > 1:
+        if i > 9:
             break
 
 
