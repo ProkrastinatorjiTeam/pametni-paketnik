@@ -30,26 +30,26 @@ function requireAuth(req, res, next){
 /*
  * GET
  */
-router.get('/', requireAdmin,unlockController.list);
+router.get('/list', requireAdmin,unlockController.listUnlocks);
 
 /*
  * GET
  */
-router.get('/:id', requireAuth,unlockController.show);
+router.get('/show/:id', requireAuth,unlockController.showUnlockInfo);
 
 /*
  * POST
  */
-router.post('/', requireAuth,unlockController.createUnlock);
+router.post('/create', requireAuth,unlockController.createUnlock);
 
 /*
- * PUT
+ * PATCH
  */
-router.put('/:id', requireAdmin, unlockController.update);
+router.patch('/update/:id', requireAdmin, unlockController.updateUnlock);
 
 /*
  * DELETE
  */
-router.delete('/:id', requireAdmin, unlockController.remove);
+router.delete('/remove/:id', requireAdmin, unlockController.removeUnlock);
 
 module.exports = router;

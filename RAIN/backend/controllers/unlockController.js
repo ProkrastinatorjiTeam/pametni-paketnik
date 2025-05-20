@@ -12,7 +12,7 @@ module.exports = {
     /**
      * unlockController.list()
      */
-    list: async function (req, res) {
+    listUnlocks: async function (req, res) {
         try {
             const unlocks = await UnlockModel.find({});
             return res.json(unlocks);
@@ -27,7 +27,7 @@ module.exports = {
     /**
      * unlockController.show()
      */
-    show: async function (req, res) {
+    showUnlockInfo: async function (req, res) {
         const id = req.params.id;
 
         try {
@@ -72,7 +72,7 @@ module.exports = {
     /**
      * unlockController.update()
      */
-    update: async function (req, res) {
+    updateUnlock: async function (req, res) {
         const id = req.params.id;
 
         try {
@@ -101,7 +101,7 @@ module.exports = {
     /**
      * unlockController.remove()
      */
-    remove: async function (req, res) {
+    removeUnlock: async function (req, res) {
         const id = req.params.id;
 
         try {

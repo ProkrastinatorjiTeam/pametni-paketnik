@@ -26,7 +26,7 @@ module.exports = {
     /**
      * lockerController.show()
      */
-    getLockerInfo: async function (req, res) {
+    showLockerInfo: async function (req, res) {
         const id = req.params.id;
 
         try {
