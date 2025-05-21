@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 var UnlockModel = require('../models/unlockModel.js');
 var UserModel = require('../models/userModel.js');
 var LockerModel = require('../models/lockerModel.js');
@@ -54,7 +55,7 @@ module.exports = {
         const userId = req.session.userId; // Get user ID from session
 
         try {
-            const unlocks = await UnlockModel.find({ user: userId }).populate('locker'); // Find unlocks for the user and populate locker info
+            const unlocks = await UnlockModel.find({ user: userId }); // Find unlocks for the user
 
             return res.status(200).json({ message: 'Unlock history retrieved successfully', unlocks: unlocks });
         } catch (err) {
@@ -67,7 +68,7 @@ module.exports = {
         const userId = req.params.id; // Get user ID from parameters
 
         try {
-            const unlocks = await UnlockModel.find({ user: userId }).populate('locker'); // Find unlocks for the user and populate locker info
+            const unlocks = await UnlockModel.find({ user: userId }); // Find unlocks for the user
 
             return res.status(200).json({ message: 'Unlock history retrieved successfully', unlocks: unlocks });
         } catch (err) {
@@ -137,11 +138,7 @@ module.exports = {
         }
     },
 
-    /**
-     * unlockController.createUnlock()
-     * Creates a new unlock and updates the locker status.
-     */
-    addUnlock: async function (req, res) {
+    createUnlock: async function (req, res) {
         const { userId, lockerId } = req.body;
 
         try {
@@ -157,41 +154,45 @@ module.exports = {
                 return res.status(403).json({ message: 'User is not authorized to unlock this locker' });
             }
 
-            // **Race Condition Prevention and Atomic Operation**
-            const session = await mongoose.startSession();
-            session.startTransaction();
+            const unlock = new UnlockModel({
+                user: userId,
+                locker: lockerId,
+            });
 
-            try {
-                // Attempt to find and update the locker in a single atomic operation
-                const updatedLocker = await LockerModel.findOneAndUpdate(
-                    { _id: lockerId, status: true }, // Find locker only if status is true
-                    { status: false }, // Set status to false
-                    { new: true, session } // Options: return updated doc and use transaction
-                );
+            const savedUnlock = await unlock.save();
 
-                if (!updatedLocker) {
-                    // If findOneAndUpdate returns null, it means the locker was already unlocked
-                    await session.abortTransaction();
-                    session.endSession();
-                    return res.status(400).json({ message: 'Locker is not available for unlocking' });
-                }
+            return res.status(201).json({ message: 'Unlock created successfully', unlock: savedUnlock });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'Error creating unlock', error: err.message });
+        }
+    },
 
-                const unlock = new UnlockModel({
-                    user: userId,
-                    locker: lockerId,
-                });
+    addUnlock: async function (req, res) {
+        const userId = req.session.userId; // Get user ID from session
+        const { boxId } = req.body; // Get boxId from request body
 
-                await unlock.save({ session }); // Save unlock within the transaction
+        try {
+            // Find the locker by boxId
+            const locker = await LockerModel.findOne({ boxId: boxId });
 
-                await session.commitTransaction();
-                session.endSession();
-
-                return res.status(201).json({ message: 'Unlock recorded successfully', unlock: unlock });
-            } catch (err) {
-                await session.abortTransaction();
-                session.endSession();
-                throw err; // Re-throw the error to be caught by the outer catch
+            if (!locker) {
+                return res.status(404).json({ message: 'Locker not found' });
             }
+
+            // **Authorization Check (Critical)**
+            if (!locker.allowedToOpen.includes(userId)) {
+                return res.status(403).json({ message: 'User is not authorized to unlock this locker' });
+            }
+
+            const unlock = new UnlockModel({
+                user: userId,
+                locker: locker._id, // Use the locker's _id
+            });
+
+            const savedUnlock = await unlock.save();
+
+            return res.status(201).json({ message: 'Unlock recorded successfully', unlock: savedUnlock });
         } catch (err) {
             console.error(err);
             return res.status(500).json({ message: 'Error recording unlock', error: err.message });

@@ -46,6 +46,7 @@ router.get('/show/:id', requireAuth, unlockController.showUnlockInfo);
 /*
  * POST
  */
+router.post('/create', requireAdmin, unlockController.createUnlock);
 router.post('/add', requireAuth, unlockLimiter, unlockController.addUnlock);
 
 /*
