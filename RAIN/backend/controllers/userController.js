@@ -1,4 +1,6 @@
 var UserModel = require('../models/userModel.js');
+var BoxModel = require('../models/boxModel.js');
+var UnlockEventModel = require('../models/unlockEventModel.js'); 
 
 module.exports = {
 
@@ -122,6 +124,47 @@ module.exports = {
                 message: 'Error retrieving user unlock history',
                 error: err.message
             });
+        }
+    },
+
+
+    // Get boxes authorized for the logged-in user
+    showSelfAuthorizedBoxes: async function (req, res) {
+        // Check if the user is authenticated
+        if (!req.session || !req.session.userId) {
+            return res.status(401).json({ message: 'Not authenticated' });
+        }
+
+        const userId = req.session.userId;
+
+        try {
+            // Find boxes where the authorizedUsers array contains the userId
+            const boxes = await BoxModel.find({ authorizedUsers: userId });
+
+            // Respond with the list of authorized boxes
+            return res.status(200).json({ message: 'Authorized boxes retrieved successfully', boxes: boxes });
+
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'Error retrieving authorized boxes', error: err.message });
+        }
+    },
+
+    
+    // Get boxes authorized for a specific user (admin only)
+    showUserAuthorizedBoxes: async function (req, res) {
+        const userId = req.params.id;
+
+        try {
+            // Find boxes where the authorizedUsers array contains the userId
+            const boxes = await BoxModel.find({ authorizedUsers: userId });
+
+            // Respond with the list of authorized boxes
+            return res.status(200).json({ message: 'User authorized boxes retrieved successfully', boxes: boxes });
+
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'Error retrieving user authorized boxes', error: err.message });
         }
     },
 
