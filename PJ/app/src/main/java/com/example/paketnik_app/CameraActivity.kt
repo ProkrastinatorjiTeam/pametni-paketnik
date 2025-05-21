@@ -59,6 +59,8 @@ class CameraActivity : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
+    private var isTransitioning = false // Flag to prevent multiple transitions
+
     private fun processImageProxy(imageProxy: ImageProxy) {
         val mediaImage = imageProxy.image
         if (mediaImage != null) {
@@ -68,7 +70,8 @@ class CameraActivity : AppCompatActivity() {
             scanner.process(image)
                 .addOnSuccessListener { barcodes ->
                     for (barcode in barcodes) {
-                        if (barcode.valueType == Barcode.TYPE_TEXT || barcode.valueType == Barcode.TYPE_URL) {
+                        if (!isTransitioning && (barcode.valueType == Barcode.TYPE_TEXT || barcode.valueType == Barcode.TYPE_URL)) {
+                            isTransitioning = true // Set the flag to true
                             scannedQrCode = barcode.rawValue // Save the scanned QR code
                             Log.d("QR Code", "Scanned QR Code: $scannedQrCode")
                             Toast.makeText(this, "Scanned QR Code: $scannedQrCode", Toast.LENGTH_SHORT).show() // Show toast
