@@ -20,6 +20,7 @@ function requireAdmin(req, res, next) {
         res.status(401).json({ message: 'Not authenticated' });
     }
 }
+
 function requireAuth(req, res, next){
     if(req.session && req.session.userId){
         return next();
@@ -28,27 +29,21 @@ function requireAuth(req, res, next){
     }
 }
 
-/*
- * GET
- */
-router.get('/list', requireAdmin, unlockEventController.listUnlockEvents);
-router.get('/history', requireAuth, unlockEventController.selfUnlockEventHistory);
-router.get('/history/:id', requireAdmin, unlockEventController.userUnlockEventHistory);
-router.get('/show/:id', requireAuth, unlockEventController.showUnlockEventInfo);
+// GET
+router.get('/list', requireAdmin, unlockEventController.listUnlockEvents);  
+router.get('/show/:id', requireAuth, unlockEventController.showUnlockEvent);
 
-/*
- * POST
- */
+
+// POST
 router.post('/create', requireAdmin, unlockEventController.createUnlockEvent);
 
-/*
- * PATCH
- */
+
+// PATCH
 router.patch('/update/:id', requireAdmin, unlockEventController.updateUnlockEvent);
 
-/*
- * DELETE
- */
-router.delete('/remove/:id', requireAdmin, unlockEventController.removeUnlockEvent);
+
+// DELETE
+router.delete('/remove/:id', requireAdmin, unlockEventController.removeUnlockEvent);    
+
 
 module.exports = router;

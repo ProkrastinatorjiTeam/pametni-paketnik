@@ -3,7 +3,7 @@ var router = express.Router();
 var boxController = require('../controllers/boxController.js');
 var UserModel = require('../models/userModel.js');
 
-function reqireAdmin(req, res, next) {
+function requireAdmin(req, res, next) {
     if (req.session && req.session.userId) {
         UserModel.findById(req.session.userId)
             .then(user => {
@@ -28,28 +28,21 @@ function requireAuth(req, res, next){
     }
 }
 
-/*
- * GET
- */
-router.get('/list', boxController.listBoxes);
-router.get('/add', reqireAdmin, boxController.showAddForm);  // Why?
-router.get('/authorize', boxController.authorizeUser); 
-router.get('/show/:id', requireAuth, boxController.showBoxInfo);
+// GET
+router.get('/list', requireAdmin, boxController.listBoxes);
+router.get('/show/:id', requireAuth, boxController.showBox);
+router.get('/history/:id', requireAuth, boxController.getBoxUnlockHistory);
 
-/*
- * POST
- */
-router.post('/create', reqireAdmin, boxController.createBox);
-router.post('/assign/:id', reqireAdmin, boxController.assignBox);
+// POST
+router.post('/create', requireAdmin, boxController.createBox);
+router.post('/unlock', requireAuth, boxController.requestBoxUnlock);
+router.post('/assign/:id', requireAdmin, boxController.assignBox);
 
-/*
- * PATCH
- */
-router.patch('/update/:id', reqireAdmin, boxController.updateBox);
+// PATCH
+router.patch('/update/:id', requireAdmin, boxController.updateBox);
 
-/*
- * DELETE
- */
-router.delete('/remove/:id', reqireAdmin, boxController.removeBox);
+// DELETE
+router.delete('/remove/:id', requireAdmin, boxController.removeBox);
+
 
 module.exports = router;
