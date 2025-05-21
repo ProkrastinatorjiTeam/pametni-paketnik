@@ -7,9 +7,9 @@ var unlockSchema = new Schema({
 	 	ref: 'user',
 		required: true
 	},
-	'locker' : {
+	'box' : {
 	 	type: Schema.Types.ObjectId,
-	 	ref: 'locker',
+	 	ref: 'box',
 		required: true
 	},
 	'timestamp' : {type: Date, default: Date.now}

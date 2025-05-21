@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 var UnlockModel = require('../models/unlockModel.js');
 var UserModel = require('../models/userModel.js');
-var LockerModel = require('../models/lockerModel.js');
+var BoxModel = require('../models/boxModel.js');
 
 /**
  * unlockController.js
@@ -143,15 +143,15 @@ module.exports = {
 
         try {
             const user = await UserModel.findById(userId);
-            const locker = await LockerModel.findById(lockerId);
+            const box = await BoxModel.findById(lockerId); // Changed this line
 
-            if (!user || !locker) {
-                return res.status(404).json({ message: 'User or Locker not found' });
+            if (!user || !box) { // Changed this line
+                return res.status(404).json({ message: 'User or Box not found' }); // Changed this line
             }
 
             // **Authorization Check (Critical)**
-            if (!locker.allowedToOpen.includes(userId)) {
-                return res.status(403).json({ message: 'User is not authorized to unlock this locker' });
+            if (!box.authorizedUsers.includes(userId)) { // Changed this line
+                return res.status(403).json({ message: 'User is not authorized to unlock this box' }); // Changed this line
             }
 
             const unlock = new UnlockModel({
@@ -168,26 +168,30 @@ module.exports = {
         }
     },
 
+    /**
+     * unlockController.addUnlock()
+     * Creates a new unlock for the logged-in user using boxId.
+     */
     addUnlock: async function (req, res) {
         const userId = req.session.userId; // Get user ID from session
         const { boxId } = req.body; // Get boxId from request body
 
         try {
-            // Find the locker by boxId
-            const locker = await LockerModel.findOne({ boxId: boxId });
+            // Find the box by boxId
+            const box = await BoxModel.findOne({ boxId: boxId }); // Changed this line
 
-            if (!locker) {
-                return res.status(404).json({ message: 'Locker not found' });
+            if (!box) { // Changed this line
+                return res.status(404).json({ message: 'Box not found' }); // Changed this line
             }
 
             // **Authorization Check (Critical)**
-            if (!locker.allowedToOpen.includes(userId)) {
-                return res.status(403).json({ message: 'User is not authorized to unlock this locker' });
+            if (!box.authorizedUsers.includes(userId)) { // Changed this line
+                return res.status(403).json({ message: 'User is not authorized to unlock this box' }); // Changed this line
             }
 
             const unlock = new UnlockModel({
                 user: userId,
-                locker: locker._id, // Use the locker's _id
+                locker: box._id, // Use the box's _id // Changed this line
             });
 
             const savedUnlock = await unlock.save();

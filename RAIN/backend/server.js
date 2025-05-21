@@ -14,7 +14,7 @@ mongoose.connection.on('error', console.error.bind(console, 'MongoDB connection 
 
 var indexRouter = require('./routes/index');
 var userRouter = require('./routes/userRoutes');
-var lockerRouter = require('./routes/lockerRoutes');
+var boxRouter = require('./routes/boxRoutes');
 var unlockRouter = require('./routes/unlockRoutes');
 
 var app = express();
@@ -40,7 +40,7 @@ app.use(session({
 
 app.use('/', indexRouter);
 app.use('/user', userRouter);
-app.use('/lockers', lockerRouter);
+app.use('/box', boxRouter);
 app.use('/unlocks', unlockRouter);
 
 // catch 404 and forward to error handler

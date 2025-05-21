@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
-var lockerController = require('../controllers/lockerController.js');
-var UserModel = require('../models/userModel');
+var boxController = require('../controllers/boxController.js');
+var UserModel = require('../models/userModel.js');
 
 function reqireAdmin(req, res, next) {
     if (req.session && req.session.userId) {
@@ -31,25 +31,25 @@ function requireAuth(req, res, next){
 /*
  * GET
  */
-router.get('/list', lockerController.listLockers);
-router.get('/add', reqireAdmin, lockerController.showAddForm);  // Why?
-router.get('/authorize', lockerController.authorizeUser); 
-router.get('/show/:id', requireAuth, lockerController.showLockerInfo);
+router.get('/list', boxController.listBoxes);
+router.get('/add', reqireAdmin, boxController.showAddForm);  // Why?
+router.get('/authorize', boxController.authorizeUser); 
+router.get('/show/:id', requireAuth, boxController.showBoxInfo);
 
 /*
  * POST
  */
-router.post('/create', reqireAdmin, lockerController.createLocker);
-router.post('/assign/:id', reqireAdmin, lockerController.assignLocker);
+router.post('/create', reqireAdmin, boxController.createBox);
+router.post('/assign/:id', reqireAdmin, boxController.assignBox);
 
 /*
  * PATCH
  */
-router.patch('/update/:id', reqireAdmin, lockerController.updateLocker);
+router.patch('/update/:id', reqireAdmin, boxController.updateBox);
 
 /*
  * DELETE
  */
-router.delete('/remove/:id', reqireAdmin, lockerController.removeLocker);
+router.delete('/remove/:id', reqireAdmin, boxController.removeBox);
 
 module.exports = router;
