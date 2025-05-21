@@ -2,11 +2,7 @@ var BoxModel = require('../models/boxModel.js');
 var UserModel = require('../models/userModel.js');
 var UnlockEventModel = require('../models/unlockEventModel.js'); // Added this line
 
-/**
- * boxController.js
- *
- * @description :: Server-side logic for managing boxes.
- */
+
 module.exports = {
 
     // List all boxes (admin only)
@@ -99,21 +95,33 @@ module.exports = {
     },
 
 
-    // Create a new box (admin only)
-    createBox: async function (req, res) {
+    // Add a new box
+    addBox: async function (req, res) {
         try {
+            // Check if the box already exists
+            const existingBox = await BoxModel.findOne({ physicalId: parseInt(req.body.physicalId) });
+
+            // Handle case where box already exists
+            if (existingBox) {
+                return res.status(400).json({ message: 'Box with this physical ID already exists' });
+            }
+
+            // Get the user ID from the session
+            const userId = req.session.userId;
+
             // Create a new box instance
             const box = new BoxModel({
                 name: req.body.name,
                 location: req.body.location,
-                physicalId: req.body.physicalId,
+                physicalId: parseInt(req.body.physicalId),
+                authorizedUsers: [userId]
             });
 
             // Save the new box to the database
             const savedBox = await box.save();
 
             // Respond with success message
-            return res.status(201).json({ message: 'Box created successfully', box: savedBox });
+            return res.status(201).json({ message: 'Box added successfully', box: savedBox });
 
             // Handle errors
         } catch (err) {
@@ -124,7 +132,7 @@ module.exports = {
                 return res.status(400).json({ message: 'Validation error', errors: errors });
             }
             return res.status(500).json({
-                message: 'Error creating box',
+                message: 'Error adding box',
                 error: err.message
             });
         }
@@ -133,11 +141,20 @@ module.exports = {
 
     // Request to unlock a box
     requestBoxUnlock: async function (req, res) {
-        const { userId, boxId } = req.body;
+        const { physicalId } = req.body;
+        const userId = req.session.userId;
 
         try {
-            // Retrieve the box and user from the database
-            const box = await BoxModel.findOne({ physicalId: boxId });
+            let box;
+            // Try to find the box by physicalId
+            if (physicalId) {
+                box = await BoxModel.findOne({ physicalId: parseInt(physicalId) });
+            }
+
+            if (!box) {
+                return res.status(404).json({ message: 'Box not found' });
+            }
+
             const user = await UserModel.findById(userId);
 
             // Handle case where box or user is not found
@@ -149,26 +166,23 @@ module.exports = {
                 return res.status(404).json({ message: 'User not found' });
             }
 
+            let unlockEvent;
+            let successful = false;
             // Check if the user is authorized
-            if (!box.authorizedUsers.includes(userId)) {
-                // Create a new unlock event with authorized = false
-                const unlockEvent = new UnlockEventModel({
-                    user: userId,
-                    box: box._id,
-                    successful: false
-                });
-                await unlockEvent.save();
-
-                return res.status(403).json({ message: 'User is not authorized to unlock this box' });
+            if (box.authorizedUsers.includes(userId)) {
+                successful = true;
             }
 
-            // Create a new unlock event with authorized = true
-            const unlockEvent = new UnlockEventModel({
+            unlockEvent = new UnlockEventModel({
                 user: userId,
                 box: box._id,
-                successful: true
+                authorized: successful
             });
             await unlockEvent.save();
+
+            if (!successful) {
+                return res.status(403).json({ message: 'User is not authorized to unlock this box' });
+            }
 
             // Respond with success message
             return res.status(200).json({ message: 'Box unlock requested successfully' });
@@ -181,24 +195,43 @@ module.exports = {
     },
 
 
-    // Assign a box to a user (admin only)
-    assignBox: async function (req, res) {
+    // Authorize a user for a box (admin or authorized user only)
+    authorizeBox: async function (req, res) {
         const boxId = req.params.id;
         const userId = req.body.userId;
 
         try {
-            // Retrieve the box and user from the database
+            // Retrieve the box from the database
             const box = await BoxModel.findById(boxId);
-            const user = await UserModel.findById(userId);
 
-            // Handle case where box or user is not found
+            // Handle case where box is not found
             if (!box) {
                 return res.status(404).json({ message: 'Box not found' });
             }
 
-            if (!user) {
+            // Get the user ID from the session
+            const currentUserId = req.session.userId;
+
+            // Retrieve the user from the database
+            const currentUser = await UserModel.findById(currentUserId);
+
+            // Handle case where user is not found
+            if (!currentUser) {
                 return res.status(404).json({ message: 'User not found' });
             }
+
+            // Check if the current user is an admin or is authorized for the box
+            if (currentUser.role !== 'admin' && !box.authorizedUsers.includes(currentUserId)) {
+                return res.status(403).json({ message: 'You are not authorized to authorize users for this box' });
+            }
+
+            // Retrieve the user to be authorized from the database
+             const user = await UserModel.findById(userId);
+
+             // Handle case where user is not found
+             if (!user) {
+                 return res.status(404).json({ message: 'User not found' });
+             }
 
             // Check if the user is already authorized
             if (box.authorizedUsers.includes(userId)) {
@@ -220,70 +253,105 @@ module.exports = {
     },
 
 
-    // Update an existing box (admin only)
+    // Update an existing box
     updateBox: async function (req, res) {
         const id = req.params.id;
 
-        try {
-            // Retrieve the box from the database
-            const box = await BoxModel.findOne({ _id: id });
+         try {
+             // Retrieve the box from the database
+             const box = await BoxModel.findById(id);
 
-            // Handle case where box is not found
-            if (!box) {
-                return res.status(404).json({ message: 'Box not found' });
-            }
+             // Handle case where box is not found
+             if (!box) {
+                 return res.status(404).json({ message: 'Box not found' });
+             }
 
-            // Validate input data
-            const updates = {};
-            if (req.body.name) updates.name = req.body.name;
-            if (req.body.location) updates.location = req.body.location;
-            if (req.body.physicalId) updates.physicalId = req.body.physicalId;
+             // Get the user ID from the session
+             const currentUserId = req.session.userId;
 
-            // Update box data
-            Object.assign(box, updates);
+             // Retrieve the user from the database
+             const currentUser = await UserModel.findById(currentUserId);
 
-            // Save the updated box to the database
-            const updatedBox = await box.save();
+             // Handle case where user is not found
+             if (!currentUser) {
+                 return res.status(404).json({ message: 'User not found' });
+             }
 
-            // Respond with success message
-            return res.status(200).json({ message: 'Box updated successfully', box: updatedBox });
+             // Check if the current user is an admin or is authorized for the box
+             if (currentUser.role !== 'admin' && !box.authorizedUsers.includes(currentUserId)) {
+                 return res.status(403).json({ message: 'You are not authorized to update this box' });
+             }
 
-            // Handle errors
-        } catch (err) {
-            console.error(err);
-            if (err.name === 'ValidationError') {
-                // Mongoose validation error
-                const errors = Object.values(err.errors).map(el => el.message);
-                return res.status(400).json({ message: 'Validation error', errors: errors });
-            }
-            return res.status(500).json({ message: 'Error updating box', error: err.message });
-        }
+             // Validate input data
+             const updates = {};
+             if (req.body.name) updates.name = req.body.name;
+             if (req.body.location) updates.location = req.body.location;
+             if (req.body.physicalId) updates.physicalId = parseInt(req.body.physicalId);
+
+             // Update box data
+             Object.assign(box, updates);
+
+             // Save the updated box to the database
+             const updatedBox = await box.save();
+
+             // Respond with success message
+             return res.status(200).json({ message: 'Box updated successfully', box: updatedBox });
+
+             // Handle errors
+         } catch (err) {
+             console.error(err);
+             if (err.name === 'ValidationError') {
+                 // Mongoose validation error
+                 const errors = Object.values(err.errors).map(el => el.message);
+                 return res.status(400).json({ message: 'Validation error', errors: errors });
+             }
+             return res.status(500).json({ message: 'Error updating box', error: err.message });
+         }
     },
 
-    
-    // Remove an existing box (admin only)
+
+    // Remove an existing box
     removeBox: async function (req, res) {
         const id = req.params.id;
 
-        try {
-            // Retrieve the box from the database and delete it
-            const box = await BoxModel.findByIdAndDelete(id);
+         try {
+             // Retrieve the box from the database
+             const box = await BoxModel.findById(id);
 
-            // Handle case where box is not found
-            if (!box) {
-                return res.status(404).json({ message: 'Box not found' });
-            }
+             // Handle case where box is not found
+             if (!box) {
+                 return res.status(404).json({ message: 'Box not found' });
+             }
 
-            // Respond with success message
-            return res.status(200).json({ message: 'Box deleted successfully' });
+             // Get the user ID from the session
+             const currentUserId = req.session.userId;
 
-            // Handle errors
-        } catch (err) {
-            console.error(err);
-            return res.status(500).json({
-                message: 'Error deleting box',
-                error: err.message
-            });
-        }
+             // Retrieve the user from the database
+             const currentUser = await UserModel.findById(currentUserId);
+
+             // Handle case where user is not found
+             if (!currentUser) {
+                 return res.status(404).json({ message: 'User not found' });
+             }
+
+             // Check if the current user is an admin or is authorized for the box
+             if (currentUser.role !== 'admin' && !box.authorizedUsers.includes(currentUserId)) {
+                 return res.status(403).json({ message: 'You are not authorized to remove this box' });
+             }
+
+             // Retrieve the box from the database and delete it
+             const deletedBox = await BoxModel.findByIdAndDelete(id);
+
+             // Respond with success message
+             return res.status(200).json({ message: 'Box deleted successfully' });
+
+             // Handle errors
+         } catch (err) {
+             console.error(err);
+             return res.status(500).json({
+                 message: 'Error deleting box',
+                 error: err.message
+             });
+         }
     }
 };
