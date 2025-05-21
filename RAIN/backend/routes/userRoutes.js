@@ -20,6 +20,7 @@ function requireAdmin(req, res, next) {
         res.status(401).json({ message: 'Not authenticated' });
     }
 }
+
 function requireAuth(req, res, next) {
     if (req.session && req.session.userId) {
         return next();
@@ -27,6 +28,7 @@ function requireAuth(req, res, next) {
         res.status(401).json({ message: 'You need to login to view this page.' });
     }
 }
+
 function requireNotAuth(req, res, next) {
     if (req.session && req.session.userId) {
         return res.status(400).json({ message: 'You are already logged in.' });
@@ -35,31 +37,27 @@ function requireNotAuth(req, res, next) {
 }
 
 
-/*
- * GET
- */
-
+// GET
 router.get('/list', requireAdmin, userController.listUsers);
-router.get('/register', requireNotAuth, userController.showRegisterForm); // Why?
-router.get('/login', requireNotAuth, userController.showLoginForm); // Why?
-router.get('/auth', userController.checkAuth);  // Why?
-router.get('/profile', userController.getSelfInfo);
-router.get('/profile/:id', userController.getUserInfo);
+router.get('/show', requireAuth, userController.showSelf);
+router.get('/show/:id', requireAdmin, userController.showUser);
+router.get('/history', requireAuth, userController.showSelfUnlockHistory);
+router.get('/history/:id', requireAdmin, userController.showUserUnlockHistory);
+router.get('/boxes', requireAuth, userController.showSelfAuthorizedBoxes);
+router.get('/boxes/:id', requireAdmin, userController.showUserAuthorizedBoxes); 
 
-/*
- * POST
- */
-router.post('/register', userController.registerSelf);
-router.post('/login', userController.loginSelf);
+// POST
+router.post('/register', requireNotAuth, userController.registerSelf);
+router.post('/login', requireNotAuth, userController.loginSelf);
 router.post('/logout', requireAuth, userController.logoutSelf);
-router.post('/update', requireAuth, userController.updateSelf);
-router.post('/update/:id', requireAdmin, userController.updateUser);
 
+// PATCH
+router.patch('/update', requireAuth, userController.updateSelf);
+router.patch('/update/:id', requireAdmin, userController.updateUser);
 
-/*
- * DELETE
- */
+// DELETE
 router.delete('/remove', requireAuth, userController.removeSelf);
 router.delete('/remove/:id', requireAdmin, userController.removeUser);
+
 
 module.exports = router;

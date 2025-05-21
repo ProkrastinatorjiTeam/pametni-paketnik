@@ -1,9 +1,9 @@
 var express = require('express');
 var router = express.Router();
-var lockerController = require('../controllers/lockerController.js');
-var UserModel = require('../models/userModel');
+var unlockEventController = require('../controllers/unlockEventController.js');
+const UserModel = require("../models/userModel.js");
 
-function reqireAdmin(req, res, next) {
+function requireAdmin(req, res, next) {
     if (req.session && req.session.userId) {
         UserModel.findById(req.session.userId)
             .then(user => {
@@ -20,6 +20,7 @@ function reqireAdmin(req, res, next) {
         res.status(401).json({ message: 'Not authenticated' });
     }
 }
+
 function requireAuth(req, res, next){
     if(req.session && req.session.userId){
         return next();
@@ -28,28 +29,21 @@ function requireAuth(req, res, next){
     }
 }
 
-/*
- * GET
- */
-router.get('/list', lockerController.listLockers);
-router.get('/add', reqireAdmin, lockerController.showAddForm);  // Why?
-router.get('/authorize', lockerController.authorizeUser); 
-router.get('/show/:id', requireAuth, lockerController.showLockerInfo);
+// GET
+router.get('/list', requireAdmin, unlockEventController.listUnlockEvents);  
+router.get('/show/:id', requireAuth, unlockEventController.showUnlockEvent);
 
-/*
- * POST
- */
-router.post('/create', reqireAdmin, lockerController.createLocker);
-router.post('/assign/:id', reqireAdmin, lockerController.assignLocker);
 
-/*
- * PATCH
- */
-router.patch('/update/:id', reqireAdmin, lockerController.updateLocker);
+// POST
+router.post('/create', requireAdmin, unlockEventController.createUnlockEvent);
 
-/*
- * DELETE
- */
-router.delete('/remove/:id', reqireAdmin, lockerController.removeLocker);
+
+// PATCH
+router.patch('/update/:id', requireAdmin, unlockEventController.updateUnlockEvent);
+
+
+// DELETE
+router.delete('/remove/:id', requireAdmin, unlockEventController.removeUnlockEvent);    
+
 
 module.exports = router;

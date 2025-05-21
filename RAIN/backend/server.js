@@ -13,9 +13,9 @@ mongoose.Promise = global.Promise;
 mongoose.connection.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/userRoutes');
-var lockerRouter = require('./routes/lockerRoutes');
-var unlockRouter = require('./routes/unlockRoutes');
+var userRouter = require('./routes/userRoutes');
+var boxRouter = require('./routes/boxRoutes');
+var unlockEventRouter = require('./routes/unlockEventRoutes');
 
 var app = express();
 
@@ -39,9 +39,9 @@ app.use(session({
 }));
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/lockers', lockerRouter);
-app.use('/unlocks', unlockRouter);
+app.use('/user', userRouter);
+app.use('/box', boxRouter);
+app.use('/unlockEvent', unlockEventRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
