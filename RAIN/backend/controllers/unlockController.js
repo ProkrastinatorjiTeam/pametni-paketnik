@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 var UnlockModel = require('../models/unlockModel.js');
 var UserModel = require('../models/userModel.js');
 var LockerModel = require('../models/lockerModel.js');
@@ -10,24 +11,25 @@ var LockerModel = require('../models/lockerModel.js');
 module.exports = {
 
     /**
-     * unlockController.list()
+     * unlockController.listUnlocks()
      */
-    list: async function (req, res) {
+    listUnlocks: async function (req, res) {
         try {
             const unlocks = await UnlockModel.find({});
-            return res.json(unlocks);
+            return res.status(200).json({ message: 'Unlocks retrieved successfully', unlocks: unlocks });
         } catch (err) {
+            console.error(err);
             return res.status(500).json({
-                message: 'Error when getting unlocks.',
-                error: err
+                message: 'Error retrieving unlocks',
+                error: err.message
             });
         }
     },
 
     /**
-     * unlockController.show()
+     * unlockController.showUnlockInfo()
      */
-    show: async function (req, res) {
+    showUnlockInfo: async function (req, res) {
         const id = req.params.id;
 
         try {
@@ -35,82 +37,103 @@ module.exports = {
 
             if (!unlock) {
                 return res.status(404).json({
-                    message: 'No such unlock'
+                    message: 'Unlock not found'
                 });
             }
 
-            return res.json(unlock);
+            return res.status(200).json({ message: 'Unlock retrieved successfully', unlock: unlock });
         } catch (err) {
+            console.error(err);
             return res.status(500).json({
-                message: 'Error when getting unlock.',
-                error: err
+                message: 'Error retrieving unlock',
+                error: err.message
             });
+        }
+    },
+
+    selfUnlockHistory: async function (req, res) {
+        const userId = req.session.userId; // Get user ID from session
+
+        try {
+            const unlocks = await UnlockModel.find({ user: userId }); // Find unlocks for the user
+
+            return res.status(200).json({ message: 'Unlock history retrieved successfully', unlocks: unlocks });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'Error retrieving unlock history', error: err.message });
+        }
+    },
+
+    userUnlockHistory: async function (req, res) {
+        const userId = req.params.id; // Get user ID from parameters
+
+        try {
+            const unlocks = await UnlockModel.find({ user: userId }); // Find unlocks for the user
+
+            return res.status(200).json({ message: 'Unlock history retrieved successfully', unlocks: unlocks });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'Error retrieving unlock history', error: err.message });
         }
     },
 
     /**
      * unlockController.create()
      */
-    create: async function (req, res) {
-        const unlock = new UnlockModel({
-            user: req.body.user,
-            locker: req.body.locker,
-            timestamp: req.body.timestamp
-        });
-
-        try {
-            const savedUnlock = await unlock.save();
-            return res.status(201).json(savedUnlock);
-        } catch (err) {
-            return res.status(500).json({
-                message: 'Error when creating unlock',
-                error: err
-            });
-        }
-    },
 
     /**
-     * unlockController.update()
+     * unlockController.updateUnlock()
      */
-    update: async function (req, res) {
+    updateUnlock: async function (req, res) {
         const id = req.params.id;
 
         try {
             const unlock = await UnlockModel.findOne({_id: id});
 
             if (!unlock) {
-                return res.status(404).json({
-                    message: 'No such unlock'
-                });
+                return res.status(404).json({ message: 'Unlock not found' });
             }
 
-            unlock.user = req.body.user ? req.body.user : unlock.user;
-            unlock.locker = req.body.locker ? req.body.locker : unlock.locker;
-            unlock.timestamp = req.body.timestamp ? req.body.timestamp : unlock.timestamp;
+            // Validate input data
+            const updates = {};
+            if (req.body.user) updates.user = req.body.user;
+            if (req.body.locker) updates.locker = req.body.locker;
+
+            // Update unlock data
+            Object.assign(unlock, updates);
 
             const updatedUnlock = await unlock.save();
-            return res.json(updatedUnlock);
+            return res.status(200).json({ message: 'Unlock updated successfully', unlock: updatedUnlock });
         } catch (err) {
-            return res.status(500).json({
-                message: 'Error when updating unlock.',
-                error: err
-            });
+            console.error(err);
+            if (err.name === 'ValidationError') {
+                // Mongoose validation error
+                const errors = Object.values(err.errors).map(el => el.message);
+                return res.status(400).json({ message: 'Validation error', errors: errors });
+            }
+            return res.status(500).json({ message: 'Error updating unlock', error: err.message });
         }
     },
 
     /**
-     * unlockController.remove()
+     * unlockController.removeUnlock()
      */
-    remove: async function (req, res) {
+    removeUnlock: async function (req, res) {
         const id = req.params.id;
 
         try {
-            await UnlockModel.findByIdAndRemove(id);
-            return res.status(204).json();
+            const unlock = await UnlockModel.findByIdAndDelete(id);
+
+            if (!unlock) {
+                return res.status(404).json({ message: 'Unlock not found' });
+            }
+
+            return res.status(200).json({ message: 'Unlock deleted successfully' });
         } catch (err) {
+            console.error(err);
             return res.status(500).json({
-                message: 'Error when deleting the unlock.',
-                error: err
+                message: 'Error deleting unlock',
+                error: err.message
             });
         }
     },
@@ -119,32 +142,60 @@ module.exports = {
         const { userId, lockerId } = req.body;
 
         try {
-            console.log(userId + "  " + lockerId);
             const user = await UserModel.findById(userId);
             const locker = await LockerModel.findById(lockerId);
 
             if (!user || !locker) {
-                return res.status(404).json({ message: 'User or Locker not found.' });
+                return res.status(404).json({ message: 'User or Locker not found' });
             }
 
-            if (!locker.status) {
-                return res.status(400).json({ message: 'Locker is not available for unlocking.' });
+            // **Authorization Check (Critical)**
+            if (!locker.allowedToOpen.includes(userId)) {
+                return res.status(403).json({ message: 'User is not authorized to unlock this locker' });
             }
 
             const unlock = new UnlockModel({
                 user: userId,
                 locker: lockerId,
-                timestamp: new Date(),
             });
 
-            await unlock.save();
+            const savedUnlock = await unlock.save();
 
-            locker.status = false;
-            await locker.save();
+            return res.status(201).json({ message: 'Unlock created successfully', unlock: savedUnlock });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'Error creating unlock', error: err.message });
+        }
+    },
 
-            res.status(201).json({ message: 'Unlock recorded successfully', unlock });
-        } catch (error) {
-            res.status(500).json({ message: 'Internal server error' });
+    addUnlock: async function (req, res) {
+        const userId = req.session.userId; // Get user ID from session
+        const { boxId } = req.body; // Get boxId from request body
+
+        try {
+            // Find the locker by boxId
+            const locker = await LockerModel.findOne({ boxId: boxId });
+
+            if (!locker) {
+                return res.status(404).json({ message: 'Locker not found' });
+            }
+
+            // **Authorization Check (Critical)**
+            if (!locker.allowedToOpen.includes(userId)) {
+                return res.status(403).json({ message: 'User is not authorized to unlock this locker' });
+            }
+
+            const unlock = new UnlockModel({
+                user: userId,
+                locker: locker._id, // Use the locker's _id
+            });
+
+            const savedUnlock = await unlock.save();
+
+            return res.status(201).json({ message: 'Unlock recorded successfully', unlock: savedUnlock });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'Error recording unlock', error: err.message });
         }
     }
 };

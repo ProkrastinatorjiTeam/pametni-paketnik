@@ -27,30 +27,29 @@ function requireAuth(req, res, next){
         res.status(401).json({ message: 'You need to login to view this page.' });
     }
 }
-/*
- * GET
- */
-router.get('/',lockerController.list);
-router.get('/add', reqireAdmin, lockerController.add);
 
 /*
  * GET
  */
-router.get('/:id', requireAuth,lockerController.show);
+router.get('/list', lockerController.listLockers);
+router.get('/add', reqireAdmin, lockerController.showAddForm);  // Why?
+router.get('/authorize', lockerController.authorizeUser); 
+router.get('/show/:id', requireAuth, lockerController.showLockerInfo);
 
 /*
  * POST
  */
-router.post('/', reqireAdmin, lockerController.create);
+router.post('/create', reqireAdmin, lockerController.createLocker);
+router.post('/assign/:id', reqireAdmin, lockerController.assignLocker);
 
 /*
- * PUT
+ * PATCH
  */
-router.put('/:id', reqireAdmin,lockerController.update);
+router.patch('/update/:id', reqireAdmin, lockerController.updateLocker);
 
 /*
  * DELETE
  */
-router.delete('/:id', reqireAdmin, lockerController.remove);
+router.delete('/remove/:id', reqireAdmin, lockerController.removeLocker);
 
 module.exports = router;
