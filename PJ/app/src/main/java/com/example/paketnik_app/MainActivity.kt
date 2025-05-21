@@ -4,11 +4,13 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
+@androidx.camera.core.ExperimentalGetImage
 class MainActivity : AppCompatActivity() {
 
     private val CAMERA_PERMISSION_REQUEST_CODE = 1001
@@ -16,6 +18,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        println("App has opened") // Output to terminal when app is opened
 
         val openButton: Button = findViewById(R.id.Open_button)
 
@@ -27,6 +31,16 @@ class MainActivity : AppCompatActivity() {
             } else {
                 requestCameraPermission()
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val scannedQrCode = intent.getStringExtra("SCANNED_QR_CODE")
+        if (scannedQrCode != null) {
+            Log.d("MainActivity", "Received QR Code: $scannedQrCode")
+            println("Received QR Code: $scannedQrCode") // Output to terminal
+            // Handle the scanned QR code as needed
         }
     }
 
