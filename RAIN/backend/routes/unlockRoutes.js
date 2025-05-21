@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var unlockController = require('../controllers/unlockController.js');
+const rateLimit = require("express-rate-limit");
 const UserModel = require("../models/userModel");
 
 function requireAdmin(req, res, next) {
@@ -27,6 +28,13 @@ function requireAuth(req, res, next){
         res.status(401).json({ message: 'You need to login to view this page.' });
     }
 }
+const unlockLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 3, // Limit each IP to 3 requests per windowMs
+  message: "Too many unlock requests from this IP, please try again after a minute",
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
 /*
  * GET
  */
@@ -38,7 +46,7 @@ router.get('/show/:id', requireAuth, unlockController.showUnlockInfo);
 /*
  * POST
  */
-router.post('/add', requireAuth, unlockController.addUnlock);
+router.post('/add', requireAuth, unlockLimiter, unlockController.addUnlock);
 
 /*
  * PATCH
