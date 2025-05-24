@@ -43,6 +43,8 @@ steps_per_epoch, tako zdaj Keras sam ugotovi koliko batchov je v datasetu
 > Posodobil nevrnsko mrezo po zgornji arthitekturi
 
 
-# Spremembe mreze
+# Spremembe
 
-- 
+- ločil embedding model od klasifikatorja
+- shranjevanje najboljšega modeza, uporabil sem ModelCheckpoint
+- dodal vizualizacijo treniranja
