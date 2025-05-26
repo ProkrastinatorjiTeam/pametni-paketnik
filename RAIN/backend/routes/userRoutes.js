@@ -12,7 +12,7 @@ router.get('/history', requireAuth, userController.showSelfUnlockHistory);
 router.get('/history/:id', requireAdmin, userController.showUserUnlockHistory);
 router.get('/boxes', requireAuth, userController.showSelfAuthorizedBoxes);
 router.get('/boxes/:id', requireAdmin, userController.showUserAuthorizedBoxes);
-
+router.get('/login',  userController.showLogin);
 // POST
 router.post('/register', requireNotAuth, userController.registerSelf);
 router.post('/login', requireNotAuth, userController.loginSelf);

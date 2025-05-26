@@ -1,6 +1,6 @@
 var UserModel = require('../models/userModel.js');
 var BoxModel = require('../models/boxModel.js');
-var UnlockEventModel = require('../models/unlockEventModel.js'); 
+var UnlockEventModel = require('../models/unlockEventModel.js');
 
 module.exports = {
 
@@ -11,7 +11,7 @@ module.exports = {
             const users = await UserModel.find();
 
             // Respond with the list of users
-            return res.status(200).json({ message: 'Users retrieved successfully', users: users });
+            return res.status(200).json({message: 'Users retrieved successfully', users: users});
 
             // Handle errors
         } catch (err) {
@@ -34,18 +34,18 @@ module.exports = {
 
                 // Handle case where user is not found
                 if (!user) {
-                    return res.status(404).json({ message: 'User not found' });
+                    return res.status(404).json({message: 'User not found'});
                 }
 
                 // Respond with the user's profile information
-                return res.status(200).json({ message: 'User profile retrieved successfully', user: user });
+                return res.status(200).json({message: 'User profile retrieved successfully', user: user});
 
                 // Handle errors
             } catch (err) {
-                return res.status(500).json({ message: 'Error retrieving user profile', error: err.message });
+                return res.status(500).json({message: 'Error retrieving user profile', error: err.message});
             }
         }
-        return res.status(401).json({ message: 'Not authenticated' });
+        return res.status(401).json({message: 'Not authenticated'});
     },
 
 
@@ -55,7 +55,7 @@ module.exports = {
 
         try {
             // Retrieve the user from the database
-            const user = await UserModel.findOne({ _id: id });
+            const user = await UserModel.findOne({_id: id});
 
             // Handle case where user is not found
             if (!user) {
@@ -65,7 +65,7 @@ module.exports = {
             }
 
             // Respond with the user's profile information
-            return res.status(200).json({ message: 'User retrieved successfully', user: user });
+            return res.status(200).json({message: 'User retrieved successfully', user: user});
 
             // Handle errors
         } catch (err) {
@@ -82,22 +82,22 @@ module.exports = {
     showSelfUnlockHistory: async function (req, res) {
         // Check if the user is authenticated
         if (!req.session || !req.session.userId) {
-            return res.status(401).json({ message: 'Not authenticated' });
+            return res.status(401).json({message: 'Not authenticated'});
         }
 
         const userId = req.session.userId;
 
         try {
             // Retrieve the unlock events for the user from the database
-            const unlockEvents = await UnlockEventModel.find({ user: userId });
+            const unlockEvents = await UnlockEventModel.find({user: userId});
 
             // Respond with the list of unlock events
-            return res.status(200).json({ message: 'Unlock history retrieved successfully', unlockEvents: unlockEvents });
+            return res.status(200).json({message: 'Unlock history retrieved successfully', unlockEvents: unlockEvents});
 
             // Handle errors
         } catch (err) {
             console.error(err);
-            return res.status(500).json({ message: 'Error retrieving unlock history', error: err.message });
+            return res.status(500).json({message: 'Error retrieving unlock history', error: err.message});
         }
     },
 
@@ -107,15 +107,18 @@ module.exports = {
 
         try {
             // Retrieve the unlock events for the user from the database
-            const unlockEvents = await UnlockEventModel.find({ user: id });
+            const unlockEvents = await UnlockEventModel.find({user: id});
 
             // Handle case where user is not found
             if (!unlockEvents) {
-                return res.status(404).json({ message: 'No unlock events found for this user' });
+                return res.status(404).json({message: 'No unlock events found for this user'});
             }
 
             // Respond with the list of unlock events
-            return res.status(200).json({ message: 'User unlock history retrieved successfully', unlockEvents: unlockEvents });
+            return res.status(200).json({
+                message: 'User unlock history retrieved successfully',
+                unlockEvents: unlockEvents
+            });
 
             // Handle errors
         } catch (err) {
@@ -132,49 +135,52 @@ module.exports = {
     showSelfAuthorizedBoxes: async function (req, res) {
         // Check if the user is authenticated
         if (!req.session || !req.session.userId) {
-            return res.status(401).json({ message: 'Not authenticated' });
+            return res.status(401).json({message: 'Not authenticated'});
         }
 
         const userId = req.session.userId;
 
         try {
             // Find boxes where the authorizedUsers array contains the userId
-            const boxes = await BoxModel.find({ authorizedUsers: userId });
+            const boxes = await BoxModel.find({authorizedUsers: userId});
 
             // Respond with the list of authorized boxes
-            return res.status(200).json({ message: 'Authorized boxes retrieved successfully', boxes: boxes });
+            return res.status(200).json({message: 'Authorized boxes retrieved successfully', boxes: boxes});
 
         } catch (err) {
             console.error(err);
-            return res.status(500).json({ message: 'Error retrieving authorized boxes', error: err.message });
+            return res.status(500).json({message: 'Error retrieving authorized boxes', error: err.message});
         }
     },
 
-    
+
     // Get boxes authorized for a specific user (admin only)
     showUserAuthorizedBoxes: async function (req, res) {
         const userId = req.params.id;
 
         try {
             // Find boxes where the authorizedUsers array contains the userId
-            const boxes = await BoxModel.find({ authorizedUsers: userId });
+            const boxes = await BoxModel.find({authorizedUsers: userId});
 
             // Respond with the list of authorized boxes
-            return res.status(200).json({ message: 'User authorized boxes retrieved successfully', boxes: boxes });
+            return res.status(200).json({message: 'User authorized boxes retrieved successfully', boxes: boxes});
 
         } catch (err) {
             console.error(err);
-            return res.status(500).json({ message: 'Error retrieving user authorized boxes', error: err.message });
+            return res.status(500).json({message: 'Error retrieving user authorized boxes', error: err.message});
         }
     },
 
+    showLogin: async function (req, res) {
+        return res.render('user/login');
+    },
 
     // Register a new user
     registerSelf: async function (req, res) {
         try {
             // Prevent logged-in users from registering again
             if (req.session && req.session.userId) {
-                return res.status(400).json({ message: 'Before registering logout!' });
+                return res.status(400).json({message: 'Before registering logout!'});
             }
 
             // Create a new user instance
@@ -190,18 +196,18 @@ module.exports = {
             const savedUser = await user.save();
 
             // Respond with success message
-            return res.status(201).json({ message: 'User registered successfully', user: savedUser });
+            return res.status(201).json({message: 'User registered successfully', user: savedUser});
 
             // Handle errors
         } catch (err) {
             console.error(err);
             if (err.code === 11000) {
                 if (err.keyPattern && err.keyPattern.username) {
-                    return res.status(400).json({ message: 'Username already exists' });
+                    return res.status(400).json({message: 'Username already exists'});
                 } else if (err.keyPattern && err.keyPattern.email) {
-                    return res.status(400).json({ message: 'Email already exists' });
+                    return res.status(400).json({message: 'Email already exists'});
                 } else {
-                    return res.status(400).json({ message: 'Duplicate key error' });
+                    return res.status(400).json({message: 'Duplicate key error'});
                 }
             }
             return res.status(500).json({
@@ -213,11 +219,11 @@ module.exports = {
 
 
     // Log in an existing user
-    loginSelf: async function (req, res, next) {
+    loginSelf: async function (req, res) {
         try {
             // Prevent already logged-in users from logging in again
             if (req.session && req.session.userId) {
-                return res.status(400).json({ message: 'You are already logged in.' });
+                return res.status(400).json({message: 'You are already logged in.'});
             }
 
             // Authenticate the user
@@ -227,11 +233,11 @@ module.exports = {
             req.session.userId = user._id;
 
             // Respond with success message
-            return res.status(200).json({ message: 'Login successful', user: user });
+            return res.status(200).json({message: 'Login successful', user: user});
 
             // Handle errors
         } catch (err) {
-            return res.status(401).json({ message: err.message });
+            return res.status(401).json({message: err.message});
         }
     },
 
@@ -250,7 +256,7 @@ module.exports = {
                 });
 
                 // Respond with success message
-                return res.status(200).json({ message: 'Logout successful' });
+                return res.status(200).json({message: 'Logout successful'});
 
                 // Handle errors
             }
@@ -264,7 +270,7 @@ module.exports = {
     updateSelf: async function (req, res) {
         // Check if the user is authenticated
         if (!req.session || !req.session.userId) {
-            return res.status(401).json({ message: 'Not authenticated' });
+            return res.status(401).json({message: 'Not authenticated'});
         }
 
         const userId = req.session.userId;
@@ -275,7 +281,7 @@ module.exports = {
 
             // Handle case where user is not found
             if (!user) {
-                return res.status(404).json({ message: 'User not found' });
+                return res.status(404).json({message: 'User not found'});
             }
 
             // Define the allowed updates
@@ -291,16 +297,16 @@ module.exports = {
             const updatedUser = await user.save();
 
             // Respond with success message
-            return res.status(200).json({ message: 'Profile updated successfully', user: updatedUser });
+            return res.status(200).json({message: 'Profile updated successfully', user: updatedUser});
 
             // Handle errors
         } catch (err) {
             console.error(err);
             if (err.name === 'ValidationError') {
                 const errors = Object.values(err.errors).map(el => el.message);
-                return res.status(400).json({ message: 'Validation error', errors: errors });
+                return res.status(400).json({message: 'Validation error', errors: errors});
             }
-            return res.status(500).json({ message: 'Error updating profile', error: err.message });
+            return res.status(500).json({message: 'Error updating profile', error: err.message});
         }
     },
 
@@ -311,11 +317,11 @@ module.exports = {
 
         try {
             // Retrieve the user from the database
-            const user = await UserModel.findOne({ _id: id });
+            const user = await UserModel.findOne({_id: id});
 
             // Handle case where user is not found
             if (!user) {
-                return res.status(404).json({ message: 'User not found' });
+                return res.status(404).json({message: 'User not found'});
             }
 
             // Define the allowed updates
@@ -332,16 +338,16 @@ module.exports = {
             const updatedUser = await user.save();
 
             // Respond with success message
-            return res.status(200).json({ message: 'User updated successfully', user: updatedUser });
+            return res.status(200).json({message: 'User updated successfully', user: updatedUser});
 
             // Handle errors
         } catch (err) {
             console.error(err);
             if (err.name === 'ValidationError') {
                 const errors = Object.values(err.errors).map(el => el.message);
-                return res.status(400).json({ message: 'Validation error', errors: errors });
+                return res.status(400).json({message: 'Validation error', errors: errors});
             }
-            return res.status(500).json({ message: 'Error updating user', error: err.message });
+            return res.status(500).json({message: 'Error updating user', error: err.message});
         }
     },
 
@@ -350,11 +356,11 @@ module.exports = {
     changePassword: async function (req, res) {
         // Check if the user is authenticated
         if (!req.session || !req.session.userId) {
-            return res.status(401).json({ message: 'Not authenticated' });
+            return res.status(401).json({message: 'Not authenticated'});
         }
 
         const userId = req.session.userId;
-        const { currentPassword, newPassword } = req.body;
+        const {currentPassword, newPassword} = req.body;
 
         try {
             // Retrieve the user from the database
@@ -362,7 +368,7 @@ module.exports = {
 
             // Handle case where user is not found
             if (!user) {
-                return res.status(404).json({ message: 'User not found' });
+                return res.status(404).json({message: 'User not found'});
             }
 
             // Authenticate with current password
@@ -370,7 +376,7 @@ module.exports = {
 
             // Handle invalid current password
             if (!authenticatedUser) {
-                return res.status(401).json({ message: 'Invalid current password' });
+                return res.status(401).json({message: 'Invalid current password'});
             }
 
             // Set new password and save
@@ -378,12 +384,12 @@ module.exports = {
             await user.save();
 
             // Respond with success message
-            return res.status(200).json({ message: 'Password changed successfully' });
+            return res.status(200).json({message: 'Password changed successfully'});
 
             // Handle errors
         } catch (err) {
             console.error(err);
-            return res.status(500).json({ message: 'Error changing password', error: err.message });
+            return res.status(500).json({message: 'Error changing password', error: err.message});
         }
     },
 
@@ -392,11 +398,11 @@ module.exports = {
     removeSelf: async function (req, res) {
         // Check if the user is authenticated
         if (!req.session || !req.session.userId) {
-            return res.status(401).json({ message: 'Not authenticated' });
+            return res.status(401).json({message: 'Not authenticated'});
         }
 
         const userId = req.session.userId;
-        const { password } = req.body;
+        const {password} = req.body;
 
         try {
             // Retrieve the user from the database
@@ -404,7 +410,7 @@ module.exports = {
 
             // Handle case where user is not found
             if (!user) {
-                return res.status(404).json({ message: 'User not found' });
+                return res.status(404).json({message: 'User not found'});
             }
 
             // Authenticate with provided password
@@ -412,7 +418,7 @@ module.exports = {
 
             // Handle invalid password
             if (!authenticatedUser) {
-                return res.status(401).json({ message: 'Invalid password' });
+                return res.status(401).json({message: 'Invalid password'});
             }
 
             // Delete the user
@@ -422,15 +428,18 @@ module.exports = {
             req.session.destroy((err) => {
                 if (err) {
                     console.error("Error destroying session:", err);
-                    return res.status(500).json({ message: 'Error destroying session after account deletion', error: err.message });
+                    return res.status(500).json({
+                        message: 'Error destroying session after account deletion',
+                        error: err.message
+                    });
                 }
-                return res.status(200).json({ message: 'Account deleted successfully' });
+                return res.status(200).json({message: 'Account deleted successfully'});
             });
 
             // Handle errors
         } catch (err) {
             console.error(err);
-            return res.status(500).json({ message: 'Error deleting account', error: err.message });
+            return res.status(500).json({message: 'Error deleting account', error: err.message});
         }
     },
 
@@ -451,7 +460,7 @@ module.exports = {
             }
 
             // Respond with success message
-            return res.status(200).json({ message: 'User deleted successfully' });
+            return res.status(200).json({message: 'User deleted successfully'});
 
             // Handle errors
         } catch (err) {

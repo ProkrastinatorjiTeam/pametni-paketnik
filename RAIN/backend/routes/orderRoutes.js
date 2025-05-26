@@ -12,21 +12,21 @@ router.get('/list', requireAdmin, orderController.listOrders);
 /*
  * GET
  */
-router.get('/:id', requireAuth, orderController.showOrder);
+router.get('/show/:id', requireAuth, orderController.showOrder);
 
 /*
  * POST
  */
-router.post('/', requireAuth, orderController.createOrder);
+router.post('/create', requireAuth, orderController.createOrder);
 
 /*
  * PUT
  */
-router.put('/:id', requireAdmin, orderController.updateOrder);
+router.patch('/update/:id', requireAdmin, orderController.updateOrder);
 
 /*
  * DELETE
  */
-router.delete('/:id', requireAdmin, orderController.removeOrder);
+router.delete('remove/:id', requireAdmin, orderController.removeOrder);
 
 module.exports = router;
