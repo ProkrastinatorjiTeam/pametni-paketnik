@@ -1,33 +1,15 @@
 var express = require('express');
 var router = express.Router();
 var model3DController = require('../controllers/model3DController.js');
-const UserModel = require("../models/userModel");
 var multer = require('multer');
 var upload = multer({dest: 'public/model3D/images/'});
 
-
-function requireAdmin(req, res, next) {
-    if (req.session && req.session.userId) {
-        UserModel.findById(req.session.userId)
-            .then(user => {
-                if (user && user.role === 'admin') {
-                    next();
-                } else {
-                    res.status(403).json({message: 'Access denied. Admins only.'});
-                }
-            })
-            .catch(err => {
-                res.status(500).json({message: 'Server error'});
-            });
-    } else {
-        res.status(401).json({message: 'Not authenticated'});
-    }
-}
+const {requireAdmin} = require('../middleware/auth');
 
 /*
  * GET
  */
-router.get('/', model3DController.listModels3D);
+router.get('/list', model3DController.listModels3D);
 
 /*
  * GET
