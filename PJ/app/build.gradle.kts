@@ -56,4 +56,8 @@ dependencies {
     // ML Kit Barcode Scanning dependency
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
 
+    implementation (libs.retrofit)
+    implementation (libs.converter.gson)
+    implementation (libs.logging.interceptor)
+
 }

@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
     <!-- Camera permission -->
     <uses-permission android:name="android.permission.CAMERA" /> <!-- Declare camera hardware as optional -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
