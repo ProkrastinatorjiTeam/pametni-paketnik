@@ -1,6 +1,8 @@
 var UserModel = require('../models/userModel.js');
 var BoxModel = require('../models/boxModel.js');
 var UnlockEventModel = require('../models/unlockEventModel.js');
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET || 'tvoj_jwt_secret';
 
 module.exports = {
 
@@ -171,10 +173,6 @@ module.exports = {
         }
     },
 
-    showLogin: async function (req, res) {
-        return res.render('user/login');
-    },
-
     // Register a new user
     registerSelf: async function (req, res) {
         try {
@@ -221,21 +219,22 @@ module.exports = {
     // Log in an existing user
     loginSelf: async function (req, res) {
         try {
-            // Prevent already logged-in users from logging in again
             if (req.session && req.session.userId) {
                 return res.status(400).json({message: 'You are already logged in.'});
             }
 
-            // Authenticate the user
             const user = await UserModel.authenticate(req.body.username, req.body.password);
 
-            // Set the user ID in the session
             req.session.userId = user._id;
 
-            // Respond with success message
-            return res.status(200).json({message: 'Login successful', user: user});
+            const token = jwt.sign({userId: user._id}, JWT_SECRET, {expiresIn: '1h'});
 
-            // Handle errors
+            return res.status(200).json({
+                message: 'Login successful',
+                user: user,
+                token: token
+            });
+
         } catch (err) {
             return res.status(401).json({message: err.message});
         }
@@ -245,21 +244,25 @@ module.exports = {
     // Log out the current user
     logoutSelf: async function (req, res, next) {
         try {
-            // Check if a session exists
+            const authHeader = req.headers['authorization'];
+
+            // Če obstaja sejna seja (web user)
             if (req.session) {
-                // Destroy the session
                 await new Promise((resolve, reject) => {
                     req.session.destroy((err) => {
                         if (err) reject(err);
                         else resolve();
                     });
                 });
-
-                // Respond with success message
-                return res.status(200).json({message: 'Logout successful'});
-
-                // Handle errors
             }
+
+            // Če je mobilna aplikacija (JWT), preverimo če je Authorization header sploh bil
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+                return res.status(200).json({message: 'Logout successful (JWT)'});
+            }
+
+            return res.status(200).json({message: 'Logout successful (session or unknown)'});
+
         } catch (err) {
             return next(err);
         }
