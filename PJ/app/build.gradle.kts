@@ -60,4 +60,7 @@ dependencies {
     implementation (libs.converter.gson)
     implementation (libs.logging.interceptor)
 
+    implementation ("androidx.drawerlayout:drawerlayout:1.2.0")
+    implementation ("com.google.android.material:material:1.11.0")
+
 }
