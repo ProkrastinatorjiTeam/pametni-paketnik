@@ -1,30 +1,33 @@
 package com.example.paketnik_app
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.ExperimentalGetImage
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Callback
 
-data class LoginRequest(
-    val username: String,
-    val password: String
-)
-data class LoginResponse(
-    val token: String,
-    val message: String? = null
-)
 class LoginActivity : AppCompatActivity() {
     private lateinit var usernameEditText: EditText
     private lateinit var passwordEditText: EditText
     private lateinit var loginButton: Button
 
+    @OptIn(ExperimentalGetImage::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+
+        if (AuthManager.isLoggedIn()) {
+            val intent = Intent(this, MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
+        }
 
         usernameEditText = findViewById(R.id.editTextUsername)
         passwordEditText = findViewById(R.id.editTextPassword)
@@ -44,16 +47,47 @@ class LoginActivity : AppCompatActivity() {
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                 if (response.isSuccessful) {
                     val loginResponse = response.body()
-                    Toast.makeText(this@LoginActivity, "Login successful: ${loginResponse?.token}", Toast.LENGTH_LONG).show()
-                    // TODO: shrani token, pojdi na nov activity itd.
+                    Toast.makeText(
+                        this@LoginActivity,
+                        "Login successful: ${loginResponse?.token}",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    loginResponse?.token?.let {
+                        AuthManager.setToken(it)
+                    }
                 } else {
-                    Toast.makeText(this@LoginActivity, "Login failed: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@LoginActivity,
+                        "Login failed: ${response.code()}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
 
             override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                Toast.makeText(this@LoginActivity, "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@LoginActivity,
+                    "Network error: ${t.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         })
     }
 }
+
+data class LoginRequest(
+    val username: String,
+    val password: String
+)
+
+data class User(
+    val id: String,
+    val username: String,
+    val role: String
+)
+
+data class LoginResponse(
+    val token: String,
+    val user: User
+)
