@@ -8,4 +8,13 @@
     <string name="welcome">Welcome!</string>
     <string name="navigation_drawer_open">Open</string>
     <string name="navigation_drawer_close">Close</string>
+    <string name="hello">Hello!</string>
+    <string name="register">Register</string>
+    <string name="first_name">First name</string>
+    <string name="last_name">Last name</string>
+    <string name="e_mail">E-mail</string>
+    <string name="registracija">Registracija</string>
+    <string name="prijava">Prijava</string>
+    <string name="dobrodo_li_prijavite_se_ali_ustvarite_ra_un">Dobrodošli! Prijavite se ali ustvarite račun</string>
+    <string name="paketnik_app">Paketnik App</string>
 </resources>

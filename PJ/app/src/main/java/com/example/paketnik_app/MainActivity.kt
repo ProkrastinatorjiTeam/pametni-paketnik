@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_logout -> {
                     AuthManager.logout()
-                    startActivity(Intent(this, LoginActivity::class.java))
+                    startActivity(Intent(this, AuthActivity::class.java))
                     finish()
                     true
                 }

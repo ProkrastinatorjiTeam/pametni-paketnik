@@ -49,12 +49,17 @@ class LoginActivity : AppCompatActivity() {
                     val loginResponse = response.body()
                     Toast.makeText(
                         this@LoginActivity,
-                        "Login successful: ${loginResponse?.token}",
+                        "Login successful! Welcome back ${loginResponse?.user?.username}!",
                         Toast.LENGTH_LONG
                     ).show()
 
                     loginResponse?.token?.let {
                         AuthManager.setToken(it)
+
+                        val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        startActivity(intent)
+                        finish()
                     }
                 } else {
                     Toast.makeText(
