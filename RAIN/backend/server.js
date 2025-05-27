@@ -16,6 +16,8 @@ var indexRouter = require('./routes/index');
 var userRouter = require('./routes/userRoutes');
 var boxRouter = require('./routes/boxRoutes');
 var unlockEventRouter = require('./routes/unlockEventRoutes');
+var model3DRouter = require('./routes/model3DRoutes');
+var orderRouter = require('./routes/orderRoutes');
 
 var app = express();
 
@@ -42,6 +44,8 @@ app.use('/', indexRouter);
 app.use('/user', userRouter);
 app.use('/box', boxRouter);
 app.use('/unlockEvent', unlockEventRouter);
+app.use('/model3D', model3DRouter);
+app.use('/order', orderRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -49,7 +53,7 @@ app.use(function (req, res, next) {
 });
 
 // error handler
-app.use(function (err, req, res, next) {
+app.use(function (err, req, res) {
     // set locals, only providing error in development
     res.locals.message = err.message;
     res.locals.error = req.app.get('env') === 'development' ? err : {};
