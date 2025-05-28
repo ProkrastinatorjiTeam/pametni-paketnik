@@ -48,3 +48,7 @@ steps_per_epoch, tako zdaj Keras sam ugotovi koliko batchov je v datasetu
 - ločil embedding model od klasifikatorja
 - shranjevanje najboljšega modeza, uporabil sem ModelCheckpoint
 - dodal vizualizacijo treniranja
+
+# Uporabljen dataset
+
+- https://www.kaggle.com/datasets/hearfool/vggface2?resource=download

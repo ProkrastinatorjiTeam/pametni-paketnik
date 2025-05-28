@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers, models, optimizers, regularizers
-from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
 from tensorflow.keras.utils import Sequence
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
@@ -41,8 +41,8 @@ train_dir = "../data/train"
 validation_dir = "../data/validation"
 
 IMAGE_SIZE = (100, 100)
-BATCH_SIZE = 32
-EPOCHS = 10
+BATCH_SIZE = 64
+EPOCHS = 20
 LR = 0.0005
 
 
@@ -88,6 +88,9 @@ class FacesSequence(Sequence):
         # Small random translation
         # Random rotation
 
+        if random.random() > 0.5:
+            image = cv.flip(image, 1)
+
         brightness_factor = 0.8 + 0.4 * random.random()
         image = np.clip(image * brightness_factor, 0, 1)
 
@@ -115,7 +118,7 @@ val_sequence = FacesSequence(validation_dir, BATCH_SIZE, IMAGE_SIZE, class_names
 
 
 def build_base_model():
-    inputs = layers.Input(shape=(100, 100, 3))
+    inputs = layers.Input(shape=(IMAGE_SIZE[0], IMAGE_SIZE[1], 3))
     x = layers.Conv2D(32, (3, 3), padding='same', kernel_regularizer=regularizers.l2(0.001))(inputs)
     x = layers.BatchNormalization()(x)
     x = layers.ReLU()(x)
@@ -179,11 +182,29 @@ checkpoint = ModelCheckpoint(
     verbose=1
 )
 
+early_stopping = EarlyStopping(
+    monitor="val_loss",
+    patience=10,
+    verbose=1,
+    mode="min",
+    restore_best_weights=True
+)
+
+reduce_lr = ReduceLROnPlateau(
+    monitor="val_loss",
+    patience=5,
+    verbose=1,
+    mode="min",
+    min_delta=0.0001,
+    cooldown=0,
+    min_lr=1e-6
+)
+
 history = training_model.fit(
     train_sequence,
     validation_data=val_sequence,
     epochs=EPOCHS,
-    callbacks=[checkpoint]
+    callbacks=[checkpoint, reduce_lr, early_stopping]
 )
 
 visual(history)
