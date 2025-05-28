@@ -41,9 +41,16 @@ train_dir = "../data/train"
 validation_dir = "../data/validation"
 
 IMAGE_SIZE = (100, 100)
-BATCH_SIZE = 64
-EPOCHS = 20
-LR = 0.0005
+BATCH_SIZE = 32
+EPOCHS = 50
+LR = 0.0014
+
+OPTIMAL_FILTERS_BASE = 16
+OPTIMAL_DENSE_UNITS = 768
+OPTIMAL_DROPOUT_CONV = 0.30
+OPTIMAL_DROPOUT_DENSE = 0.35
+OPTIMAL_EMBEDDING_DIM = 128
+OPTIMAL_L2_REG = 0.0006
 
 
 class FacesSequence(Sequence):
@@ -119,43 +126,44 @@ val_sequence = FacesSequence(validation_dir, BATCH_SIZE, IMAGE_SIZE, class_names
 
 def build_base_model():
     inputs = layers.Input(shape=(IMAGE_SIZE[0], IMAGE_SIZE[1], 3))
-    x = layers.Conv2D(32, (3, 3), padding='same', kernel_regularizer=regularizers.l2(0.001))(inputs)
-    x = layers.BatchNormalization()(x)
-    x = layers.ReLU()(x)
-    x = layers.Conv2D(64, (3, 3), padding='same', kernel_regularizer=regularizers.l2(0.001))(x)
-    x = layers.BatchNormalization()(x)
-    x = layers.ReLU()(x)
-    x = layers.MaxPooling2D()(x)
-    x = layers.Dropout(0.25)(x)
 
-    x = layers.Conv2D(64, (3, 3), padding='same', kernel_regularizer=regularizers.l2(0.001))(x)
+    x = layers.Conv2D(OPTIMAL_FILTERS_BASE, (3, 3), padding='same', kernel_regularizer=regularizers.l2(OPTIMAL_L2_REG))(inputs)
     x = layers.BatchNormalization()(x)
     x = layers.ReLU()(x)
-    x = layers.Conv2D(128, (3, 3), padding='same', kernel_regularizer=regularizers.l2(0.001))(x)
+    x = layers.Conv2D(OPTIMAL_FILTERS_BASE * 2, (3, 3), padding='same', kernel_regularizer=regularizers.l2(OPTIMAL_L2_REG))(x)
     x = layers.BatchNormalization()(x)
     x = layers.ReLU()(x)
     x = layers.MaxPooling2D()(x)
-    x = layers.Dropout(0.25)(x)
+    x = layers.Dropout(OPTIMAL_DROPOUT_CONV)(x)
 
-    x = layers.Conv2D(128, (3, 3), padding='same', kernel_regularizer=regularizers.l2(0.001))(x)
+    x = layers.Conv2D(OPTIMAL_FILTERS_BASE * 2, (3, 3), padding='same', kernel_regularizer=regularizers.l2(OPTIMAL_L2_REG))(x)
     x = layers.BatchNormalization()(x)
     x = layers.ReLU()(x)
-    x = layers.Conv2D(256, (3, 3), padding='same', kernel_regularizer=regularizers.l2(0.001))(x)
+    x = layers.Conv2D(OPTIMAL_FILTERS_BASE * 4, (3, 3), padding='same', kernel_regularizer=regularizers.l2(OPTIMAL_L2_REG))(x)
     x = layers.BatchNormalization()(x)
     x = layers.ReLU()(x)
     x = layers.MaxPooling2D()(x)
-    x = layers.Dropout(0.25)(x)
+    x = layers.Dropout(OPTIMAL_DROPOUT_CONV)(x)
+
+    x = layers.Conv2D(OPTIMAL_FILTERS_BASE * 4, (3, 3), padding='same', kernel_regularizer=regularizers.l2(OPTIMAL_L2_REG))(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.ReLU()(x)
+    x = layers.Conv2D(OPTIMAL_FILTERS_BASE * 8, (3, 3), padding='same', kernel_regularizer=regularizers.l2(OPTIMAL_L2_REG))(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.ReLU()(x)
+    x = layers.MaxPooling2D()(x)
+    x = layers.Dropout(OPTIMAL_DROPOUT_CONV)(x)
 
     x = layers.Flatten()(x)
-    x = layers.Dense(1000, kernel_regularizer=regularizers.l2(0.001))(x)
+    x = layers.Dense(OPTIMAL_DENSE_UNITS, kernel_regularizer=regularizers.l2(OPTIMAL_L2_REG))(x)
     x = layers.BatchNormalization()(x)
     x = layers.ReLU()(x)
-    x = layers.Dropout(0.5)(x)
+    x = layers.Dropout(OPTIMAL_DROPOUT_DENSE)(x)
 
-    embeddings = layers.Dense(128, name="embedding")(x)
+    embeddings = layers.Dense(OPTIMAL_EMBEDDING_DIM, name="embedding")(x)
     normalized_embeddings = tf.math.l2_normalize(embeddings, axis=-1)
 
-    return models.Model(inputs, normalized_embeddings, name="embedding_model")
+    return models.Model(inputs, normalized_embeddings, name="embedding_model_tuned")
 
 
 def build_training_model(base_model):
@@ -167,6 +175,8 @@ def build_training_model(base_model):
 
 embedding_model = build_base_model()
 training_model = build_training_model(embedding_model)
+
+training_model.summary()
 
 training_model.compile(
     optimizer=optimizers.Adam(learning_rate=LR),

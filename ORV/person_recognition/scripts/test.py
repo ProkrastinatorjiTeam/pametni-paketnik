@@ -6,7 +6,7 @@ from scipy.spatial.distance import cosine
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-embedding_model = tf.keras.models.load_model('../models/best_model.keras')
+embedding_model = tf.keras.models.load_model('../models/person_embedding_model.keras')
 
 def preprocess_image(img_path):
     img = image.load_img(img_path, target_size=(100, 100))
