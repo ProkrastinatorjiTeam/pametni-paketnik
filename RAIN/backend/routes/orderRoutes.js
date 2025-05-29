@@ -27,6 +27,6 @@ router.patch('/update/:id', requireAdmin, orderController.updateOrder);
 /*
  * DELETE
  */
-router.delete('remove/:id', requireAdmin, orderController.removeOrder);
+router.delete('/remove/:id', requireAdmin, orderController.removeOrder);
 
 module.exports = router;
