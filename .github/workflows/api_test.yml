@@ -23,7 +23,11 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          cd RAIN/backend
+          npm install
 
       - name: Run tests
-        run: npm test
+        run: |
+          cd RAIN/backend
+          npm test
