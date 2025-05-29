@@ -8,10 +8,10 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     env:
-      MONGO_URL: ${{ secrets.MONGO_URL }}
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
 
     steps:
       - name: Checkout code
@@ -23,7 +23,11 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          cd RAIN/backend
+          npm install
 
       - name: Run tests
-        run: npm test
+        run: |
+          cd RAIN/backend
+          npm test
