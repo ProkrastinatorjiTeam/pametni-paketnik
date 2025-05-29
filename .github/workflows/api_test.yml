@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      MONGODB_URI: ${{ secrets.MONGO_URL }}
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
 
     steps:
       - name: Checkout code
