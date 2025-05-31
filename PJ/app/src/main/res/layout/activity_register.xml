@@ -48,6 +48,13 @@
             android:minHeight="48dp" />
 
         <Button
+            android:id="@+id/buttonFaceScan"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/face_scan"
+            android:layout_marginTop="16dp" />
+
+        <Button
             android:id="@+id/buttonRegister"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

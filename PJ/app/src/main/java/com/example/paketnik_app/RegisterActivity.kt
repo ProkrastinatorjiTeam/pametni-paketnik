@@ -17,6 +17,7 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var emailEditText: EditText
     private lateinit var usernameEditText: EditText
     private lateinit var passwordEditText: EditText
+    private lateinit var faceScanButton: Button
     private lateinit var registerButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,6 +30,7 @@ class RegisterActivity : AppCompatActivity() {
         usernameEditText = findViewById(R.id.editTextUsername)
         passwordEditText = findViewById(R.id.editTextPassword)
         registerButton = findViewById(R.id.buttonRegister)
+        faceScanButton = findViewById(R.id.buttonFaceScan)
 
         registerButton.setOnClickListener {
             val firstName = firstNameEditText.text.toString()
@@ -43,6 +45,18 @@ class RegisterActivity : AppCompatActivity() {
             }
 
             registerUser(RegisterRequest(firstName, lastName, email, username, password))
+        }
+
+        faceScanButton.setOnClickListener {
+            val intent = Intent(this, FaceScanActivity::class.java)
+            startActivityForResult(intent, FACE_SCAN_REQUEST_CODE)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == FACE_SCAN_REQUEST_CODE && resultCode == RESULT_OK) {
+            Toast.makeText(this, "Face scan complete!", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -79,6 +93,10 @@ class RegisterActivity : AppCompatActivity() {
                 ).show()
             }
         })
+    }
+
+    companion object {
+        private const val FACE_SCAN_REQUEST_CODE = 1002
     }
 }
 
