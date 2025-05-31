@@ -12,4 +12,17 @@ interface ApiService {
 
     @POST("user/register")
     fun registerUser(@Body request: RegisterRequest): Call<RegisterResponse>
+
+    @POST("box/check-access")
+    fun openBox(@Body body: Map<String, Int>): Call<OpenBoxResponse>
+
+    @POST("unlockevent/create")
+    fun createUnlock(@Body request: UnlockRequest): Call<Void>
 }
+
+data class UnlockRequest(
+    val boxId: String,
+    val success: Boolean
+)
+
+data class OpenBoxResponse(val success: Boolean, val boxId: String)
