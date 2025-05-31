@@ -12,4 +12,7 @@ interface ApiService {
 
     @POST("user/register")
     fun registerUser(@Body request: RegisterRequest): Call<RegisterResponse>
+
+    @POST("box/check-access")
+    fun openBox(@Body body: Map<String, Int>): Call<Void>
 }
