@@ -55,7 +55,7 @@ module.exports = {
 
     // Create a new unlock event (admin only)
     createUnlockEvent: async function (req, res) {
-        const {boxId, success, authorized} = req.body;
+        const {boxId, success} = req.body;
         const userId = req.user._id;
 
         try {
@@ -72,7 +72,6 @@ module.exports = {
             const unlockEvent = new UnlockEventModel({
                 user: userId,
                 box: boxId,
-                authorized: authorized,
                 success: success,
             });
 
