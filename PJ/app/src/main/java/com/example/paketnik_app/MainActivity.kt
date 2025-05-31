@@ -1,5 +1,7 @@
 package com.example.paketnik_app
 
+import OpenBoxResponse
+import UnlockRequest
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -9,6 +11,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -16,6 +19,8 @@ import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.navigation.NavigationView
 import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @androidx.camera.core.ExperimentalGetImage
 class MainActivity : AppCompatActivity() {
@@ -62,6 +67,7 @@ class MainActivity : AppCompatActivity() {
                     finish()
                     true
                 }
+
                 else -> false
             }
         }
@@ -129,19 +135,60 @@ class MainActivity : AppCompatActivity() {
         val body = mapOf("physicalId" to physicalId)
         val call = RetrofitClient.instance.openBox(body)
 
-        call.enqueue(object : retrofit2.Callback<Void> {
-            override fun onResponse(call: Call<Void>, response: retrofit2.Response<Void>) {
-                if (response.isSuccessful) {
+        call.enqueue(object : Callback<OpenBoxResponse> {
+            override fun onResponse(call: Call<OpenBoxResponse>, response: Response<OpenBoxResponse>) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val boxId = response.body()?.boxId ?: return
+
                     TokenPlayerHelper.openBoxAndPlayToken(context, physicalId.toString())
-                } else {
-                    Toast.makeText(context, "Not authorized to open this box", Toast.LENGTH_SHORT)
+
+                    AlertDialog.Builder(this@MainActivity)
+                        .setTitle("Box Unlock")
+                        .setMessage("Was the box successfully opened?")
+                        .setPositiveButton("Yes") { _, _ ->
+                            sendUnlockEvent(boxId, true)
+                        }
+                        .setNegativeButton("No") { _, _ ->
+                            sendUnlockEvent(boxId, false)
+                        }
+                        .setCancelable(false)
                         .show()
+                } else {
+                    Toast.makeText(context, "Not authorized to open this box", Toast.LENGTH_SHORT).show()
                 }
             }
 
-            override fun onFailure(call: Call<Void>, t: Throwable) {
+            override fun onFailure(call: Call<OpenBoxResponse>, t: Throwable) {
                 Toast.makeText(context, "Failed to connect to server", Toast.LENGTH_SHORT).show()
             }
         })
+    }
+
+    private fun sendUnlockEvent(boxId: String, success: Boolean) {
+        val request = UnlockRequest(boxId = boxId,  success = success)
+
+        RetrofitClient.instance.createUnlock(request)
+            .enqueue(object : Callback<Void> {
+                override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(this@MainActivity, "Unlock event saved!", Toast.LENGTH_SHORT)
+                            .show()
+                    } else {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Failed: ${response.code()}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<Void>, t: Throwable) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Network error: ${t.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            })
     }
 }
