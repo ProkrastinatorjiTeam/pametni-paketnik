@@ -13,7 +13,8 @@ var unlockEventSchema = new Schema({
         required: true
     },
     'timestamp' : {type: Date, default: Date.now},
-    'authorized': {type: Boolean, default: false}
+    'authorized': {type: Boolean, default: false},
+    'success' : {type: Boolean, default: false}
 });
 
 module.exports = mongoose.model('unlockEvent', unlockEventSchema);
