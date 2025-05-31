@@ -17,5 +17,6 @@
     <string name="face_scan">Face scan</string>
     <string name="prijava">Prijava</string>
     <string name="dobrodo_li_prijavite_se_ali_ustvarite_ra_un">Dobrodošli! Prijavite se ali ustvarite račun</string>
+    <string name="face_scan_instructions">Prosim obračajte glavo</string>
     <string name="paketnik_app">Paketnik App</string>
 </resources>
