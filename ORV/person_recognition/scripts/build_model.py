@@ -1,5 +1,7 @@
 import os
 import random
+import sys
+import json
 import cv2 as cv
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,9 +10,14 @@ from tensorflow.keras import layers, models, optimizers, regularizers
 from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
 from tensorflow.keras.utils import Sequence
 
+if len(sys.argv) < 2:
+    print("Usage: python build_model.py <user_id>")
+    sys.exit(1)
+
+user_id = sys.argv[1]
+
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
-
 
 def visual(history_result):
     plt.figure(figsize=(10, 4))
@@ -36,9 +43,8 @@ def visual(history_result):
     plt.tight_layout()
     plt.show()
 
-
-train_dir = "../data/train"
-validation_dir = "../data/validation"
+train_dir = f"../data/train"
+validation_dir = f"../data/validation"
 
 IMAGE_SIZE = (100, 100)
 BATCH_SIZE = 32
@@ -98,8 +104,8 @@ class FacesSequence(Sequence):
         if random.random() > 0.5:
             image = cv.flip(image, 1)
 
-        brightness_factor = 0.8 + 0.4 * random.random()
-        image = np.clip(image * brightness_factor, 0, 1)
+        brightness_factor = 0.5 + 1.0 * random.random()
+        image = np.clip(image * brightness_factor, 0, 2)
 
         mean = np.mean(image, axis=(0, 1), keepdims=True)
         contrast_factor = 0.8 + 0.4 * random.random()
@@ -185,7 +191,7 @@ training_model.compile(
 )
 
 checkpoint = ModelCheckpoint(
-    "../models/best_model.keras",
+    f"../models/{user_id}/best_model.keras",
     monitor="val_accuracy",
     save_best_only=True,
     mode="max",
@@ -219,5 +225,15 @@ history = training_model.fit(
 
 visual(history)
 
-training_model.save('../models/person_recognition_full_model.keras')
-embedding_model.save('../models/person_embedding_model.keras')
+training_model.save(f'../models/{user_id}/person_recognition_full_model.keras')
+embedding_model.save(f'../models/{user_id}/person_embedding_model.keras')
+
+class_index_map = {str(idx): cls_name for idx, cls_name in enumerate(class_names)}
+
+output_dir = "../models"
+os.makedirs(output_dir, exist_ok=True)
+
+with open(os.path.join(output_dir, "class_index_map.json"), "w") as f:
+    json.dump(class_index_map, f, indent=4)
+
+print(f"Class index map saved to {os.path.join(output_dir, 'class_index_map.json')}")
