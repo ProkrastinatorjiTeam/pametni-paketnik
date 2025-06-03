@@ -28,7 +28,7 @@
 
 .main-content {
   padding: 20px;
-  position: relative; /* Needed for absolute positioning of children if required, or for layout flow */
+  position: relative;
 }
 
 .auth-form {
@@ -81,9 +81,14 @@
 }
 
 .error-message {
-  color: red;
-  margin-bottom: 15px;
+  color: #dc3545; /* Red */
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 20px; /* Space it from other elements */
   text-align: center;
+  width: 100%;
 }
 
 .success-message {
@@ -131,15 +136,16 @@
 }
 
 .admin-actions-container {
-  position: absolute; /* Position it relative to main-content or App if main-content isn't relative */
-  top: 0px; /* Adjust as needed, distance from the top of main-content */
-  left: 0px; /* Adjust as needed, distance from the left of main-content */
-  padding: 10px; /* Optional padding around the button */
-  z-index: 10; /* Ensure it's above other content if necessary */
+  position: absolute;
+  top: 0px; /* Adjust if needed based on main-content padding */
+  left: 0px; /* Adjust if needed based on main-content padding */
+  padding: 10px; /* Keep or adjust this padding */
+  z-index: 10;
+  margin-bottom: 20px; /* Add margin to push content below */
 }
 
 .add-product-button {
-  background-color: #282c34; 
+  background-color: #282c34;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -150,5 +156,49 @@
 }
 
 .add-product-button:hover {
-  background-color: #1e2128; /* Darker shade of navigation bar color */
+  background-color: #1e2128;
+}
+
+.models-list-container {
+  margin-top: 70px; /* Adjust to ensure it's below the ADD button container */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px; /* Space between model boxes */
+  justify-content: center; /* Center boxes if they don't fill the row */
+}
+
+.model-item-box {
+  background-color: #282c34; /* Navigation bar color */
+  color: white;
+  border-radius: 8px;
+  padding: 15px;
+  width: 280px; /* Adjusted width for a 250px image + padding (250 + 15*2) */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center content */
+}
+
+.model-image {
+  width: 250px; 
+  height: 250px; 
+  object-fit: cover; /* Crop image to fit 250x250 */
+  border-radius: 4px; /* Optional: rounded corners for the image */
+  margin-bottom: 10px;
+  background-color: #3a3f47; /* Placeholder color if image fails to load */
+}
+
+.model-info {
+  text-align: center; /* Center the text below the image */
+}
+
+.model-info h3 {
+  margin-top: 0;
+  margin-bottom: 5px;
+  font-size: 1.2em; 
+}
+
+.model-info p {
+  margin: 0;
+  font-size: 1em; 
 }

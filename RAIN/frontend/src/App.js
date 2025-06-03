@@ -1,16 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Navigate } from 'react-router-dom'; // Added Navigate
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import './App.css';
 import Login from './components/Login';
 import Register from './components/Register';
-import AddProductPage from './components/AddProductPage'; // Import the new component
+import AddProductPage from './components/AddProductPage';
+
+const BACKEND_URL = 'http://localhost:3000'; // Define backend URL for images
 
 function HomePage({ currentUser }) {
-  const navigate = useNavigate(); // Add useNavigate hook
+  const navigate = useNavigate();
+  const [models, setModels] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const response = await axios.get('/model3D/list'); // Assuming this is your backend endpoint
+        setModels(response.data);
+      } catch (err) {
+        console.error('Error fetching models:', err);
+        setError('Failed to load models. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchModels();
+  }, []);
 
   const handleAddClick = () => {
-    navigate('/admin/add-product'); // Navigate to the new page
+    navigate('/admin/add-product');
   };
 
   return (
@@ -22,16 +45,33 @@ function HomePage({ currentUser }) {
           </button>
         </div>
       )}
-      <h1>
-        Welcome to Paketnik!
-      </h1>
-      <p>Your smart package solution.</p>
-      {/* Products will be listed here later */}
+      <div className="models-list-container">
+        {loading && <p>Loading models...</p>}
+        {error && <p className="error-message">{error}</p>}
+        {!loading && !error && models.length === 0 && <p>No models available yet.</p>}
+        {!loading && !error && models.map((model) => (
+          <div key={model._id} className="model-item-box">
+            {model.images && model.images.length > 0 && (
+              <img
+                src={`${BACKEND_URL}${model.images[0]}`}
+                alt={model.name}
+                className="model-image"
+              />
+            )}
+            <div className="model-info">
+              <h3>{model.name}</h3>
+              {model.estimatedPrintTime && (
+                <p>Print Time: {model.estimatedPrintTime} minutes</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
     </main>
   );
 }
 
-// Navigation component to handle useNavigate for logout
+// Navigation component (remains the same)
 function Navigation({ currentUser, onLogout }) {
   const navigate = useNavigate();
 
@@ -70,6 +110,7 @@ function Navigation({ currentUser, onLogout }) {
   );
 }
 
+// App component (useEffect and routes remain largely the same)
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -104,14 +145,13 @@ function App() {
           <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<HomePage currentUser={currentUser} />} />
-          {/* Protected Admin Route for Adding Products */}
           <Route
             path="/admin/add-product"
             element={
               currentUser && currentUser.role === 'admin' ? (
                 <AddProductPage />
               ) : (
-                <Navigate to="/login" replace /> // Or to home page: <Navigate to="/" replace />
+                <Navigate to="/login" replace />
               )
             }
           />
