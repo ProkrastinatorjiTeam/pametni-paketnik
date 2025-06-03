@@ -11,7 +11,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AlertDialog // Ensure this import is present
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -22,12 +22,14 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody // Added import
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
+// Assuming TokenPlayerHelper is in this package or imported correctly
+// import com.example.paketnik_app.TokenPlayerHelper
 
 @androidx.camera.core.ExperimentalGetImage
 class MainActivity : AppCompatActivity() {
@@ -193,27 +195,43 @@ class MainActivity : AppCompatActivity() {
             override fun onResponse(call: Call<com.example.paketnik_app.OpenBoxResponse>, response: Response<com.example.paketnik_app.OpenBoxResponse>) {
                 if (response.isSuccessful && response.body()?.success == true) {
                     val boxId = response.body()?.boxId
-                    if (boxId != null) {
-                        Toast.makeText(context, "Box opened successfully! Box ID: $boxId", Toast.LENGTH_LONG).show()
-                        Log.d("MainActivity", "Box opened: $boxId")
-                        sendUnlockEvent(boxId, true)
-                    } else {
+                    if (boxId == null) {
                         Toast.makeText(context, "Box ID not found in response.", Toast.LENGTH_SHORT).show()
-                        Log.e("MainActivity", "Box ID null in successful response.")
-                        sendUnlockEvent("UNKNOWN_BOX_ID_SUCCESS_NO_ID", false) // Or handle differently
+                        Log.e("MainActivity", "Box ID null in successful openBox response.")
+                        return // Exit if boxId is null
                     }
+
+                    // Call TokenPlayerHelper as in the working version
+                    TokenPlayerHelper.openBoxAndPlayToken(context, physicalId.toString())
+
+                    // Show AlertDialog as in the working version
+                    AlertDialog.Builder(this@MainActivity)
+                        .setTitle("Box Unlock")
+                        .setMessage("Was the box successfully opened?")
+                        .setPositiveButton("Yes") { _, _ ->
+                            sendUnlockEvent(boxId, true)
+                        }
+                        .setNegativeButton("No") { _, _ ->
+                            sendUnlockEvent(boxId, false)
+                        }
+                        .setCancelable(false)
+                        .show()
+                    Log.d("MainActivity", "Box open request successful for physical ID: $physicalId, server returned box ID: $boxId. Awaiting user confirmation.")
+
                 } else {
                     val errorBody = response.errorBody()?.string()
                     Log.e("MainActivity", "tryOpenBox failed: ${response.code()} - $errorBody")
-                    Toast.makeText(context, "Not authorized or error opening box: ${response.code()}", Toast.LENGTH_SHORT).show()
-                    sendUnlockEvent(physicalId.toString(), false) // Use physicalId as fallback if boxId is unknown
+                    // Toast message from the working version
+                    Toast.makeText(context, "Not authorized to open this box", Toast.LENGTH_SHORT).show()
+                    // Removed sendUnlockEvent(physicalId.toString(), false) from here to match working version
                 }
             }
 
             override fun onFailure(call: Call<com.example.paketnik_app.OpenBoxResponse>, t: Throwable) {
                 Log.e("MainActivity", "tryOpenBox network failure: ${t.message}", t)
-                Toast.makeText(context, "Failed to connect to server: ${t.message}", Toast.LENGTH_SHORT).show()
-                sendUnlockEvent(physicalId.toString(), false) // Use physicalId as fallback
+                // Toast message from the working version
+                Toast.makeText(context, "Failed to connect to server", Toast.LENGTH_SHORT).show()
+                // Removed sendUnlockEvent(physicalId.toString(), false) from here to match working version
             }
         })
     }
@@ -226,13 +244,19 @@ class MainActivity : AppCompatActivity() {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
                     if (response.isSuccessful) {
                         Log.d("MainActivity", "Unlock event sent successfully for Box ID: $boxId, Success: $success")
+                        // Toast message from the working version
+                        Toast.makeText(this@MainActivity, "Unlock event saved!", Toast.LENGTH_SHORT).show()
                     } else {
                         Log.e("MainActivity", "Failed to send unlock event: ${response.code()} for Box ID: $boxId")
+                        // Toast message from the working version
+                        Toast.makeText(this@MainActivity, "Failed: ${response.code()}", Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onFailure(call: Call<Void>, t: Throwable) {
                     Log.e("MainActivity", "Network error sending unlock event for Box ID: $boxId : ${t.message}", t)
+                    // Toast message from the working version
+                    Toast.makeText(this@MainActivity, "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })
     }
@@ -249,7 +273,6 @@ class MainActivity : AppCompatActivity() {
             cleanupCachedFrames(framePaths)
             return
         }
-        // Create RequestBody for userId
         val userIdRequestBody = userId.toRequestBody("text/plain".toMediaTypeOrNull())
 
         val imageParts = mutableListOf<MultipartBody.Part>()
@@ -277,7 +300,6 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, "Uploading ${imageParts.size} images for user $userId...", Toast.LENGTH_SHORT).show()
         Log.d("MainActivity", "Attempting to upload ${imageParts.size} images for user $userId to 2FA server.")
 
-        // Pass userIdRequestBody to the API call
         TwoFactorRetrofitClient.instance.updateImages(userIdRequestBody, imageParts).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
@@ -323,9 +345,10 @@ class MainActivity : AppCompatActivity() {
         } else {
             Log.w("MainActivity", "Some cached frames could not be deleted.")
         }
-        val cacheDir = File(cacheDir, "FaceScanImages")
-        if (cacheDir.exists() && cacheDir.isDirectory && cacheDir.listFiles()?.isEmpty() == true) {
-            if (cacheDir.delete()) {
+        // Corrected cacheDir usage:
+        val faceScanImagesDir = File(cacheDir, "FaceScanImages")
+        if (faceScanImagesDir.exists() && faceScanImagesDir.isDirectory && faceScanImagesDir.listFiles()?.isEmpty() == true) {
+            if (faceScanImagesDir.delete()) {
                 Log.d("MainActivity", "Cleaned up empty FaceScanImages directory.")
             } else {
                 Log.w("MainActivity", "Failed to delete empty FaceScanImages directory.")
