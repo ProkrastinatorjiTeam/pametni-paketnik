@@ -214,27 +214,24 @@ class MainActivity : AppCompatActivity() {
                     if (boxId != null) {
                         Toast.makeText(context, "Box opened successfully! Box ID: $boxId", Toast.LENGTH_LONG).show()
                         Log.d("MainActivity", "Box opened: $boxId")
-                        // Call your TokenPlayerHelper here if needed, e.g.:
-                        // TokenPlayerHelper.openBoxAndPlayToken(context, boxId)
-                        // For now, just logging and sending unlock event
-                        sendUnlockEvent(boxId, true) // Send success event
+                        sendUnlockEvent(boxId, true)
                     } else {
                         Toast.makeText(context, "Box ID not found in response.", Toast.LENGTH_SHORT).show()
                         Log.e("MainActivity", "Box ID null in successful response.")
-                        sendUnlockEvent("UNKNOWN_BOX_ID_SUCCESS_NO_ID", false) // Or handle appropriately
+                        sendUnlockEvent("UNKNOWN_BOX_ID_SUCCESS_NO_ID", false)
                     }
                 } else {
                     val errorBody = response.errorBody()?.string()
                     Log.e("MainActivity", "tryOpenBox failed: ${response.code()} - $errorBody")
                     Toast.makeText(context, "Not authorized or error opening box: ${response.code()}", Toast.LENGTH_SHORT).show()
-                    sendUnlockEvent(physicalId.toString(), false) // Send failure event with physicalId as fallback
+                    sendUnlockEvent(physicalId.toString(), false)
                 }
             }
 
             override fun onFailure(call: Call<com.example.paketnik_app.OpenBoxResponse>, t: Throwable) {
                 Log.e("MainActivity", "tryOpenBox network failure: ${t.message}", t)
                 Toast.makeText(context, "Failed to connect to server: ${t.message}", Toast.LENGTH_SHORT).show()
-                sendUnlockEvent(physicalId.toString(), false) // Send failure event
+                sendUnlockEvent(physicalId.toString(), false)
             }
         })
     }
@@ -288,6 +285,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         Toast.makeText(this, "Uploading ${imageParts.size} images...", Toast.LENGTH_SHORT).show()
+        Log.d("MainActivity", "Attempting to upload ${imageParts.size} images to 2FA server.")
 
         TwoFactorRetrofitClient.instance.updateImages(imageParts).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
@@ -295,15 +293,22 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this@MainActivity, "Face images updated successfully!", Toast.LENGTH_LONG).show()
                     Log.d("MainActivity", "Images uploaded successfully. Server response: ${response.body()?.string()}")
                 } else {
-                    Toast.makeText(this@MainActivity, "Failed to update images: ${response.code()}", Toast.LENGTH_LONG).show()
-                    Log.e("MainActivity", "Image upload failed. Code: ${response.code()}, Message: ${response.errorBody()?.string()}")
+                    val errorBody = response.errorBody()?.string() ?: "Unknown error"
+                    Toast.makeText(this@MainActivity, "Failed to update images: ${response.code()} - $errorBody", Toast.LENGTH_LONG).show()
+                    Log.e("MainActivity", "Image upload failed. Code: ${response.code()}, Message: $errorBody")
                 }
                 cleanupCachedFrames(framePaths) // Clean up frames after attempt
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 Toast.makeText(this@MainActivity, "Network error updating images: ${t.message}", Toast.LENGTH_LONG).show()
-                Log.e("MainActivity", "Image upload network error: ${t.message}", t)
+                Log.e("MainActivity", "Image upload network error. Exception: ${t::class.java.simpleName}, Message: ${t.message}", t)
+                Log.e("MainActivity", "Localized Message: ${t.localizedMessage}")
+                t.cause?.let {
+                    Log.e("MainActivity", "Cause: ${it::class.java.simpleName}, Cause Message: ${it.message}", it)
+                }
+                // For more detailed stack trace if needed:
+                // Log.e("MainActivity", "Stack trace: ", t)
                 cleanupCachedFrames(framePaths) // Clean up frames after attempt
             }
         })
