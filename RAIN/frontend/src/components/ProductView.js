@@ -1,26 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import axios from 'axios';
-import './ProductView.css'; 
+import './ProductView.css';
 
 const BACKEND_URL = 'http://localhost:3000';
 
-function ProductView() {
-  const { id } = useParams(); // Get product ID from URL
+function ProductView({ currentUser }) {
+  const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deleteError, setDeleteError] = useState(''); // For delete operation errors
 
   useEffect(() => {
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
+
     const fetchProduct = async () => {
       try {
         setLoading(true);
         setError('');
-        const response = await axios.get(`/model3D/show/${id}`); // Endpoint to get a single product
+        setDeleteError(''); // Clear previous delete errors
+        const response = await axios.get(`/model3D/show/${id}`);
         setProduct(response.data);
-        setCurrentImageIndex(0); // Reset to first image on new product load
+        setCurrentImageIndex(0);
       } catch (err) {
         console.error('Error fetching product:', err);
         setError('Failed to load product details. Please try again later.');
@@ -35,7 +42,7 @@ function ProductView() {
     if (id) {
       fetchProduct();
     }
-  }, [id]);
+  }, [id, currentUser]);
 
   const handleNextImage = () => {
     if (product && product.images && product.images.length > 0) {
@@ -51,6 +58,37 @@ function ProductView() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!product || !product._id) return;
+    // Simple confirmation, consider a more robust modal for production
+    if (window.confirm(`Are you sure you want to delete "${product.name}"? This action cannot be undone.`)) {
+      try {
+        setDeleteError('');
+        // Corrected URL to match backend route for removing a model
+        await axios.delete(`/model3D/remove/${product._id}`);
+        alert('Product deleted successfully.'); // Or use a more subtle notification
+        navigate('/'); // Navigate to home page
+      } catch (err) {
+        console.error('Error deleting product:', err);
+        if (err.response) {
+            // Check if the response status is 204 (No Content), which is a success for DELETE
+            if (err.response.status === 204) {
+                alert('Product deleted successfully.');
+                navigate('/');
+                return;
+            }
+            setDeleteError(err.response.data?.message || `Error: ${err.response.status} ${err.response.statusText}`);
+        } else {
+            setDeleteError('Failed to delete product. Please check your connection and try again.');
+        }
+      }
+    }
+  };
+
+  if (!currentUser) {
+    return <Navigate to="/login" state={{ message: 'Please log in to view product details.' }} replace />;
+  }
+
   if (loading) {
     return <div className="product-view-loading">Loading product...</div>;
   }
@@ -65,11 +103,17 @@ function ProductView() {
 
   const currentImageUrl = product.images && product.images.length > 0
     ? `${BACKEND_URL}${product.images[currentImageIndex]}`
-    : 'placeholder.jpg'; // Fallback image if needed
+    : 'placeholder.jpg';
 
   return (
     <div className="product-view-container">
-      <button onClick={() => navigate(-1)} className="back-button">← Back</button>
+      <div className="product-view-actions"> {/* Wrapper for buttons */}
+        <button onClick={() => navigate(-1)} className="back-button">← Back</button>
+        {currentUser && currentUser.role === 'admin' && (
+          <button onClick={handleDelete} className="delete-button">Delete</button>
+        )}
+      </div>
+      {deleteError && <p className="error-message delete-error-message">{deleteError}</p>}
       <h2>{product.name}</h2>
       <div className="image-carousel">
         {product.images && product.images.length > 1 && (
@@ -89,7 +133,6 @@ function ProductView() {
         {product.estimatedPrintTime && (
           <p><strong>Estimated Print Time:</strong> {product.estimatedPrintTime} minutes</p>
         )}
-        {/* Add more product details here as needed */}
       </div>
     </div>
   );

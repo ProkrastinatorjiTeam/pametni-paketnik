@@ -86,9 +86,23 @@
   border: 1px solid #f5c6cb;
   padding: 10px;
   border-radius: 4px;
-  margin-top: 20px; /* Space it from other elements */
+  margin-top: 10px; /* Adjusted from margin-bottom */
+  margin-bottom: 10px; /* Added margin-bottom */
+  text-align: center;
+  width: 100%; /* Ensure it takes full width of its container */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.info-message-login { /* Style for the "Please log in" message */
+  color: #dc3545; /* Red text */
+  background-color: #f8d7da; /* Light red background */
+  border: 1px solid #f5c6cb; /* Red border */
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
   text-align: center;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .success-message {

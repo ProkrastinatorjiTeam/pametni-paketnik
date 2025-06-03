@@ -5,7 +5,7 @@ import './App.css';
 import Login from './components/Login';
 import Register from './components/Register';
 import AddProductPage from './components/AddProductPage';
-import ProductView from './components/ProductView'; 
+import ProductView from './components/ProductView';
 
 const BACKEND_URL = 'http://localhost:3000';
 
@@ -37,7 +37,7 @@ function HomePage({ currentUser }) {
   };
 
   const handleProductClick = (modelId) => {
-    navigate(`/product/${modelId}`); // Navigate to product view page
+    navigate(`/product/${modelId}`);
   };
 
   return (
@@ -54,7 +54,7 @@ function HomePage({ currentUser }) {
         {error && <p className="error-message">{error}</p>}
         {!loading && !error && models.length === 0 && <p>No models available yet.</p>}
         {!loading && !error && models.map((model) => (
-          <div key={model._id} className="model-item-box" onClick={() => handleProductClick(model._id)}> {/* Added onClick */}
+          <div key={model._id} className="model-item-box" onClick={() => handleProductClick(model._id)}>
             {model.images && model.images.length > 0 && (
               <img
                 src={`${BACKEND_URL}${model.images[0]}`}
@@ -154,11 +154,11 @@ function App() {
               currentUser && currentUser.role === 'admin' ? (
                 <AddProductPage />
               ) : (
-                <Navigate to="/login" replace />
+                <Navigate to="/login" replace state={{ message: 'Please log in as an admin to add products.' }} />
               )
             }
           />
-          <Route path="/product/:id" element={<ProductView />} /> {/* New route for ProductView */}
+          <Route path="/product/:id" element={<ProductView currentUser={currentUser} />} />
         </Routes>
       </div>
     </Router>

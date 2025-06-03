@@ -1,6 +1,7 @@
 .add-product-page-wrapper {
   padding: 20px; /* General padding for the content area */
-  min-height: calc(100vh - 40px - 60px); 
+  min-height: calc(100vh - 40px - 60px); /* Adjust 60px for nav height */
+  /* position: relative; /* Only needed if children are absolutely positioned relative to this */
 }
 
 .page-back-button {
@@ -11,10 +12,8 @@
   border-radius: 5px;
   cursor: pointer;
   font-size: 0.9em;
-  position: fixed;
-  top: 80px;    /* Adjust: (approx nav height + 20px space) */
-  left: 20px;   /* Distance from the left edge of the viewport */
-  z-index: 1000; /* Ensure it's above other content, especially the nav if it's also fixed */
+  margin-bottom: 20px; /* Space below the button before the form container */
+  display: block; /* Or inline-block */
 }
 
 .page-back-button:hover {
@@ -23,7 +22,7 @@
 
 .add-product-container {
   max-width: 600px;
-  margin: 20px auto;
+  margin: 0 auto; /* Center the container, top margin is handled by button's margin-bottom */
   padding: 20px;
   background-color: #f9f9f9;
   border-radius: 8px;

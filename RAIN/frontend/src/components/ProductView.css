@@ -1,40 +1,59 @@
 .product-view-container {
   max-width: 900px;
-  margin: 20px auto; /* This will center the main content */
+  margin: 20px auto;
   padding: 20px;
-  /* Add top padding or margin if the fixed button might overlap content when page is short */
-  /* For example, if button + its space is 120px high: */
-  /* margin-top: 120px; */
   background-color: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   color: #333;
 }
 
+.product-view-actions { /* New style for button wrapper */
+  display: flex;
+  justify-content: space-between; /* Pushes buttons to opposite ends */
+  align-items: center; /* Vertically align if buttons have different heights */
+  margin-bottom: 20px; /* Space below the button row */
+}
+
 .product-view-container h2 {
   text-align: center;
-  color: #282c34; /* Match nav color */
+  color: #282c34;
+  margin-top: 0; /* Adjust if actions margin isn't enough */
   margin-bottom: 20px;
 }
 
 .back-button {
-  background-color: #6c757d; /* Grey */
+  background-color: #6c757d;
   color: white;
   border: none;
   padding: 8px 15px;
   border-radius: 5px;
   cursor: pointer;
   font-size: 0.9em;
-  /* --- Fixed Positioning --- */
-  position: fixed;
-  top: 80px;    /* Adjust: (approx nav height + 20px space) */
-  left: 20px;   /* Distance from the left edge of the viewport */
-  z-index: 1000; /* Ensure it's above other content */
-  /* margin-bottom: 20px; /* No longer needed for spacing in fixed layout */
+  /* margin-bottom is now handled by product-view-actions */
 }
 
 .back-button:hover {
   background-color: #5a6268;
+}
+
+.delete-button { /* New style for delete button */
+  background-color: #dc3545; /* Red color */
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+.delete-button:hover {
+  background-color: #c82333; /* Darker red on hover */
+}
+
+.delete-error-message { /* Specific style for delete errors if needed */
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .image-carousel {
