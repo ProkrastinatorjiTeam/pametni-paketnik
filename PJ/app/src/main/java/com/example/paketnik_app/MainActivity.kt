@@ -1,9 +1,5 @@
 package com.example.paketnik_app
 
-// Ensure these are the correct imports for your project structure
-// import OpenBoxResponse // This seems to be a local class, ensure it's defined or imported correctly
-// import UnlockRequest // Same as above
-
 import android.Manifest
 import android.app.Activity
 import android.content.Context
@@ -24,7 +20,9 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.navigation.NavigationView
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody // Added import
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -35,13 +33,10 @@ import java.io.File
 class MainActivity : AppCompatActivity() {
 
     private val CAMERA_PERMISSION_REQUEST_CODE = 1001
-    // private val FACE_SCAN_REQUEST_CODE = 1002 // Replaced by ActivityResultLauncher
-
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navigationView: NavigationView
     private lateinit var toolbar: MaterialToolbar
 
-    // ActivityResultLauncher for FaceScanActivity
     private val faceScanLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val framePaths = result.data?.getStringArrayListExtra("FRAME_PATHS")
@@ -68,10 +63,11 @@ class MainActivity : AppCompatActivity() {
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()
-            return // Important to return to prevent rest of onCreate from executing
+            return
         }
 
-        Log.d("MainActivity", "App has opened, user is logged in.")
+        Log.d("MainActivity", "App has opened, user is logged in. User ID: ${AuthManager.getUserId()}")
+
 
         setSupportActionBar(toolbar)
         val toggle = ActionBarDrawerToggle(
@@ -85,7 +81,7 @@ class MainActivity : AppCompatActivity() {
         toggle.syncState()
 
         navigationView.setNavigationItemSelectedListener { item ->
-            drawerLayout.closeDrawers() // Close drawer when an item is tapped
+            drawerLayout.closeDrawers()
             when (item.itemId) {
                 R.id.nav_logout -> {
                     AuthManager.logout()
@@ -96,7 +92,6 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.nav_update_face -> {
-                    // Start FaceScanActivity to capture frames
                     val intent = Intent(this, FaceScanActivity::class.java)
                     faceScanLauncher.launch(intent)
                     true
@@ -108,7 +103,6 @@ class MainActivity : AppCompatActivity() {
         val openButton: Button = findViewById(R.id.Open_button)
         openButton.setOnClickListener {
             if (isCameraPermissionGranted()) {
-                // Launch CameraActivity to scan QR code
                 val intent = Intent(this, CameraActivity::class.java)
                 startActivity(intent)
             } else {
@@ -117,14 +111,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onNewIntent(intent: Intent) { // Changed Intent? to Intent
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        setIntent(intent) // Update the activity's intent, now intent is non-nullable
-        // Process QR code if the activity is re-launched with new intent
-        val qrCode = intent.getStringExtra("SCANNED_QR_CODE") // No need for ?. as intent is non-nullable
+        setIntent(intent)
+        val qrCode = intent.getStringExtra("SCANNED_QR_CODE")
         if (qrCode != null) {
             handleScannedQrCode(qrCode)
-            // Clear the extra to prevent reprocessing on configuration change or simple resume
             getIntent().removeExtra("SCANNED_QR_CODE")
         }
     }
@@ -132,19 +124,16 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Check for QR code when activity resumes (e.g., returning from CameraActivity)
         val qrCode = intent.getStringExtra("SCANNED_QR_CODE")
         if (qrCode != null) {
             Log.d("MainActivity", "onResume: Received QR Code: $qrCode")
             handleScannedQrCode(qrCode)
-            // Clear the QR code from the intent to prevent reprocessing
             intent.removeExtra("SCANNED_QR_CODE")
         }
     }
 
     private fun handleScannedQrCode(qrCode: String) {
         Log.d("MainActivity", "Handling QR Code: $qrCode")
-        // Extract the box ID from the QR code string
         val physicalId = extractBoxIdFromQrCode(qrCode)
         Log.d("MainActivity", "Extracted Physical ID: $physicalId")
 
@@ -159,13 +148,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun extractBoxIdFromQrCode(qrCode: String): Int? {
         val segments = qrCode.split("/")
-        // Example QR: "https://b.direct4.me/02/000537/523/138/1747070163/1/53/00/"
-        // Assuming physicalId is at index 5 (the 6th element, e.g., "138")
-        // Your previous code used segments[4]. If that was correct, adjust index accordingly.
-        // For "138" to be segments[5], segments.size must be > 5.
-        // If "138" is segments[4], segments.size must be > 4.
-        // Sticking to segments[4] as per your original logic.
-        if (segments.size > 4) {
+        if (segments.size > 4) { // Assuming physicalId is at index 4 (0-based)
             return segments[4].toIntOrNull()
         }
         return null
@@ -194,7 +177,6 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission granted, launch CameraActivity
                 val intent = Intent(this, CameraActivity::class.java)
                 startActivity(intent)
             } else {
@@ -218,20 +200,20 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         Toast.makeText(context, "Box ID not found in response.", Toast.LENGTH_SHORT).show()
                         Log.e("MainActivity", "Box ID null in successful response.")
-                        sendUnlockEvent("UNKNOWN_BOX_ID_SUCCESS_NO_ID", false)
+                        sendUnlockEvent("UNKNOWN_BOX_ID_SUCCESS_NO_ID", false) // Or handle differently
                     }
                 } else {
                     val errorBody = response.errorBody()?.string()
                     Log.e("MainActivity", "tryOpenBox failed: ${response.code()} - $errorBody")
                     Toast.makeText(context, "Not authorized or error opening box: ${response.code()}", Toast.LENGTH_SHORT).show()
-                    sendUnlockEvent(physicalId.toString(), false)
+                    sendUnlockEvent(physicalId.toString(), false) // Use physicalId as fallback if boxId is unknown
                 }
             }
 
             override fun onFailure(call: Call<com.example.paketnik_app.OpenBoxResponse>, t: Throwable) {
                 Log.e("MainActivity", "tryOpenBox network failure: ${t.message}", t)
                 Toast.makeText(context, "Failed to connect to server: ${t.message}", Toast.LENGTH_SHORT).show()
-                sendUnlockEvent(physicalId.toString(), false)
+                sendUnlockEvent(physicalId.toString(), false) // Use physicalId as fallback
             }
         })
     }
@@ -261,6 +243,15 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        val userId = AuthManager.getUserId()
+        if (userId == null) {
+            Toast.makeText(this, "User ID not found. Please log in again.", Toast.LENGTH_LONG).show()
+            cleanupCachedFrames(framePaths)
+            return
+        }
+        // Create RequestBody for userId
+        val userIdRequestBody = userId.toRequestBody("text/plain".toMediaTypeOrNull())
+
         val imageParts = mutableListOf<MultipartBody.Part>()
         var allFilesValid = true
 
@@ -268,26 +259,26 @@ class MainActivity : AppCompatActivity() {
             val file = File(path)
             if (file.exists() && file.isFile) {
                 val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
-                // "images" is the part name the server expects for each file
                 val bodyPart = MultipartBody.Part.createFormData("images", file.name, requestFile)
                 imageParts.add(bodyPart)
             } else {
                 Log.e("MainActivity", "File not found or invalid: $path")
                 allFilesValid = false
-                break // Stop if any file is invalid
+                break
             }
         }
 
         if (!allFilesValid || imageParts.isEmpty()) {
             Toast.makeText(this, "Error preparing images for upload.", Toast.LENGTH_SHORT).show()
-            cleanupCachedFrames(framePaths) // Clean up even if upload fails here
+            cleanupCachedFrames(framePaths)
             return
         }
 
-        Toast.makeText(this, "Uploading ${imageParts.size} images...", Toast.LENGTH_SHORT).show()
-        Log.d("MainActivity", "Attempting to upload ${imageParts.size} images to 2FA server.")
+        Toast.makeText(this, "Uploading ${imageParts.size} images for user $userId...", Toast.LENGTH_SHORT).show()
+        Log.d("MainActivity", "Attempting to upload ${imageParts.size} images for user $userId to 2FA server.")
 
-        TwoFactorRetrofitClient.instance.updateImages(imageParts).enqueue(object : Callback<ResponseBody> {
+        // Pass userIdRequestBody to the API call
+        TwoFactorRetrofitClient.instance.updateImages(userIdRequestBody, imageParts).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
                     Toast.makeText(this@MainActivity, "Face images updated successfully!", Toast.LENGTH_LONG).show()
@@ -297,19 +288,13 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this@MainActivity, "Failed to update images: ${response.code()} - $errorBody", Toast.LENGTH_LONG).show()
                     Log.e("MainActivity", "Image upload failed. Code: ${response.code()}, Message: $errorBody")
                 }
-                cleanupCachedFrames(framePaths) // Clean up frames after attempt
+                cleanupCachedFrames(framePaths)
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 Toast.makeText(this@MainActivity, "Network error updating images: ${t.message}", Toast.LENGTH_LONG).show()
                 Log.e("MainActivity", "Image upload network error. Exception: ${t::class.java.simpleName}, Message: ${t.message}", t)
-                Log.e("MainActivity", "Localized Message: ${t.localizedMessage}")
-                t.cause?.let {
-                    Log.e("MainActivity", "Cause: ${it::class.java.simpleName}, Cause Message: ${it.message}", it)
-                }
-                // For more detailed stack trace if needed:
-                // Log.e("MainActivity", "Stack trace: ", t)
-                cleanupCachedFrames(framePaths) // Clean up frames after attempt
+                cleanupCachedFrames(framePaths)
             }
         })
     }
@@ -338,7 +323,6 @@ class MainActivity : AppCompatActivity() {
         } else {
             Log.w("MainActivity", "Some cached frames could not be deleted.")
         }
-        // Optionally, delete the "FaceScanImages" directory if it's empty
         val cacheDir = File(cacheDir, "FaceScanImages")
         if (cacheDir.exists() && cacheDir.isDirectory && cacheDir.listFiles()?.isEmpty() == true) {
             if (cacheDir.delete()) {

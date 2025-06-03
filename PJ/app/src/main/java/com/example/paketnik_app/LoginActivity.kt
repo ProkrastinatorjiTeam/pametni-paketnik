@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.ExperimentalGetImage
+import com.google.gson.annotations.SerializedName // Import SerializedName
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Callback
@@ -53,18 +54,31 @@ class LoginActivity : AppCompatActivity() {
                         Toast.LENGTH_LONG
                     ).show()
 
-                    loginResponse?.token?.let {
-                        AuthManager.setToken(it)
+                    loginResponse?.token?.let { AuthManager.setToken(it) }
+                    // Save the userId
+                    loginResponse?.user?.id?.let { AuthManager.setUserId(it) }
 
+                    if (loginResponse?.token != null && loginResponse.user?.id != null) {
                         val intent = Intent(this@LoginActivity, MainActivity::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent)
                         finish()
+                    } else {
+                        // This block should ideally not be hit if the response is as expected
+                        // and parsing is correct.
+                        // Log the actual values for debugging if it still occurs.
+                        android.util.Log.e("LoginActivity", "Token: ${loginResponse?.token}, User ID: ${loginResponse?.user?.id}")
+                        Toast.makeText(
+                            this@LoginActivity,
+                            "Login successful, but missing token or user ID.",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
+
                 } else {
                     Toast.makeText(
                         this@LoginActivity,
-                        "Login failed: ${response.code()}",
+                        "Login failed: ${response.code()} - ${response.errorBody()?.string()}",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -87,12 +101,16 @@ data class LoginRequest(
 )
 
 data class User(
+    @SerializedName("_id") // Maps the JSON field "_id" to this "id" property
     val id: String,
     val username: String,
     val role: String
+    // You can add other fields like firstName, lastName, email if needed,
+    // using @SerializedName if their JSON names differ.
 )
 
 data class LoginResponse(
     val token: String,
-    val user: User
+    val user: User,
+    val message: String? // Added to match the example JSON, though not strictly needed for login logic
 )

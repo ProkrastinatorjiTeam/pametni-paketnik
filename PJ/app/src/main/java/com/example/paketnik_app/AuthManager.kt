@@ -7,6 +7,7 @@ import androidx.core.content.edit
 object AuthManager {
     private const val PREFS_NAME = "auth_prefs"
     private const val TOKEN_KEY = "jwt_token"
+    private const val USER_ID_KEY = "user_id" // Added key for userId
 
     private var prefs: SharedPreferences? = null
 
@@ -22,11 +23,24 @@ object AuthManager {
         return prefs?.getString(TOKEN_KEY, null)
     }
 
+    // Function to save userId
+    fun setUserId(userId: String) {
+        prefs?.edit()?.putString(USER_ID_KEY, userId)?.apply()
+    }
+
+    // Function to retrieve userId
+    fun getUserId(): String? {
+        return prefs?.getString(USER_ID_KEY, null)
+    }
+
     fun isLoggedIn(): Boolean {
         return getToken() != null
     }
 
     fun logout() {
-        prefs?.edit { remove(TOKEN_KEY) }
+        prefs?.edit {
+            remove(TOKEN_KEY)
+            remove(USER_ID_KEY) // Clear userId on logout
+        }
     }
 }
