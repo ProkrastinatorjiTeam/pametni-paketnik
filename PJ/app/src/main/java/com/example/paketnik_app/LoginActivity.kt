@@ -28,6 +28,7 @@ class LoginActivity : AppCompatActivity() {
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()
+            return // Ensure no further execution if already logged in and redirected
         }
 
         usernameEditText = findViewById(R.id.editTextUsername)
@@ -41,6 +42,7 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    @OptIn(ExperimentalGetImage::class) // Add OptIn here
     private fun loginUser(username: String, password: String) {
         val request = LoginRequest(username, password)
 
@@ -55,18 +57,14 @@ class LoginActivity : AppCompatActivity() {
                     ).show()
 
                     loginResponse?.token?.let { AuthManager.setToken(it) }
-                    // Save the userId
                     loginResponse?.user?.id?.let { AuthManager.setUserId(it) }
 
                     if (loginResponse?.token != null && loginResponse.user?.id != null) {
-                        val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                        val intent = Intent(this@LoginActivity, MainActivity::class.java) // This usage is now covered
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent)
                         finish()
                     } else {
-                        // This block should ideally not be hit if the response is as expected
-                        // and parsing is correct.
-                        // Log the actual values for debugging if it still occurs.
                         android.util.Log.e("LoginActivity", "Token: ${loginResponse?.token}, User ID: ${loginResponse?.user?.id}")
                         Toast.makeText(
                             this@LoginActivity,
@@ -101,16 +99,14 @@ data class LoginRequest(
 )
 
 data class User(
-    @SerializedName("_id") // Maps the JSON field "_id" to this "id" property
+    @SerializedName("_id")
     val id: String,
     val username: String,
     val role: String
-    // You can add other fields like firstName, lastName, email if needed,
-    // using @SerializedName if their JSON names differ.
 )
 
 data class LoginResponse(
     val token: String,
     val user: User,
-    val message: String? // Added to match the example JSON, though not strictly needed for login logic
+    val message: String?
 )
