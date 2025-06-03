@@ -12,9 +12,16 @@ function ProductView({ currentUser }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [deleteError, setDeleteError] = useState(''); // For delete operation errors
+  const [deleteError, setDeleteError] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // State for countdown timer
+  const [countdownMinutes, setCountdownMinutes] = useState(0);
+  const [countdownSeconds, setCountdownSeconds] = useState(0);
+  const [timerActive, setTimerActive] = useState(false);
 
   useEffect(() => {
+    // Effect for fetching product data
     if (!currentUser) {
       setLoading(false);
       return;
@@ -24,8 +31,8 @@ function ProductView({ currentUser }) {
       try {
         setLoading(true);
         setError('');
-        setDeleteError(''); // Clear previous delete errors
-        const response = await axios.get(`/model3D/show/${id}`);
+        setDeleteError('');
+        const response = await axios.get(`${BACKEND_URL}/model3D/show/${id}`);
         setProduct(response.data);
         setCurrentImageIndex(0);
       } catch (err) {
@@ -44,6 +51,39 @@ function ProductView({ currentUser }) {
     }
   }, [id, currentUser]);
 
+
+  useEffect(() => {
+    // Effect for the countdown timer
+    let intervalId;
+    if (timerActive && isModalOpen) {
+      intervalId = setInterval(() => {
+        setCountdownSeconds(prevSeconds => {
+          if (prevSeconds > 0) {
+            return prevSeconds - 1;
+          } else {
+            setCountdownMinutes(prevMinutes => {
+              if (prevMinutes > 0) {
+                return prevMinutes - 1;
+              } else {
+                // Timer finished
+                setTimerActive(false);
+                clearInterval(intervalId);
+                return 0;
+              }
+            });
+            return 59; // Reset seconds
+          }
+        });
+      }, 1000);
+    } else {
+      clearInterval(intervalId);
+    }
+
+    // Cleanup function to clear interval when component unmounts or timer stops
+    return () => clearInterval(intervalId);
+  }, [timerActive, isModalOpen]);
+
+
   const handleNextImage = () => {
     if (product && product.images && product.images.length > 0) {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % product.images.length);
@@ -60,18 +100,16 @@ function ProductView({ currentUser }) {
 
   const handleDelete = async () => {
     if (!product || !product._id) return;
-    // Simple confirmation, consider a more robust modal for production
     if (window.confirm(`Are you sure you want to delete "${product.name}"? This action cannot be undone.`)) {
       try {
         setDeleteError('');
-        // Corrected URL to match backend route for removing a model
-        await axios.delete(`/model3D/remove/${product._id}`);
-        alert('Product deleted successfully.'); // Or use a more subtle notification
-        navigate('/'); // Navigate to home page
+        // Ensure BACKEND_URL is used if not using a proxy
+        await axios.delete(`${BACKEND_URL}/model3D/remove/${product._id}`);
+        alert('Product deleted successfully.');
+        navigate('/');
       } catch (err) {
         console.error('Error deleting product:', err);
         if (err.response) {
-            // Check if the response status is 204 (No Content), which is a success for DELETE
             if (err.response.status === 204) {
                 alert('Product deleted successfully.');
                 navigate('/');
@@ -83,6 +121,37 @@ function ProductView({ currentUser }) {
         }
       }
     }
+  };
+
+  const handleBuyNowClick = () => {
+    if (product && product.estimatedPrintTime) {
+      const totalMinutes = parseInt(product.estimatedPrintTime, 10);
+      if (!isNaN(totalMinutes) && totalMinutes > 0) {
+        if (totalMinutes === 1) {
+            setCountdownMinutes(0);
+            setCountdownSeconds(60); 
+        } else {
+            setCountdownMinutes(totalMinutes -1);
+            setCountdownSeconds(60);
+        }
+        setTimerActive(true);
+      } else {
+        // No valid print time, or print time is 0
+        setCountdownMinutes(0);
+        setCountdownSeconds(0);
+        setTimerActive(false);
+      }
+    } else {
+        setCountdownMinutes(0);
+        setCountdownSeconds(0);
+        setTimerActive(false);
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setTimerActive(false);
   };
 
   if (!currentUser) {
@@ -107,7 +176,7 @@ function ProductView({ currentUser }) {
 
   return (
     <div className="product-view-container">
-      <div className="product-view-actions"> {/* Wrapper for buttons */}
+      <div className="product-view-actions">
         <button onClick={() => navigate(-1)} className="back-button">← Back</button>
         {currentUser && currentUser.role === 'admin' && (
           <button onClick={handleDelete} className="delete-button">Delete</button>
@@ -133,7 +202,31 @@ function ProductView({ currentUser }) {
         {product.estimatedPrintTime && (
           <p><strong>Estimated Print Time:</strong> {product.estimatedPrintTime} minutes</p>
         )}
+        <button onClick={handleBuyNowClick} className="buy-now-button">Buy Now</button>
       </div>
+
+      {isModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Thank you for starting the print of {product.name}!</h3>
+            {product.estimatedPrintTime ? (
+              timerActive || (countdownMinutes === 0 && countdownSeconds === 0 && !timerActive && parseInt(product.estimatedPrintTime, 10) > 0) ? (
+                <p>
+                  Your print will complete in: <br />
+                  <span className="countdown-timer">
+                    {String(countdownMinutes).padStart(2, '0')}:{String(countdownSeconds).padStart(2, '0')}
+                  </span>
+                </p>
+              ) : (
+                <p>Your print has completed!</p>
+              )
+            ) : (
+              <p>Print time information is not available.</p>
+            )}
+            <button onClick={handleCloseModal} className="modal-ok-button">OK</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

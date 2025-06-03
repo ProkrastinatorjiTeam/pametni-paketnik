@@ -30,15 +30,14 @@
   border-radius: 5px;
   cursor: pointer;
   font-size: 0.9em;
-  /* margin-bottom is now handled by product-view-actions */
 }
 
 .back-button:hover {
   background-color: #5a6268;
 }
 
-.delete-button { /* New style for delete button */
-  background-color: #dc3545; /* Red color */
+.delete-button {
+  background-color: #dc3545;
   color: white;
   border: none;
   padding: 8px 15px;
@@ -48,10 +47,10 @@
 }
 
 .delete-button:hover {
-  background-color: #c82333; /* Darker red on hover */
+  background-color: #c82333;
 }
 
-.delete-error-message { /* Specific style for delete errors if needed */
+.delete-error-message {
   margin-top: 10px;
   margin-bottom: 10px;
 }
@@ -61,20 +60,20 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 20px;
-  position: relative; /* For arrow positioning */
+  position: relative;
 }
 
 .product-main-image {
-  max-width: 100%; /* Ensure image is responsive */
-  max-height: 600px; /* Limit max height */
-  height: auto; /* Maintain aspect ratio */
+  max-width: 100%;
+  max-height: 600px;
+  height: auto;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  background-color: #e9ecef; /* Placeholder bg */
+  background-color: #e9ecef;
 }
 
 .carousel-arrow {
-  background-color: rgba(40, 44, 52, 0.7); /* Semi-transparent nav color */
+  background-color: rgba(40, 44, 52, 0.7);
   color: white;
   border: none;
   padding: 10px 15px;
@@ -106,15 +105,34 @@
   background-color: #ffffff;
   border-radius: 5px;
   border: 1px solid #e0e0e0;
+  text-align: center; /* Center the content including the button */
 }
 
 .product-details p {
   margin-bottom: 10px;
   line-height: 1.6;
+  text-align: left; /* Align paragraph text to left if preferred */
 }
 
 .product-details strong {
   color: #282c34;
+}
+
+.buy-now-button {
+  background-color: #007bff; /* Blue color for "Buy Now" */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  margin-top: 20px; /* Space above the button */
+  display: inline-block; /* Allows centering via text-align on parent */
+}
+
+.buy-now-button:hover {
+  background-color: #0056b3;
 }
 
 .product-view-loading,
@@ -123,4 +141,63 @@
   font-size: 1.2em;
   padding: 40px;
   color: #555;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed; /* Cover the whole screen */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
+  display: flex;
+  align-items: center; /* Center vertically */
+  justify-content: center; /* Center horizontally */
+  z-index: 1000; /* Ensure it's on top */
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  max-width: 400px; /* Limit modal width */
+  width: 90%; /* Responsive width */
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.modal-content p {
+  color: #555;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.countdown-timer { 
+  font-size: 1.8em;
+  font-weight: bold;
+  color: #007bff; /* Blue, or choose another color */
+  margin-top: 5px;
+  display: block; /* Ensure it takes its own line if needed */
+}
+
+.modal-ok-button {
+  background-color: #28a745; /* Green color for OK */
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+}
+
+.modal-ok-button:hover {
+  background-color: #218838;
 }
