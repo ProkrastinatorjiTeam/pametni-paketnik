@@ -28,6 +28,7 @@
 
 .main-content {
   padding: 20px;
+  position: relative; /* Needed for absolute positioning of children if required, or for layout flow */
 }
 
 .auth-form {
@@ -127,4 +128,27 @@
 
 .logout-button:hover {
   background-color: #c82333;
+}
+
+.admin-actions-container {
+  position: absolute; /* Position it relative to main-content or App if main-content isn't relative */
+  top: 0px; /* Adjust as needed, distance from the top of main-content */
+  left: 0px; /* Adjust as needed, distance from the left of main-content */
+  padding: 10px; /* Optional padding around the button */
+  z-index: 10; /* Ensure it's above other content if necessary */
+}
+
+.add-product-button {
+  background-color: #282c34; 
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+}
+
+.add-product-button:hover {
+  background-color: #1e2128; /* Darker shade of navigation bar color */
 }
