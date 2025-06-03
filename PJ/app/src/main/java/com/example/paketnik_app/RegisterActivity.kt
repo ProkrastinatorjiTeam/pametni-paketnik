@@ -25,7 +25,7 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var emailEditText: EditText
     private lateinit var usernameEditText: EditText
     private lateinit var passwordEditText: EditText
-    private lateinit var faceScanButton: Button
+    // private lateinit var faceScanButton: Button // This button was not used, can be removed if not planned
     private lateinit var registerButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,18 +64,19 @@ class RegisterActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     Toast.makeText(
                         this@RegisterActivity,
-                        "Registration successful! Starting face scan...",
+                        "Registration successful! Please log in.", // Changed message
                         Toast.LENGTH_LONG
                     ).show()
 
-                    // Start FaceScanActivity
-                    val intent = Intent(this@RegisterActivity, FaceScanActivity::class.java)
+                    // Redirect to LoginActivity instead of FaceScanActivity
+                    val intent = Intent(this@RegisterActivity, LoginActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     startActivity(intent)
-                    finish()
+                    finish() // Finish RegisterActivity
                 } else {
                     Toast.makeText(
                         this@RegisterActivity,
-                        "Registration error: ${response.code()}",
+                        "Registration error: ${response.code()} - ${response.errorBody()?.string()}",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -91,6 +92,9 @@ class RegisterActivity : AppCompatActivity() {
         })
     }
 
+    // The extractFrames and saveFrameAsImage methods are not directly used by RegisterActivity anymore
+    // but FaceScanActivity has its own versions. If these were intended for RegisterActivity specifically,
+    // they can be removed or kept if there's another purpose. For now, I'll leave them as they don't harm.
     private fun extractFrames(videoUri: Uri) {
         val extractor = MediaExtractor()
         val inputStream = contentResolver.openInputStream(videoUri) ?: return
@@ -158,7 +162,7 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val FACE_SCAN_REQUEST_CODE = 1002
+        // private const val FACE_SCAN_REQUEST_CODE = 1002 // Not used here anymore
     }
 }
 
