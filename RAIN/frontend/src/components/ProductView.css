@@ -8,7 +8,7 @@
   color: #333;
 }
 
-.product-view-actions { /* New style for button wrapper */
+.product-view-actions { 
   display: flex;
   justify-content: space-between; /* Pushes buttons to opposite ends */
   align-items: center; /* Vertically align if buttons have different heights */

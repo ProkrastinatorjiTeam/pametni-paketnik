@@ -6,8 +6,11 @@ import Login from './components/Login';
 import Register from './components/Register';
 import AddProductPage from './components/AddProductPage';
 import ProductView from './components/ProductView';
+import AdminPanel from './components/AdminPanel';
 
-const BACKEND_URL = 'http://localhost:3000';
+axios.defaults.withCredentials = true;
+
+const BACKEND_URL = 'http://localhost:3000'; 
 
 function HomePage({ currentUser }) {
   const navigate = useNavigate();
@@ -20,7 +23,8 @@ function HomePage({ currentUser }) {
       try {
         setLoading(true);
         setError('');
-        const response = await axios.get('/model3D/list');
+        // Ensure your axios calls are prefixed with BACKEND_URL if not using a proxy
+        const response = await axios.get(`${BACKEND_URL}/model3D/list`);
         setModels(response.data);
       } catch (err) {
         console.error('Error fetching models:', err);
@@ -33,7 +37,7 @@ function HomePage({ currentUser }) {
   }, []);
 
   const handleAddClick = () => {
-    navigate('/admin/add-product');
+    navigate('/admin/add-product'); // Path for adding product
   };
 
   const handleProductClick = (modelId) => {
@@ -60,6 +64,7 @@ function HomePage({ currentUser }) {
                 src={`${BACKEND_URL}${model.images[0]}`}
                 alt={model.name}
                 className="model-image"
+                onError={(e) => { e.target.onerror = null; e.target.src='placeholder.jpg'; }} // Fallback for broken images
               />
             )}
             <div className="model-info">
@@ -75,14 +80,14 @@ function HomePage({ currentUser }) {
   );
 }
 
-// Navigation component (remains the same)
 function Navigation({ currentUser, onLogout }) {
   const navigate = useNavigate();
 
   const handleLogoutClick = async () => {
     try {
-      await axios.post('/user/logout');
-      onLogout();
+      // Ensure your axios calls are prefixed with BACKEND_URL if not using a proxy
+      await axios.post(`${BACKEND_URL}/user/logout`);
+      onLogout(); // This should call handleLogout in App component to set currentUser to null
       navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
@@ -100,6 +105,14 @@ function Navigation({ currentUser, onLogout }) {
       <div className="nav-links">
         {currentUser ? (
           <>
+            {currentUser.role === 'admin' && (
+              <>
+                {/* Admin Panel Link moved here */}
+                <Link to="/admin-panel"><span>Admin Panel</span></Link>
+                {/* Link to Add Product (already exists in your provided code) */}
+                {/* <Link to="/admin/add-product"><span>Add Product</span></Link> */}
+              </>
+            )}
             <span className="username-display">Welcome, {currentUser.username}</span>
             <button onClick={handleLogoutClick} className="logout-button">Logout</button>
           </>
@@ -116,17 +129,26 @@ function Navigation({ currentUser, onLogout }) {
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
+  // Added loading state for session check
+  const [loadingSession, setLoadingSession] = useState(true);
+
 
   useEffect(() => {
     const checkSession = async () => {
+      setLoadingSession(true);
       try {
-        const response = await axios.get('/user/show');
+        // Ensure your axios calls are prefixed with BACKEND_URL if not using a proxy
+        const response = await axios.get(`${BACKEND_URL}/user/show`); // Assuming /user/show gives current user
         if (response.data && response.data.user) {
           setCurrentUser(response.data.user);
+        } else {
+          setCurrentUser(null);
         }
       } catch (error) {
         console.log('No active session or error fetching user:', error.response?.data?.message || error.message);
         setCurrentUser(null);
+      } finally {
+        setLoadingSession(false);
       }
     };
     checkSession();
@@ -138,7 +160,13 @@ function App() {
 
   const handleLogout = () => {
     setCurrentUser(null);
+    // Optionally, clear any local storage items like tokens here
   };
+
+  // Show loading indicator while checking session
+  if (loadingSession) {
+    return <div className="app-loading">Loading application...</div>;
+  }
 
   return (
     <Router>
@@ -158,7 +186,22 @@ function App() {
               )
             }
           />
-          <Route path="/product/:id" element={<ProductView currentUser={currentUser} />} />
+          {/* New Route for Admin Panel */}
+          <Route
+            path="/admin-panel"
+            element={
+              currentUser && currentUser.role === 'admin' ? (
+                <AdminPanel currentUser={currentUser} />
+              ) : (
+                <Navigate to="/" replace state={{ message: 'Access Denied: Admins only.' }} />
+              )
+            }
+          />
+          <Route path="/product/:id" element={
+            currentUser ? <ProductView currentUser={currentUser} /> : <Navigate to="/login" replace state={{ message: 'Please log in to view product details.'}} />
+          } />
+           {/* Fallback for unknown routes - good practice */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </Router>
