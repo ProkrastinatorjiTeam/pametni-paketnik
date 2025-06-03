@@ -87,18 +87,31 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        val physicialId = intent.getStringExtra("SCANNED_QR_CODE")
-        if (physicialId != null) {
-            Log.d("MainActivity", "Received QR Code: $physicialId")
-            println("Received QR Code: $physicialId") // Output to terminal
+        val qrCode = intent.getStringExtra("SCANNED_QR_CODE")
+        if (qrCode != null) {
+            Log.d("MainActivity", "Received QR Code: $qrCode")
+            println("Received QR Code: $qrCode") // Output to terminal
 
-            val physicalIdInt = physicialId.toIntOrNull()
-            if (physicalIdInt != null) {
-                tryOpenBox(this, physicalIdInt)
+            // Extract the box ID from the QR code string
+            val physicalId = extractBoxIdFromQrCode(qrCode)
+
+            if (physicalId != null) {
+                tryOpenBox(this, physicalId)
             } else {
-                Toast.makeText(this, "Invalid QR code", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Invalid QR code format", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun extractBoxIdFromQrCode(qrCode: String): Int? {
+        // Assuming the QR code is in the format "https://b.direct4.me/02/000537/523/138/1747070163/1/53/00/"
+        // Extract the ID which is the third segment when split by '/'
+        val segments = qrCode.split("/")
+        if (segments.size > 4) {
+            val boxIdString = segments[4]
+            return boxIdString.toIntOrNull()
+        }
+        return null
     }
 
     private fun isCameraPermissionGranted(): Boolean {
