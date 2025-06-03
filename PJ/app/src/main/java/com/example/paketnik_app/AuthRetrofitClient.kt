@@ -4,7 +4,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-object RetrofitClient {
+object AuthRetrofitClient {
     private const val BASE_URL = "https://api.fl0rijan.freemyip.com/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
@@ -28,12 +28,12 @@ object RetrofitClient {
         .addInterceptor(loggingInterceptor)
         .build()
 
-    val instance: ApiService by lazy {
+    val instance: AuthApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(ApiService::class.java)
+            .create(AuthApiService::class.java)
     }
 }

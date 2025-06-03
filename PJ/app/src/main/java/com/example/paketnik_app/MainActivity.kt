@@ -94,6 +94,7 @@ class MainActivity : AppCompatActivity() {
 
             // Extract the box ID from the QR code string
             val physicalId = extractBoxIdFromQrCode(qrCode)
+            Log.d("MainActivity", "Extracted Physical ID: $physicalId")
 
             if (physicalId != null) {
                 tryOpenBox(this, physicalId)
@@ -146,7 +147,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun tryOpenBox(context: Context, physicalId: Int) {
         val body = mapOf("physicalId" to physicalId)
-        val call = RetrofitClient.instance.openBox(body)
+        val call = AuthRetrofitClient.instance.openBox(body)
 
         call.enqueue(object : Callback<OpenBoxResponse> {
             override fun onResponse(call: Call<OpenBoxResponse>, response: Response<OpenBoxResponse>) {
@@ -180,7 +181,7 @@ class MainActivity : AppCompatActivity() {
     private fun sendUnlockEvent(boxId: String, success: Boolean) {
         val request = UnlockRequest(boxId = boxId,  success = success)
 
-        RetrofitClient.instance.createUnlock(request)
+        AuthRetrofitClient.instance.createUnlock(request)
             .enqueue(object : Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
                     if (response.isSuccessful) {

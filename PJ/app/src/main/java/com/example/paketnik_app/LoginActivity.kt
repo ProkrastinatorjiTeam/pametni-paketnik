@@ -43,7 +43,7 @@ class LoginActivity : AppCompatActivity() {
     private fun loginUser(username: String, password: String) {
         val request = LoginRequest(username, password)
 
-        RetrofitClient.instance.loginUser(request).enqueue(object : Callback<LoginResponse> {
+        AuthRetrofitClient.instance.loginUser(request).enqueue(object : Callback<LoginResponse> {
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                 if (response.isSuccessful) {
                     val loginResponse = response.body()

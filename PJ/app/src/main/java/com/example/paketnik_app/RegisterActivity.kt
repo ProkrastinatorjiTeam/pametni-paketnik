@@ -56,7 +56,7 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun registerUser(request: RegisterRequest) {
-        RetrofitClient.instance.registerUser(request).enqueue(object : Callback<RegisterResponse> {
+        AuthRetrofitClient.instance.registerUser(request).enqueue(object : Callback<RegisterResponse> {
             override fun onResponse(
                 call: Call<RegisterResponse>,
                 response: Response<RegisterResponse>

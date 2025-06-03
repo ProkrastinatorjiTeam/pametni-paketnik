@@ -3,9 +3,8 @@ package com.example.paketnik_app
 import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
-import android.media.MediaExtractor
-import android.media.MediaCodec
-import android.media.MediaFormat
+import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -18,10 +17,11 @@ import androidx.core.content.ContextCompat
 import androidx.camera.video.*
 import java.io.File
 import java.io.FileOutputStream
-import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import android.app.Activity
+import android.graphics.BitmapFactory
 
 class FaceScanActivity : AppCompatActivity() {
 
@@ -38,7 +38,7 @@ class FaceScanActivity : AppCompatActivity() {
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         // Create output directory for images in internal storage
-        outputDirectory = File(getExternalFilesDir(null), "FaceScanImages").apply {
+        outputDirectory = File(cacheDir, "FaceScanImages").apply {
             if (!exists()) mkdirs()
         }
 
@@ -95,10 +95,14 @@ class FaceScanActivity : AppCompatActivity() {
                     } else {
                         Toast.makeText(this, "Face scan complete!", Toast.LENGTH_SHORT).show()
 
-                        // Pass video URI to RegisterActivity
-                        val intent = Intent(this, RegisterActivity::class.java)
-                        intent.putExtra("VIDEO_URI", event.outputResults.outputUri.toString())
-                        startActivity(intent)
+                        // Extract frames from the video URI
+                        val videoUri = event.outputResults.outputUri
+                        val framePaths = extractFramesFromVideo(videoUri)
+
+                        // Pass frame paths to RegisterActivity
+                        val resultIntent = Intent()
+                        resultIntent.putStringArrayListExtra("FRAME_PATHS", ArrayList(framePaths))
+                        setResult(Activity.RESULT_OK, resultIntent)
                         finish()
                     }
                 }
@@ -109,68 +113,41 @@ class FaceScanActivity : AppCompatActivity() {
         }, 5, TimeUnit.SECONDS)
     }
 
-    private fun extractFrames(videoUri: android.net.Uri) {
-        val extractor = MediaExtractor()
-        val inputStream = contentResolver.openInputStream(videoUri) ?: return
-        val tempFile = File(cacheDir, "temp_video.mp4").apply {
-            outputStream().use { inputStream.copyTo(it) }
-        }
+    private fun extractFramesFromVideo(videoUri: Uri): List<String> {
+        val framePaths = mutableListOf<String>()
+        val mediaMetadataRetriever = MediaMetadataRetriever()
+        mediaMetadataRetriever.setDataSource(this, videoUri)
 
-        extractor.setDataSource(tempFile.absolutePath)
-        val trackIndex = (0 until extractor.trackCount).find {
-            extractor.getTrackFormat(it).getString(MediaFormat.KEY_MIME)?.startsWith("video/") == true
-        } ?: return
+        val videoLengthInMs = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0
+        val frameRate = 3 // Capture 3 frame per second
+        val interval = 1000 / frameRate
 
-        extractor.selectTrack(trackIndex)
-        val format = extractor.getTrackFormat(trackIndex)
-        val width = format.getInteger(MediaFormat.KEY_WIDTH)
-        val height = format.getInteger(MediaFormat.KEY_HEIGHT)
-        val frameRate = format.getInteger(MediaFormat.KEY_FRAME_RATE)
-
-        val codec = MediaCodec.createDecoderByType(format.getString(MediaFormat.KEY_MIME)!!)
-        codec.configure(format, null, null, 0)
-        codec.start()
-
-        val bufferInfo = MediaCodec.BufferInfo()
+        var currentMs = 0L
         var frameIndex = 0
-
-        while (true) {
-            val inputBufferIndex = codec.dequeueInputBuffer(10000)
-            if (inputBufferIndex >= 0) {
-                val inputBuffer = codec.getInputBuffer(inputBufferIndex) ?: continue
-                val sampleSize = extractor.readSampleData(inputBuffer, 0)
-                if (sampleSize < 0) {
-                    codec.queueInputBuffer(inputBufferIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-                    break
-                } else {
-                    codec.queueInputBuffer(inputBufferIndex, 0, sampleSize, extractor.sampleTime, 0)
-                    extractor.advance()
-                }
+        while (currentMs < videoLengthInMs) {
+            var bitmap = mediaMetadataRetriever.getFrameAtTime(currentMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+            bitmap?.let {
+                val resizedBitmap = resizeBitmap(it, 100, 100)
+                val framePath = saveFrameAsImage(resizedBitmap, frameIndex++)
+                framePaths.add(framePath)
             }
-
-            val outputBufferIndex = codec.dequeueOutputBuffer(bufferInfo, 10000)
-            if (outputBufferIndex >= 0) {
-                val outputBuffer = codec.getOutputBuffer(outputBufferIndex) ?: continue
-                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                bitmap.copyPixelsFromBuffer(outputBuffer)
-
-                saveFrameAsImage(bitmap, frameIndex++)
-                codec.releaseOutputBuffer(outputBufferIndex, false)
-            }
-
-            if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) break
+            currentMs += interval
         }
-
-        codec.stop()
-        codec.release()
-        extractor.release()
-        tempFile.delete()
+        mediaMetadataRetriever.release()
+        return framePaths
     }
 
-    private fun saveFrameAsImage(bitmap: Bitmap, frameIndex: Int) {
-        val file = File(outputDirectory, "frame_$frameIndex.png")
-        FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    private fun resizeBitmap(bitmap: Bitmap, width: Int, height: Int): Bitmap {
+        return Bitmap.createScaledBitmap(bitmap, width, height, false)
+    }
+
+    private fun saveFrameAsImage(bitmap: Bitmap, frameIndex: Int): String {
+        val file = File(outputDirectory, "frame_$frameIndex.jpg")
+        FileOutputStream(file).use {
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, it)
+        }
         Log.d("FaceScanActivity", "Saved frame: ${file.absolutePath}")
+        return file.absolutePath
     }
 
     override fun onDestroy() {
