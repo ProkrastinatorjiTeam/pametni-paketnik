@@ -5,8 +5,9 @@ import './App.css';
 import Login from './components/Login';
 import Register from './components/Register';
 import AddProductPage from './components/AddProductPage';
+import ProductView from './components/ProductView'; 
 
-const BACKEND_URL = 'http://localhost:3000'; // Define backend URL for images
+const BACKEND_URL = 'http://localhost:3000';
 
 function HomePage({ currentUser }) {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ function HomePage({ currentUser }) {
       try {
         setLoading(true);
         setError('');
-        const response = await axios.get('/model3D/list'); // Assuming this is your backend endpoint
+        const response = await axios.get('/model3D/list');
         setModels(response.data);
       } catch (err) {
         console.error('Error fetching models:', err);
@@ -28,12 +29,15 @@ function HomePage({ currentUser }) {
         setLoading(false);
       }
     };
-
     fetchModels();
   }, []);
 
   const handleAddClick = () => {
     navigate('/admin/add-product');
+  };
+
+  const handleProductClick = (modelId) => {
+    navigate(`/product/${modelId}`); // Navigate to product view page
   };
 
   return (
@@ -50,7 +54,7 @@ function HomePage({ currentUser }) {
         {error && <p className="error-message">{error}</p>}
         {!loading && !error && models.length === 0 && <p>No models available yet.</p>}
         {!loading && !error && models.map((model) => (
-          <div key={model._id} className="model-item-box">
+          <div key={model._id} className="model-item-box" onClick={() => handleProductClick(model._id)}> {/* Added onClick */}
             {model.images && model.images.length > 0 && (
               <img
                 src={`${BACKEND_URL}${model.images[0]}`}
@@ -110,7 +114,6 @@ function Navigation({ currentUser, onLogout }) {
   );
 }
 
-// App component (useEffect and routes remain largely the same)
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -155,6 +158,7 @@ function App() {
               )
             }
           />
+          <Route path="/product/:id" element={<ProductView />} /> {/* New route for ProductView */}
         </Routes>
       </div>
     </Router>

@@ -1,6 +1,29 @@
+.add-product-page-wrapper {
+  padding: 20px; /* General padding for the content area */
+  min-height: calc(100vh - 40px - 60px); 
+}
+
+.page-back-button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+  position: fixed;
+  top: 80px;    /* Adjust: (approx nav height + 20px space) */
+  left: 20px;   /* Distance from the left edge of the viewport */
+  z-index: 1000; /* Ensure it's above other content, especially the nav if it's also fixed */
+}
+
+.page-back-button:hover {
+  background-color: #5a6268;
+}
+
 .add-product-container {
   max-width: 600px;
-  margin: 40px auto;
+  margin: 20px auto;
   padding: 20px;
   background-color: #f9f9f9;
   border-radius: 8px;
