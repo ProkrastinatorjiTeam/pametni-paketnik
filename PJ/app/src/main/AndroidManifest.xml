@@ -40,6 +40,7 @@
             </intent-filter>
         </activity> <!-- CameraActivity -->
         <activity android:name=".CameraActivity" />
+        <activity android:name=".FaceScanActivity" />
     </application>
 
 </manifest>
