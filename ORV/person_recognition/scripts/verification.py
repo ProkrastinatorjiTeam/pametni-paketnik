@@ -1,108 +1,204 @@
-import json
 import os
-import time
-import numpy as np
+import sys
 import cv2 as cv
-import tensorflow as tf
+import numpy as np
+from tensorflow.keras.models import load_model
+from tensorflow.keras.utils import Sequence
+from keras_vggface.utils import preprocess_input as vggface_preprocess_input
 
-IMAGE_SIZE = (100, 100)
-MODELS_BASE_DIR = "../models"
-VERIFICATION_THRESHOLD = 0.77
-VERIFICATION_DURATION = 10
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-def preprocess_image_for_embedding(image_data):
-    if isinstance(image_data, np.ndarray):
-        img = cv.cvtColor(image_data, cv.COLOR_BGR2RGB)
-        img = cv.resize(img, IMAGE_SIZE)
-        img = img.astype(np.float32) / 255.0
-        img = np.expand_dims(img, axis=0)
-        return img
-    return None
+IMAGE_SIZE = (224, 224)
 
-with open("../models/class_index_map.json", "r") as f:
-    class_index_map = json.load(f)
+class FacesSequence(Sequence):
+    def __init__(self, directory, batch_size, image_size, class_names, augment=False):
+        self.directory = directory
+        self.batch_size = batch_size
+        self.image_size = image_size
+        self.class_names = class_names
+        self.augment = augment  # Za testiranje mora biti False
+        self.class_to_idx = {cls: i for i, cls in enumerate(class_names)}
+        self.samples = []
+        for cls in class_names:
+            cls_dir = os.path.join(directory, cls)
+            if not os.path.isdir(cls_dir):
+                print(f"Opozorilo: Mapa ni najdena {cls_dir} v {directory}")
+                continue
+            for fname in os.listdir(cls_dir):
+                self.samples.append((os.path.join(cls_dir, fname), self.class_to_idx[cls]))
 
-def live_verification(user_id):
-    print(f"\n--- Starting Live Verification for '{user_id}' ---")
+        self.vggface_preprocess_version = 1
 
-    model_path = os.path.join(MODELS_BASE_DIR, user_id, "best_model.keras")
-    try:
-        classification_model = tf.keras.models.load_model(model_path, compile=False)
-        print(f"✅ Classification model loaded successfully from {model_path}")
-    except Exception as e:
-        print(f"❌ Error loading model for user '{user_id}': {e}")
-        return False
+    def __len__(self):
+        return int(np.ceil(len(self.samples) / self.batch_size))
 
-    cap = cv.VideoCapture(0)
-    if not cap.isOpened():
-        print("❌ Error: Unable to access the camera.")
-        return False
+    def __getitem__(self, idx):
+        batch_samples = self.samples[idx * self.batch_size:(idx + 1) * self.batch_size]
+        images = []
+        labels = []
+        for img_path, label in batch_samples:
+            img = cv.imread(img_path)
+            if img is None:
+                print(f"Opozorilo: Slike ni bilo mogoče prebrati {img_path}. Preskočim.")
+                continue
+            img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+            img = cv.resize(img, self.image_size)
 
-    frame_width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
-    frame_height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
+            img_to_preprocess = img.astype(np.float32)
+            img_processed = vggface_preprocess_input(img_to_preprocess, version=self.vggface_preprocess_version)
 
-    box_size = 300
-    center_x = frame_width // 2
-    center_y = frame_height // 2
-    top_left = (center_x - box_size // 2, center_y - box_size // 2)
-    bottom_right = (center_x + box_size // 2, center_y + box_size // 2)
+            images.append(img_processed)
+            labels.append(label)
 
-    print("📷 Starting verification window...")
-    start_time = time.time()
-    verified = False
-    verified_frame = None
+        if not images:
+            return np.array([]), np.array([])
 
-    while time.time() - start_time < VERIFICATION_DURATION:
-        ret, frame = cap.read()
-        if not ret:
-            continue
+        return np.array(images), np.array(labels, dtype=np.float32)
 
-        display_frame = frame.copy()
-        cv.rectangle(display_frame, top_left, bottom_right, (0, 255, 0), 2)
-        cv.putText(display_frame, "Align your face in the box", (top_left[0] - 50, top_left[1] - 10),
-                   cv.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+    def on_epoch_end(self):
 
-        x1, y1 = top_left
-        x2, y2 = bottom_right
-        cropped_face = frame[y1:y2, x1:x2]
+        pass
 
-        if cropped_face.shape[:2] == (box_size, box_size):
-            img = preprocess_image_for_embedding(cropped_face)
 
-            try:
-                preds = classification_model.predict(img, verbose=0)[0]
-                predicted_class_index = np.argmax(preds)
-                predicted_user_id = class_index_map[str(predicted_class_index)]
-                confidence = preds[predicted_class_index]
-
-                print(f"Predicted: {predicted_user_id} with confidence {confidence:.4f}")
-
-                if predicted_user_id == user_id and confidence >= VERIFICATION_THRESHOLD:
-                    verified = True
-                    verified_frame = cropped_face.copy()
-                    print(f"\n✅ Verification SUCCESSFUL! User matched with confidence {confidence:.4f}")
-                    break
-
-            except Exception as e:
-                print(f"❌ Classification prediction error: {e}")
-
-        cv.imshow("Verifying... (Align your face)", display_frame)
-        if cv.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv.destroyAllWindows()
-
-    if verified and verified_frame is not None:
-        cv.imshow("✅ Verified Face", verified_frame)
-        cv.imwrite("last_verified_face.png", verified_frame)
-        cv.waitKey(0)
-        cv.destroyAllWindows()
-        return True
+if 'username' not in locals():
+    if len(sys.argv) > 1:
+        username = sys.argv[1]
+        print(f"Testiram model za uporabnika (iz argumenta): {username}")
     else:
-        print("\n❌ Verification FAILED. No valid match within time limit.")
-        return False
+        username = "janez"
+        print(f"OPOZORILO: Uporabniško ime ni podano kot argument, uporabljam privzeto: '{username}'")
+        print("Za testiranje specifičnega uporabnika zaženite: python test_model.py <username>")
 
-if __name__ == "__main__":
-    user_id_to_verify = input("Enter user id to verify: ").strip()
-    live_verification(user_id_to_verify)
+MODEL_PATH = f"../models/{username}/best_vggface_model.keras"
+CLASS_NAMES = ["not_user", username]
+
+
+def predict_single_image(image_path, model_to_test, threshold=0.5):
+    """Naloži, predprocesira sliko in naredi napoved."""
+    img = cv.imread(image_path)
+    if img is None:
+        print(f"Napaka: Slike ni bilo mogoče naložiti s poti: {image_path}")
+        return None, None
+
+    img_rgb = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+    img_resized = cv.resize(img_rgb, IMAGE_SIZE)
+    img_to_preprocess = img_resized.astype(np.float32)
+
+    img_processed = vggface_preprocess_input(img_to_preprocess, version=1)
+    img_batch = np.expand_dims(img_processed, axis=0)
+
+    prediction_prob = model_to_test.predict(img_batch, verbose=0)[0][0]
+
+    if prediction_prob > threshold:
+        predicted_label = CLASS_NAMES[1]
+    else:
+        predicted_label = CLASS_NAMES[0]
+
+    return predicted_label, prediction_prob
+
+
+if not os.path.exists(MODEL_PATH):
+    print(f"Napaka: Model na poti {MODEL_PATH} ne obstaja.")
+    sys.exit(1)
+
+print(f"Nalaganje modela s poti: {MODEL_PATH}")
+
+trained_model = load_model(MODEL_PATH, compile=False)
+
+print("\n--- Sistematična evaluacija na celotnem testnem naboru ---")
+
+test_dir = f"../data/test"
+
+if not os.path.isdir(test_dir):
+    print(f"Napaka: Testna mapa '{test_dir}' ne obstaja. Sistematična evaluacija ni mogoča.")
+    sys.exit(1)
+if not os.path.isdir(os.path.join(test_dir, username)):
+    print(f"Napaka: Mapa za uporabnika '{username}' ne obstaja znotraj '{test_dir}'.")
+    sys.exit(1)
+if not os.path.isdir(os.path.join(test_dir, "not_user")):
+    print(f"Napaka: Mapa 'not_user' ne obstaja znotraj '{test_dir}'.")
+    sys.exit(1)
+
+test_sequence = FacesSequence(
+    directory=test_dir,
+    batch_size=16,
+    image_size=IMAGE_SIZE,
+    class_names=CLASS_NAMES,
+    augment=False
+)
+
+if len(test_sequence.samples) == 0:
+    print(f"Opozorilo: V testni mapi '{test_dir}' ni bilo najdenih nobenih slik preko FacesSequence.")
+    print("Preverite, ali so slike neposredno v podmapah 'not_user' in '{username}', ne v dodatnih podmapah.")
+else:
+    print(f"Najdenih {len(test_sequence.samples)} slik v testnem naboru.")
+
+    print("Pridobivam napovedi za testni nabor...")
+    y_pred_probs = trained_model.predict(test_sequence, verbose=1)
+
+    y_true = []
+    print("Pridobivam dejanske labele iz testnega nabora...")
+    for i in range(len(test_sequence)):
+        if i % (len(test_sequence) // 10 + 1) == 0:  # Izpis napredka
+            print(f"  Obdelujem batch label {i + 1}/{len(test_sequence)}")
+        _, labels_batch = test_sequence[i]
+        if labels_batch.size > 0:
+            y_true.extend(labels_batch)
+    y_true = np.array(y_true).astype(int)
+
+    if y_pred_probs.size == 0 or y_true.size == 0:
+        print("Napaka: Ni bilo mogoče pridobiti napovedi ali dejanskih label. Preverite testni nabor.")
+    elif len(y_pred_probs) != len(y_true):
+        print(f"Napaka: Število napovedi ({len(y_pred_probs)}) se ne ujema s številom dejanskih label ({len(y_true)}).")
+        print(
+            "To se lahko zgodi, če so bile nekatere slike v testnem naboru preskočene (npr. jih ni bilo mogoče prebrati).")
+        print("Poskusite očistiti testni nabor ali prilagoditi FacesSequence za robustnejše ravnanje z napakami.")
+    else:
+        threshold = 0.5
+        y_pred_classes = (y_pred_probs.flatten() > threshold).astype(int)
+
+        accuracy = accuracy_score(y_true, y_pred_classes)
+        print(f"\nCelokupna točnost na testnem naboru: {accuracy:.4f}")
+
+        print("\nPoročilo o klasifikaciji:")
+        try:
+            report = classification_report(y_true, y_pred_classes, target_names=CLASS_NAMES, zero_division=0)
+            print(report)
+        except ValueError as e:
+            print(f"Napaka pri generiranju poročila o klasifikaciji: {e}")
+            print("To se lahko zgodi, če ena od kategorij nima napovedi ali dejanskih primerov v testnem naboru.")
+            print(f"Dejanske labele (unikatne): {np.unique(y_true, return_counts=True)}")
+            print(f"Napovedane labele (unikatne): {np.unique(y_pred_classes, return_counts=True)}")
+
+        print("\nMatrika zmede (Confusion Matrix):")
+        try:
+            cm = confusion_matrix(y_true, y_pred_classes, labels=[0, 1])  # Eksplicitno podamo labele
+            print(f"Oblika matrike zmede: {cm.shape}")
+            print("Struktura: [[TN, FP], [FN, TP]]")
+            print(f"TN (not_user napovedan kot not_user): {cm[0, 0] if cm.shape == (2, 2) else 'N/A'}")
+            print(f"FP (not_user napovedan kot {username}): {cm[0, 1] if cm.shape == (2, 2) else 'N/A'}")
+            print(f"FN ({username} napovedan kot not_user): {cm[1, 0] if cm.shape == (2, 2) else 'N/A'}")
+            print(f"TP ({username} napovedan kot {username}): {cm[1, 1] if cm.shape == (2, 2) else 'N/A'}")
+
+            if cm.shape == (2, 2):
+                plt.figure(figsize=(6, 5))
+                sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
+                            xticklabels=CLASS_NAMES, yticklabels=CLASS_NAMES)
+                plt.xlabel("Napovedana labela")
+                plt.ylabel("Dejanska labela")
+                plt.title(f"Matrika zmede za '{username}'")
+                plt.tight_layout()
+                output_plot_path = f"../models/{username}/confusion_matrix_test.png"
+                plt.savefig(output_plot_path)
+                print(f"Matrika zmede shranjena v: {output_plot_path}")
+                plt.show()
+            else:
+                print("Matrike zmede ni mogoče prikazati, ker ni oblike 2x2.")
+                print(f"Matrika:\n{cm}")
+
+        except ValueError as e:
+            print(f"Napaka pri računanju ali prikazu matrike zmede: {e}")
+
+print("\n--- Testiranje zaključeno ---")
