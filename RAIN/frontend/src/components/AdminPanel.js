@@ -23,6 +23,12 @@ function AdminPanel({ currentUser }) {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [orderError, setOrderError] = useState('');
 
+  // Box Management State
+  const [isBoxModalOpen, setIsBoxModalOpen] = useState(false);
+  const [boxes, setBoxes] = useState([]);
+  const [loadingBoxes, setLoadingBoxes] = useState(false);
+  const [boxError, setBoxError] = useState('');
+
   // Fetch Users
   const fetchUsers = async () => {
     setLoadingUsers(true);
@@ -107,6 +113,37 @@ function AdminPanel({ currentUser }) {
     setOrderError('');
   };
 
+  // Fetch Boxes
+  const fetchBoxes = async () => {
+    setLoadingBoxes(true);
+    setBoxError('');
+    try {
+      const response = await axios.get(`${BACKEND_URL}/box/list`);
+      if (response.data && response.data.boxes) {
+        setBoxes(response.data.boxes);
+      } else {
+        setBoxes([]);
+        setBoxError('Could not fetch box data format.');
+      }
+    } catch (err) {
+      console.error('Error fetching boxes:', err);
+      setBoxError(err.response?.data?.message || 'Failed to fetch boxes.');
+      setBoxes([]);
+    } finally {
+      setLoadingBoxes(false);
+    }
+  };
+
+  const handleOpenBoxManagement = () => {
+    fetchBoxes();
+    setIsBoxModalOpen(true);
+  };
+
+  const handleCloseBoxModal = () => {
+    setIsBoxModalOpen(false);
+    setBoxError('');
+  };
+
 
   return (
     <div className="admin-panel-container">
@@ -130,6 +167,12 @@ function AdminPanel({ currentUser }) {
             Order Management
           </h3>
           <p>View orders here.</p>
+        </section>
+        <section className="admin-section">
+          <h3 onClick={handleOpenBoxManagement} className="clickable-heading">
+            Box Management
+          </h3>
+          <p>View and manage boxes.</p>
         </section>
       </div>
 
@@ -210,6 +253,34 @@ function AdminPanel({ currentUser }) {
               )
             )}
             <button onClick={handleCloseOrderModal} className="modal-close-button">Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* Box Management Modal */}
+      {isBoxModalOpen && (
+        <div className="modal-overlay admin-modal-overlay">
+          <div className="modal-content admin-modal-content">
+            <h3>Box List</h3>
+            {loadingBoxes && <p>Loading boxes...</p>}
+            {boxError && <p className="error-message modal-error">{boxError}</p>}
+            {!loadingBoxes && !boxError && (
+              boxes.length > 0 ? (
+                <ul className="data-list box-list">
+                  {boxes.map(box => (
+                    <li key={box._id} className="data-list-item">
+                      <span><strong>Name:</strong> {box.name}</span>
+                      <span><strong>Location:</strong> {box.location || 'N/A'}</span>
+                      <span><strong>Physical ID:</strong> {box.physicalId}</span>
+                      <span><strong>Authorized Users:</strong> {box.authorizedUsers?.length || 0}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No boxes yet.</p>
+              )
+            )}
+            <button onClick={handleCloseBoxModal} className="modal-close-button">Close</button>
           </div>
         </div>
       )}
