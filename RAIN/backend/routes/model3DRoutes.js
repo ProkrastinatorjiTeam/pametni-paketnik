@@ -24,11 +24,11 @@ router.post('/add', requireAdmin, upload.fields([{name: 'images', maxCount: 5}])
 /*
  * PUT
  */
-router.patch('update/:id', requireAdmin, model3DController.updateModel3D);
+router.patch('/update/:id', requireAdmin, model3DController.updateModel3D);
 
 /*
  * DELETE
  */
-router.delete('remove/:id', requireAdmin, model3DController.removeModel3D);
+router.delete('/remove/:id', requireAdmin, model3DController.removeModel3D);
 
 module.exports = router;
