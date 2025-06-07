@@ -162,3 +162,18 @@
   text-decoration: underline; /* Optional: underline on hover */
   color: #add8e6; /* Optional: change color on hover */
 }
+
+.timer-display {
+  font-weight: bold;
+  color: #17a2b8; /* Default printing color */
+  margin-left: 5px;
+}
+
+.timer-display.completed {
+  color: #28a745; /* Green for completed */
+}
+
+.timer-display.completing { /* When client timer is done, but backend might not have updated yet */
+  color: #fd7e14; /* Orange for processing */
+  font-style: italic;
+}

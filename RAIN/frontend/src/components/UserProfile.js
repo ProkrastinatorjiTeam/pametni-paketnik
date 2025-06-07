@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import './UserProfile.css';
+import OrderTimer from './OrderTimer'; // Import the new component
+import './UserProfile.css'; 
 
 const BACKEND_URL = 'http://localhost:3000';
 
@@ -9,13 +10,13 @@ function UserProfile({ currentUser }) {
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [orderError, setOrderError] = useState('');
-  const [cancelError, setCancelError] = useState(''); // For cancellation specific errors
-  const [cancellingOrderId, setCancellingOrderId] = useState(null); // To show loading on specific button
+  const [cancelError, setCancelError] = useState(''); 
+  const [cancellingOrderId, setCancellingOrderId] = useState(null); 
 
   const fetchUserOrders = async () => {
     setLoadingOrders(true);
     setOrderError('');
-    setCancelError(''); // Clear cancel error on fetch
+    setCancelError(''); 
     try {
       const response = await axios.get(`${BACKEND_URL}/order/my-orders`);
       if (response.data) {
@@ -47,13 +48,12 @@ function UserProfile({ currentUser }) {
     try {
       const response = await axios.patch(`${BACKEND_URL}/order/my-orders/${orderId}/cancel`);
       if (response.data) {
-        // Update the specific order in the list or re-fetch
+        // Update the specific order in the list
         setOrders(prevOrders => 
           prevOrders.map(order => 
-            order._id === orderId ? { ...order, status: 'cancelled' } : order
+            order._id === orderId ? response.data : order // Use the updated order from backend
           )
         );
-        // Or simply call fetchUserOrders(); for a full refresh
       }
     } catch (err) {
       console.error('Error cancelling order:', err);
@@ -63,8 +63,14 @@ function UserProfile({ currentUser }) {
     }
   };
 
+  const handleOrderTimerEnd = (orderId) => {
+    // When a client-side timer ends, re-fetch orders to get the authoritative status from backend.
+    // This is important because the backend's checkAndUpdateOrderStatus is the source of truth.
+    console.log(`Client timer ended for order ${orderId}. Fetching updated orders.`);
+    fetchUserOrders();
+  };
+
   if (!currentUser) {
-    // This case should ideally be handled by the Route protection in App.js
     return <p>Please log in to view your profile.</p>;
   }
 
@@ -75,7 +81,6 @@ function UserProfile({ currentUser }) {
       <div className="user-details-profile">
         <p><strong>Username:</strong> {currentUser.username}</p>
         <p><strong>Email:</strong> {currentUser.email}</p>
-        {/* You can add more user details here if available, e.g., First Name, Last Name */}
       </div>
 
       <div className="user-orders-section">
@@ -101,7 +106,29 @@ function UserProfile({ currentUser }) {
                     {order.box && <p><strong>Box:</strong> {order.box?.name || 'N/A'} (Location: {order.box?.location || 'N/A'})</p>}
                     <p><strong>Ordered At:</strong> {new Date(order.createdAt).toLocaleString()}</p>
                     {order.startedPrintingAt && <p><strong>Printing Started:</strong> {new Date(order.startedPrintingAt).toLocaleString()}</p>}
-                    {order.completedAt && <p><strong>Completed:</strong> {new Date(order.completedAt).toLocaleString()}</p>}
+                    
+                    {order.status === 'printing' && order.startedPrintingAt && order.model?.estimatedPrintTime ? (
+                      <p>
+                        <strong>Time Remaining: </strong>
+                        <OrderTimer
+                          orderId={order._id}
+                          startedAt={order.startedPrintingAt}
+                          estimatedPrintTimeMinutes={order.model.estimatedPrintTime}
+                          status={order.status}
+                          onTimerEnd={handleOrderTimerEnd}
+                        />
+                      </p>
+                    ) : order.status === 'ready to pickup' && order.completedAt ? (
+                      <p><strong>Ready for Pickup At:</strong> {new Date(order.completedAt).toLocaleString()}</p>
+                    ) : order.status === 'cancelled' && order.completedAt ? (
+                       <p><strong>Cancelled At:</strong> {new Date(order.completedAt).toLocaleString()}</p>
+                    ) : null}
+                    
+                    {/* Fallback for completedAt if status is not printing but completedAt exists */}
+                    {order.completedAt && order.status !== 'printing' && order.status !== 'ready to pickup' && order.status !== 'cancelled' && (
+                         <p><strong>Processed At:</strong> {new Date(order.completedAt).toLocaleString()}</p>
+                    )}
+
                   </div>
                   <div className="order-item-actions-profile">
                     {order.model?._id && 

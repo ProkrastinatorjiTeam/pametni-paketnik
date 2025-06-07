@@ -2,24 +2,67 @@ const OrderModel = require('../models/orderModel.js');
 const BoxModel = require('../models/boxModel.js');
 
 /**
- * orderController.js
- *
- * @description :: Server-side logic for managing orders.
+ * Helper function to check and update order status if printing is complete.
+ * This function will now also save the order if updated.
  */
+async function checkAndUpdateOrderStatus(order) {
+    // Ensure model is populated, has estimatedPrintTime, and order is in a state to be checked
+    if (order && order.status === 'printing' && order.startedPrintingAt && 
+        order.model && typeof order.model.estimatedPrintTime === 'number' && 
+        !order.completedAt) {
+
+        const startTime = new Date(order.startedPrintingAt).getTime();
+        const printDurationMs = order.model.estimatedPrintTime * 60 * 1000;
+        const expectedCompletionTime = startTime + printDurationMs;
+
+        if (Date.now() >= expectedCompletionTime) {
+            order.status = 'ready to pickup';
+            order.completedAt = new Date();
+
+            // Authorize user for the box if a box is assigned
+            if (order.box) {
+                try {
+                    const box = await BoxModel.findById(order.box);
+                    if (box) {
+                        const userId = order.orderBy; // User who placed the order
+                        // Ensure userId is a string if comparing with box.authorizedUsers elements
+                        const userIdStr = userId.toString();
+                        if (!box.authorizedUsers.map(uid => uid.toString()).includes(userIdStr)) {
+                            box.authorizedUsers.push(userId); // Mongoose handles casting to ObjectId
+                            await box.save();
+                        }
+                    } else {
+                        console.warn(`Box with ID ${order.box} not found for order ${order._id} during auto-completion.`);
+                    }
+                } catch (boxError) {
+                    console.error(`Error authorizing user for box ${order.box} on order ${order._id} completion:`, boxError);
+                }
+            }
+            await order.save(); // Save the updated order
+        }
+    }
+    return order; // Return the potentially modified order
+}
+
 module.exports = {
     /**
      * orderController.listOrders()
      */
     listOrders: async function (req, res) {
         try {
-            const orders = await OrderModel.find()
-                                        .populate('model', 'name') // Populate model and select only the name
-                                        .populate('orderBy', 'username'); // Populate user and select only the username
+            let orders = await OrderModel.find({})
+                                        .populate({ path: 'model', select: 'name estimatedPrintTime' })
+                                        .populate('orderBy', 'username')
+                                        .populate('box', 'name location')
+                                        .sort({ createdAt: -1 });
+
+            orders = await Promise.all(orders.map(order => checkAndUpdateOrderStatus(order)));
+
             return res.json(orders);
         } catch (err) {
             return res.status(500).json({
                 message: 'Error when getting orders.',
-                error: err
+                error: err.message || err
             });
         }
     },
@@ -30,19 +73,23 @@ module.exports = {
     showOrder: async function (req, res) {
         const id = req.params.id;
         try {
-            const order = await OrderModel.findById(id)
-                                        .populate('model', 'name')
-                                        .populate('orderBy', 'username');
+            let order = await OrderModel.findById(id)
+                                        .populate({ path: 'model', select: 'name estimatedPrintTime' })
+                                        .populate('orderBy', 'username')
+                                        .populate('box', 'name location');
             if (!order) {
                 return res.status(404).json({
                     message: 'No such order'
                 });
             }
+
+            order = await checkAndUpdateOrderStatus(order);
+
             return res.json(order);
         } catch (err) {
             return res.status(500).json({
                 message: 'Error when getting order.',
-                error: err
+                error: err.message || err
             });
         }
     },
@@ -54,20 +101,23 @@ module.exports = {
         const order = new OrderModel({
             model: req.body.model,
             orderBy: req.session.userId,
-            status: 'printing', // Set status to 'printing'
+            status: 'printing',
             box: req.body.box,
-            // createdAt is set by default
-            startedPrintingAt: Date.now(), // Set startedPrintingAt time
-            completedAt: req.body.completedAt
+            startedPrintingAt: Date.now(),
         });
 
         try {
             const savedOrder = await order.save();
-            return res.status(201).json(savedOrder);
+            // Populate necessary fields for the response if needed immediately by client
+            const populatedOrder = await OrderModel.findById(savedOrder._id)
+                                                .populate({ path: 'model', select: 'name estimatedPrintTime' })
+                                                .populate('orderBy', 'username')
+                                                .populate('box', 'name location');
+            return res.status(201).json(populatedOrder);
         } catch (err) {
             return res.status(500).json({
                 message: 'Error when creating order',
-                error: err
+                error: err.message || err
             });
         }
     },
@@ -85,51 +135,48 @@ module.exports = {
                 });
             }
 
-            order.model = req.body.model ?? order.model;
-            order.orderBy = req.body.orderBy ?? order.orderBy;
-            order.status = req.body.status ?? order.status;
-            order.box = req.body.box ?? order.box;
-            // createdAt should generally not be updated manually after creation
+            // Update fields from request body
+            const updatableFields = ['model', 'orderBy', 'status', 'box', 'startedPrintingAt', 'completedAt'];
+            updatableFields.forEach(field => {
+                if (req.body[field] !== undefined) {
+                    order[field] = req.body[field];
+                }
+            });
 
-            if (req.body.status === "printing" && !order.startedPrintingAt) {
-                order.startedPrintingAt = new Date();
-            } else if (req.body.startedPrintingAt) {
-                order.startedPrintingAt = req.body.startedPrintingAt;
+            // Specific logic for status changes (from previous implementation)
+            if (order.status === "printing" && !order.startedPrintingAt && req.body.status === "printing") {
+                 order.startedPrintingAt = new Date();
             }
 
-            if (req.body.status === "ready to pickup" && !order.completedAt) {
+            if (order.status === "ready to pickup" && !order.completedAt && req.body.status === "ready to pickup") {
                 order.completedAt = new Date();
-
-                if (req.body.box) { // Ensure box is assigned if status is ready to pickup
-                    order.box = req.body.box;
-
-                    const box = await BoxModel.findById(req.body.box);
-                    if (!box) {
-                        return res.status(404).json({message: 'Box not found for order completion'});
+                if (order.box) {
+                    const box = await BoxModel.findById(order.box);
+                    if (box) {
+                        const userId = order.orderBy.toString();
+                        if (!box.authorizedUsers.map(uid => uid.toString()).includes(userId)) {
+                            box.authorizedUsers.push(order.orderBy);
+                            await box.save();
+                        }
                     }
-
-                    const userId = order.orderBy; // User who placed the order
-                    if (!box.authorizedUsers.includes(userId)) {
-                        box.authorizedUsers.push(userId);
-                        await box.save();
-                    }
-                } else if (!order.box) { // If no box is assigned when moving to ready to pickup
-                    return res.status(400).json({ message: 'A box must be assigned to the order when it is ready for pickup.' });
+                } else {
+                     return res.status(400).json({ message: 'A box must be assigned to the order when it is ready for pickup.' });
                 }
-            } else if (req.body.completedAt) {
-                order.completedAt = req.body.completedAt;
             }
 
             const updatedOrder = await order.save();
-            return res.json(updatedOrder);
+            const populatedOrder = await OrderModel.findById(updatedOrder._id)
+                                                .populate({ path: 'model', select: 'name estimatedPrintTime' })
+                                                .populate('orderBy', 'username')
+                                                .populate('box', 'name location');
+            return res.json(populatedOrder);
         } catch (err) {
             return res.status(500).json({
                 message: 'Error when updating order.',
-                error: err
+                error: err.message || err
             });
         }
     },
-
     /**
      * orderController.removeOrder()
      */
@@ -141,69 +188,74 @@ module.exports = {
         } catch (err) {
             return res.status(500).json({
                 message: 'Error when deleting the order.',
-                error: err
+                error: err.message || err
             });
         }
     },
 
     /**
      * orderController.listMyOrders()
-     * Fetches orders for the currently authenticated user.
      */
     listMyOrders: async function (req, res) {
         try {
-            // req.session.userId should be populated by requireAuth middleware
             if (!req.session || !req.session.userId) {
                 return res.status(401).json({ message: 'Not authenticated' });
             }
 
-            const orders = await OrderModel.find({ orderBy: req.session.userId })
-                                        .populate('model', 'name') // Populate model and select only the name
-                                        .populate('box', 'name location') // Populate box details
-                                        .sort({ createdAt: -1 }); // Sort by newest first
+            let orders = await OrderModel.find({ orderBy: req.session.userId })
+                                        .populate({ path: 'model', select: 'name estimatedPrintTime' })
+                                        .populate('orderBy', 'username') // Technically redundant if only for current user, but good for consistency
+                                        .populate('box', 'name location')
+                                        .sort({ createdAt: -1 });
+
+            orders = await Promise.all(orders.map(order => checkAndUpdateOrderStatus(order)));
 
             return res.json(orders);
         } catch (err) {
             console.error("Error in listMyOrders:", err);
             return res.status(500).json({
                 message: 'Error when getting your orders.',
-                error: err.message // Send only err.message for security
+                error: err.message
             });
         }
     },
 
     /**
      * orderController.cancelMyOrder()
-     * Allows a user to cancel their own order if it's in a cancelable state.
      */
     cancelMyOrder: async function (req, res) {
         const orderId = req.params.id;
         const userId = req.session.userId;
 
         try {
-            const order = await OrderModel.findById(orderId);
+            const order = await OrderModel.findById(orderId).populate({ path: 'model', select: 'name estimatedPrintTime' });
 
             if (!order) {
                 return res.status(404).json({ message: 'Order not found.' });
             }
 
-            // Check if the logged-in user is the one who placed the order
             if (order.orderBy.toString() !== userId) {
                 return res.status(403).json({ message: 'You are not authorized to cancel this order.' });
             }
 
-            // Check if the order is in a cancelable state
             if (order.status !== 'pending' && order.status !== 'printing') {
                 return res.status(400).json({ message: `Order cannot be cancelled as it is already ${order.status}.` });
             }
 
             order.status = 'cancelled';
-            // Optionally, you might want to clear completedAt or startedPrintingAt if it's cancelled
-            // order.completedAt = undefined; 
-            // order.startedPrintingAt = undefined; // If relevant
+            // If cancelling a printing order, you might want to set completedAt to now
+            // to signify when it was stopped, or leave it null.
+            // If it was printing, completedAt might be set to when it was cancelled.
+            if (order.startedPrintingAt && !order.completedAt) {
+                order.completedAt = new Date(); // Mark cancellation time as completion time
+            }
 
             const updatedOrder = await order.save();
-            return res.json(updatedOrder);
+            const populatedOrder = await OrderModel.findById(updatedOrder._id)
+                                                .populate({ path: 'model', select: 'name estimatedPrintTime' })
+                                                .populate('orderBy', 'username')
+                                                .populate('box', 'name location');
+            return res.json(populatedOrder);
 
         } catch (err) {
             console.error("Error in cancelMyOrder:", err);
