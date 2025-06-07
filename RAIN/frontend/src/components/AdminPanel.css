@@ -123,6 +123,7 @@
   font-size: 0.9em;
   margin-right: 10px; /* Add some spacing between spans */
   margin-bottom: 5px; /* Spacing for wrapped items */
+  display: inline-block; /* Helps with alignment and spacing */
 }
 
 /* Specific styling for order items if they need more complex layout */
@@ -130,6 +131,15 @@
   min-width: 120px; /* Give some minimum width to order item details */
 }
 
+.status-busy {
+  color: #dc3545; /* Red */
+  font-weight: bold;
+}
+
+.status-available {
+  color: #28a745; /* Green */
+  font-weight: bold;
+}
 
 .modal-close-button {
   display: block;

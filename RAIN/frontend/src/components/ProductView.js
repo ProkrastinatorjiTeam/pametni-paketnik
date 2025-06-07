@@ -64,8 +64,7 @@ function ProductView({ currentUser }) {
     setLoadingBoxes(true);
     setBoxError('');
     try {
-      // Assuming '/box/list' is accessible by authenticated users
-      // Adjust endpoint if necessary, or if it's admin-only, a new endpoint is needed.
+      // The backend /box/list now includes an 'isBusy' field
       const response = await axios.get(`${BACKEND_URL}/box/list`);
       if (response.data && response.data.boxes) {
         setBoxes(response.data.boxes);
@@ -296,11 +295,17 @@ function ProductView({ currentUser }) {
                       value={selectedBoxId}
                       onChange={(e) => setSelectedBoxId(e.target.value)}
                       className="box-select-dropdown"
+                      disabled={loadingBoxes}
                     >
                       <option value="">-- Select a Box --</option>
                       {boxes.map((box) => (
-                        <option key={box._id} value={box._id}>
+                        <option 
+                          key={box._id} 
+                          value={box._id} 
+                          disabled={box.isBusy} // Disable if busy
+                        >
                           {box.name} (Location: {box.location || 'N/A'})
+                          {box.isBusy ? ' (In Use)' : ''} {/* Indicate if busy */}
                         </option>
                       ))}
                     </select>
@@ -308,13 +313,16 @@ function ProductView({ currentUser }) {
                   {!loadingBoxes && !boxError && boxes.length === 0 && (
                     <p>No boxes available at the moment.</p>
                   )}
+                   {!loadingBoxes && !boxError && boxes.length > 0 && !boxes.some(b => !b.isBusy) && (
+                    <p>All available boxes are currently in use.</p>
+                  )}
                 </div>
                 {orderError && <p className="error-message">{orderError}</p>}
                 <div className="modal-actions-stacked">
                   <button
                     onClick={handleConfirmOrderAndStartTimer}
-                    className="modal-ok-button" // Or a new class like 'modal-confirm-button'
-                    disabled={loadingBoxes || !selectedBoxId || boxes.length === 0}
+                    className="modal-ok-button"
+                    disabled={loadingBoxes || !selectedBoxId || boxes.find(b => b._id === selectedBoxId)?.isBusy || (boxes.length > 0 && !boxes.some(b => !b.isBusy))}
                   >
                     Confirm Order & Start Print
                   </button>

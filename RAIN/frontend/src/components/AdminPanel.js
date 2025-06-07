@@ -121,7 +121,7 @@ function AdminPanel({ currentUser }) {
     setOrderError('');
   };
 
-  // Fetch Boxes
+  // Fetch Boxes (no change needed here as backend now sends 'isBusy')
   const fetchBoxes = async () => {
     setLoadingBoxes(true);
     setBoxError('');
@@ -321,6 +321,12 @@ function AdminPanel({ currentUser }) {
                       <span><strong>Location:</strong> {box.location || 'N/A'}</span>
                       <span><strong>Physical ID:</strong> {box.physicalId}</span>
                       <span><strong>Authorized Users:</strong> {box.authorizedUsers?.length || 0}</span>
+                      <span>
+                        <strong>Status:</strong> 
+                        <span className={box.isBusy ? 'status-busy' : 'status-available'}>
+                          {box.isBusy ? ' In Use' : ' Available'}
+                        </span>
+                      </span>
                     </li>
                   ))}
                 </ul>

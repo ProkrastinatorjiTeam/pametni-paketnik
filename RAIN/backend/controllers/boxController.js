@@ -1,18 +1,31 @@
 var BoxModel = require('../models/boxModel.js');
 var UserModel = require('../models/userModel.js');
-var UnlockEventModel = require('../models/unlockEventModel.js'); // Added this line
+var UnlockEventModel = require('../models/unlockEventModel.js');
+var OrderModel = require('../models/orderModel.js'); // Add OrderModel
 
 
 module.exports = {
 
-    // List all boxes (admin only)
+    // List all boxes
     listBoxes: async function (req, res) {
         try {
             // Fetch all boxes from the database
-            const boxes = await BoxModel.find({});
+            const boxes = await BoxModel.find({}).lean(); // Use .lean() for plain JS objects
 
-            // Respond with the list of boxes
-            return res.status(200).json({message: 'Boxes retrieved successfully', boxes: boxes});
+            // For each box, check if it's currently used in an active "printing" order
+            const boxesWithStatus = await Promise.all(boxes.map(async (box) => {
+                const activeOrderCount = await OrderModel.countDocuments({
+                    box: box._id,
+                    status: 'printing'
+                });
+                return {
+                    ...box,
+                    isBusy: activeOrderCount > 0
+                };
+            }));
+
+            // Respond with the list of boxes including their busy status
+            return res.status(200).json({message: 'Boxes retrieved successfully', boxes: boxesWithStatus});
 
             // Handle errors
         } catch (err) {
@@ -31,7 +44,7 @@ module.exports = {
 
         try {
             // Retrieve the box from the database
-            const box = await BoxModel.findOne({_id: id}).populate('authorizedUsers');
+            const box = await BoxModel.findById(id).populate('authorizedUsers').lean();
 
             // Handle case where box is not found
             if (!box) {
@@ -39,6 +52,13 @@ module.exports = {
                     message: 'Box not found'
                 });
             }
+
+            // Check if the box is currently used in an active "printing" order
+            const activeOrderCount = await OrderModel.countDocuments({
+                box: box._id,
+                status: 'printing'
+            });
+            box.isBusy = activeOrderCount > 0;
 
             // Respond with the box details
             return res.status(200).json({message: 'Box retrieved successfully', box: box});
@@ -109,15 +129,28 @@ module.exports = {
                 return res.status(400).json({message: 'Box with this physical ID already exists'});
             }
 
-            // Get the user ID from the session
-            const userId = req.session.userId;
+            // Get the user ID from the session - assuming admin adds boxes
+            const userId = req.session.userId; 
+            const user = await UserModel.findById(userId);
+
+            if (!user || user.role !== 'admin') {
+                 // If not admin, check if this route should even be accessible
+                 // For now, let's assume only admin adds boxes, so this check is more for robustness
+                 // Or, if any authenticated user can add, then authorizedUsers might be just [userId]
+                // return res.status(403).json({message: 'Only admins can add boxes.'});
+            }
+
 
             // Create a new box instance
             const box = new BoxModel({
                 name: req.body.name,
                 location: req.body.location,
                 physicalId: parseInt(req.body.physicalId),
-                authorizedUsers: [userId]
+                // When a new box is added, it's not initially tied to any user for authorization
+                // unless the admin adding it should be auto-authorized.
+                // For simplicity, let's keep authorizedUsers empty or add the admin if desired.
+                // authorizedUsers: user.role === 'admin' ? [userId] : [] 
+                authorizedUsers: [] // Or [userId] if admin should be auto-authorized
             });
 
             // Save the new box to the database
@@ -161,7 +194,7 @@ module.exports = {
             const user = await UserModel.findById(userId);
 
             // Handle case where box or user is not found
-            if (!box) {
+            if (!box) { // Redundant check, but safe
                 return res.status(404).json({message: 'Box not found'});
             }
 
@@ -172,7 +205,7 @@ module.exports = {
             let unlockEvent;
             let successful = false;
             // Check if the user is authorized
-            if (box.authorizedUsers.includes(userId)) {
+            if (box.authorizedUsers.map(id => id.toString()).includes(userId.toString())) {
                 successful = true;
             }
 
@@ -201,7 +234,7 @@ module.exports = {
     // Authorize a user for a box (admin or authorized user only)
     authorizeBox: async function (req, res) {
         const boxId = req.params.id;
-        const userId = req.body.userId;
+        const userIdToAuthorize = req.body.userId; // The user to be authorized
 
         try {
             // Retrieve the box from the database
@@ -212,41 +245,38 @@ module.exports = {
                 return res.status(404).json({message: 'Box not found'});
             }
 
-            // Get the user ID from the session
+            // Get the current user ID from the session (the one performing the action)
             const currentUserId = req.session.userId;
-
-            // Retrieve the user from the database
             const currentUser = await UserModel.findById(currentUserId);
 
-            // Handle case where user is not found
             if (!currentUser) {
-                return res.status(404).json({message: 'User not found'});
+                return res.status(404).json({message: 'Current user performing action not found'});
             }
 
-            // Check if the current user is an admin or is authorized for the box
-            if (currentUser.role !== 'admin' && !box.authorizedUsers.includes(currentUserId)) {
+            // Check if the current user is an admin
+            if (currentUser.role !== 'admin') {
                 return res.status(403).json({message: 'You are not authorized to authorize users for this box'});
             }
 
             // Retrieve the user to be authorized from the database
-            const user = await UserModel.findById(userId);
-
-            // Handle case where user is not found
-            if (!user) {
-                return res.status(404).json({message: 'User not found'});
+            const userToAuthorizeDetails = await UserModel.findById(userIdToAuthorize);
+            if (!userToAuthorizeDetails) {
+                return res.status(404).json({message: 'User to be authorized not found'});
             }
 
+
             // Check if the user is already authorized
-            if (box.authorizedUsers.includes(userId)) {
+            if (box.authorizedUsers.map(id => id.toString()).includes(userIdToAuthorize.toString())) {
                 return res.status(400).json({message: 'User is already authorized for this box'});
             }
 
             // Add the user to the authorized users list
-            box.authorizedUsers.push(userId);
+            box.authorizedUsers.push(userIdToAuthorize);
             await box.save();
 
             // Respond with success message
-            return res.status(200).json({message: 'User authorized for box successfully', box: box});
+            const populatedBox = await BoxModel.findById(boxId).populate('authorizedUsers', 'username email');
+            return res.status(200).json({message: 'User authorized for box successfully', box: populatedBox});
 
             // Handle errors
         } catch (err) {
@@ -271,34 +301,44 @@ module.exports = {
 
             // Get the user ID from the session
             const currentUserId = req.session.userId;
-
-            // Retrieve the user from the database
             const currentUser = await UserModel.findById(currentUserId);
 
-            // Handle case where user is not found
             if (!currentUser) {
                 return res.status(404).json({message: 'User not found'});
             }
 
-            // Check if the current user is an admin or is authorized for the box
-            if (currentUser.role !== 'admin' && !box.authorizedUsers.includes(currentUserId)) {
+            // Check if the current user is an admin
+            if (currentUser.role !== 'admin') {
                 return res.status(403).json({message: 'You are not authorized to update this box'});
             }
 
             // Validate input data
             const updates = {};
-            if (req.body.name) updates.name = req.body.name;
-            if (req.body.location) updates.location = req.body.location;
-            if (req.body.physicalId) updates.physicalId = parseInt(req.body.physicalId);
+            if (req.body.name !== undefined) updates.name = req.body.name;
+            if (req.body.location !== undefined) updates.location = req.body.location;
+            if (req.body.physicalId !== undefined) {
+                const newPhysicalId = parseInt(req.body.physicalId);
+                if (isNaN(newPhysicalId)) {
+                    return res.status(400).json({message: 'Physical ID must be a number.'});
+                }
+                // Check if another box already has this physicalId
+                const existingBoxWithPhysicalId = await BoxModel.findOne({ physicalId: newPhysicalId, _id: { $ne: id } });
+                if (existingBoxWithPhysicalId) {
+                    return res.status(400).json({ message: 'Another box with this physical ID already exists.' });
+                }
+                updates.physicalId = newPhysicalId;
+            }
+            // Note: authorizedUsers should be managed by authorizeBox/deauthorizeBox typically
 
             // Update box data
             Object.assign(box, updates);
-
             // Save the updated box to the database
             const updatedBox = await box.save();
+            const populatedBox = await BoxModel.findById(updatedBox._id).populate('authorizedUsers', 'username email');
+
 
             // Respond with success message
-            return res.status(200).json({message: 'Box updated successfully', box: updatedBox});
+            return res.status(200).json({message: 'Box updated successfully', box: populatedBox});
 
             // Handle errors
         } catch (err) {
@@ -325,25 +365,27 @@ module.exports = {
             if (!box) {
                 return res.status(404).json({message: 'Box not found'});
             }
-
             // Get the user ID from the session
             const currentUserId = req.session.userId;
-
-            // Retrieve the user from the database
             const currentUser = await UserModel.findById(currentUserId);
 
-            // Handle case where user is not found
             if (!currentUser) {
                 return res.status(404).json({message: 'User not found'});
             }
 
-            // Check if the current user is an admin or is authorized for the box
-            if (currentUser.role !== 'admin' && !box.authorizedUsers.includes(currentUserId)) {
+            // Check if the current user is an admin
+            if (currentUser.role !== 'admin') {
                 return res.status(403).json({message: 'You are not authorized to remove this box'});
             }
 
+            // Check if the box is currently in use by an active order
+            const activeOrderCount = await OrderModel.countDocuments({ box: id, status: 'printing' });
+            if (activeOrderCount > 0) {
+                return res.status(400).json({ message: 'Cannot remove box. It is currently in use by an active print order.' });
+            }
+
             // Retrieve the box from the database and delete it
-            const deletedBox = await BoxModel.findByIdAndDelete(id);
+            await BoxModel.findByIdAndDelete(id);
 
             // Respond with success message
             return res.status(200).json({message: 'Box deleted successfully'});
@@ -357,11 +399,10 @@ module.exports = {
             });
         }
     },
-
     checkAccess: async function (req, res) {
         try {
             let physicalId = req.body.physicalId;
-            const userId = req.user._id;
+            const userId = req.user._id; // Assuming req.user is populated by auth middleware
 
             if (!physicalId) {
                 return res.status(400).json({message: 'Missing physicalId'});
