@@ -20,6 +20,14 @@ function ProductView({ currentUser }) {
   const [countdownSeconds, setCountdownSeconds] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
 
+  // State for boxes and order creation
+  const [boxes, setBoxes] = useState([]);
+  const [selectedBoxId, setSelectedBoxId] = useState('');
+  const [loadingBoxes, setLoadingBoxes] = useState(false);
+  const [boxError, setBoxError] = useState('');
+  const [orderError, setOrderError] = useState('');
+  const [isOrderConfirmed, setIsOrderConfirmed] = useState(false); // To control modal content
+
   useEffect(() => {
     // Effect for fetching product data
     if (!currentUser) {
@@ -51,6 +59,28 @@ function ProductView({ currentUser }) {
     }
   }, [id, currentUser]);
 
+  const fetchBoxes = async () => {
+    if (!currentUser) return;
+    setLoadingBoxes(true);
+    setBoxError('');
+    try {
+      // Assuming '/box/list' is accessible by authenticated users
+      // Adjust endpoint if necessary, or if it's admin-only, a new endpoint is needed.
+      const response = await axios.get(`${BACKEND_URL}/box/list`);
+      if (response.data && response.data.boxes) {
+        setBoxes(response.data.boxes);
+      } else {
+        setBoxes([]);
+        setBoxError('Could not fetch box data format.');
+      }
+    } catch (err) {
+      console.error('Error fetching boxes:', err);
+      setBoxError(err.response?.data?.message || 'Failed to fetch boxes.');
+      setBoxes([]);
+    } finally {
+      setLoadingBoxes(false);
+    }
+  };
 
   useEffect(() => {
     // Effect for the countdown timer
@@ -81,7 +111,7 @@ function ProductView({ currentUser }) {
 
     // Cleanup function to clear interval when component unmounts or timer stops
     return () => clearInterval(intervalId);
-  }, [timerActive, isModalOpen]);
+  }, [timerActive, isModalOpen, isOrderConfirmed]);
 
 
   const handleNextImage = () => {
@@ -123,35 +153,77 @@ function ProductView({ currentUser }) {
     }
   };
 
-  const handleBuyNowClick = () => {
-    if (product && product.estimatedPrintTime) {
-      const totalMinutes = parseInt(product.estimatedPrintTime, 10);
-      if (!isNaN(totalMinutes) && totalMinutes > 0) {
-        if (totalMinutes === 1) {
+  const handleBuyNowClick = async () => {
+    setIsOrderConfirmed(false); // Reset confirmation state
+    setOrderError(''); // Clear previous order errors
+    setSelectedBoxId(''); // Reset selected box
+    if (boxes.length === 0) { // Fetch boxes if not already loaded
+      await fetchBoxes();
+    }
+    setIsModalOpen(true);
+    // Timer does not start here anymore
+  };
+
+  const handleConfirmOrderAndStartTimer = async () => {
+    if (!selectedBoxId) {
+      setOrderError('Please select a box.');
+      return;
+    }
+    setOrderError('');
+
+    try {
+      // Create order
+      const orderPayload = {
+        model: product._id, // product ID
+        box: selectedBoxId,
+        // status will default to 'pending' or as defined in backend
+      };
+      // console.log('Creating order with payload:', orderPayload);
+      // console.log('Current user for order:', currentUser);
+
+
+      await axios.post(`${BACKEND_URL}/order/create`, orderPayload);
+      // console.log('Order created successfully:', orderResponse.data);
+
+
+      setIsOrderConfirmed(true); // Update modal to show timer
+
+      // Start timer logic (moved from handleBuyNowClick)
+      if (product && product.estimatedPrintTime) {
+        const totalMinutes = parseInt(product.estimatedPrintTime, 10);
+        if (!isNaN(totalMinutes) && totalMinutes > 0) {
+          if (totalMinutes === 1) {
             setCountdownMinutes(0);
-            setCountdownSeconds(60); 
+            setCountdownSeconds(59); // Start from 59 seconds for a 1-minute timer
+          } else {
+            setCountdownMinutes(totalMinutes - 1);
+            setCountdownSeconds(59); // Start from 59 seconds
+          }
+          setTimerActive(true);
         } else {
-            setCountdownMinutes(totalMinutes -1);
-            setCountdownSeconds(60);
+          setCountdownMinutes(0);
+          setCountdownSeconds(0);
+          setTimerActive(false);
         }
-        setTimerActive(true);
       } else {
-        // No valid print time, or print time is 0
         setCountdownMinutes(0);
         setCountdownSeconds(0);
         setTimerActive(false);
       }
-    } else {
-        setCountdownMinutes(0);
-        setCountdownSeconds(0);
-        setTimerActive(false);
+    } catch (err) {
+      console.error('Error creating order:', err.response ? err.response.data : err);
+      setOrderError(err.response?.data?.message || 'Failed to create order.');
+      setIsOrderConfirmed(false);
     }
-    setIsModalOpen(true);
   };
+
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setTimerActive(false);
+    setTimerActive(false); // Stop timer if modal is closed
+    setIsOrderConfirmed(false); // Reset confirmation state
+    setOrderError('');
+    setBoxError(''); // Clear box error on close
   };
 
   if (!currentUser) {
@@ -208,22 +280,69 @@ function ProductView({ currentUser }) {
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>Thank you for starting the print of {product.name}!</h3>
-            {product.estimatedPrintTime ? (
-              timerActive || (countdownMinutes === 0 && countdownSeconds === 0 && !timerActive && parseInt(product.estimatedPrintTime, 10) > 0) ? (
-                <p>
-                  Your print will complete in: <br />
-                  <span className="countdown-timer">
-                    {String(countdownMinutes).padStart(2, '0')}:{String(countdownSeconds).padStart(2, '0')}
-                  </span>
-                </p>
-              ) : (
-                <p>Your print has completed!</p>
-              )
+            {!isOrderConfirmed ? (
+              <>
+                <h3>Confirm Your Print: {product.name}</h3>
+                {product.estimatedPrintTime && (
+                  <p><strong>Estimated Print Time:</strong> {product.estimatedPrintTime} minutes</p>
+                )}
+                <div className="form-group">
+                  <label htmlFor="box-select">Choose a Box:</label>
+                  {loadingBoxes && <p>Loading boxes...</p>}
+                  {boxError && <p className="error-message">{boxError}</p>}
+                  {!loadingBoxes && !boxError && boxes.length > 0 && (
+                    <select
+                      id="box-select"
+                      value={selectedBoxId}
+                      onChange={(e) => setSelectedBoxId(e.target.value)}
+                      className="box-select-dropdown"
+                    >
+                      <option value="">-- Select a Box --</option>
+                      {boxes.map((box) => (
+                        <option key={box._id} value={box._id}>
+                          {box.name} (Location: {box.location || 'N/A'})
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {!loadingBoxes && !boxError && boxes.length === 0 && (
+                    <p>No boxes available at the moment.</p>
+                  )}
+                </div>
+                {orderError && <p className="error-message">{orderError}</p>}
+                <div className="modal-actions-stacked">
+                  <button
+                    onClick={handleConfirmOrderAndStartTimer}
+                    className="modal-ok-button" // Or a new class like 'modal-confirm-button'
+                    disabled={loadingBoxes || !selectedBoxId || boxes.length === 0}
+                  >
+                    Confirm Order & Start Print
+                  </button>
+                  <button onClick={handleCloseModal} className="modal-cancel-button">
+                    Cancel
+                  </button>
+                </div>
+              </>
             ) : (
-              <p>Print time information is not available.</p>
+              <>
+                <h3>Thank you for starting the print of {product.name}!</h3>
+                {product.estimatedPrintTime ? (
+                  timerActive || (countdownMinutes === 0 && countdownSeconds === 0 && !timerActive && parseInt(product.estimatedPrintTime, 10) > 0) ? (
+                    <p>
+                      Your print will complete in: <br />
+                      <span className="countdown-timer">
+                        {String(countdownMinutes).padStart(2, '0')}:{String(countdownSeconds).padStart(2, '0')}
+                      </span>
+                    </p>
+                  ) : (
+                    <p>Your print has completed!</p>
+                  )
+                ) : (
+                  <p>Print time information is not available.</p>
+                )}
+                <button onClick={handleCloseModal} className="modal-ok-button">OK</button>
+              </>
             )}
-            <button onClick={handleCloseModal} className="modal-ok-button">OK</button>
           </div>
         </div>
       )}

@@ -12,7 +12,9 @@ module.exports = {
      */
     listOrders: async function (req, res) {
         try {
-            const orders = await OrderModel.find();
+            const orders = await OrderModel.find()
+                                        .populate('model', 'name') // Populate model and select only the name
+                                        .populate('orderBy', 'username'); // Populate user and select only the username
             return res.json(orders);
         } catch (err) {
             return res.status(500).json({
@@ -28,7 +30,9 @@ module.exports = {
     showOrder: async function (req, res) {
         const id = req.params.id;
         try {
-            const order = await OrderModel.findById(id);
+            const order = await OrderModel.findById(id)
+                                        .populate('model', 'name')
+                                        .populate('orderBy', 'username');
             if (!order) {
                 return res.status(404).json({
                     message: 'No such order'
@@ -50,10 +54,10 @@ module.exports = {
         const order = new OrderModel({
             model: req.body.model,
             orderBy: req.session.userId,
-            status: req.body.status,
+            status: 'printing', // Set status to 'printing'
             box: req.body.box,
-            createdAt: req.body.createdAt,
-            startedPrintingAt: req.body.startedPrintingAt,
+            // createdAt is set by default
+            startedPrintingAt: Date.now(), // Set startedPrintingAt time
             completedAt: req.body.completedAt
         });
 
@@ -85,29 +89,35 @@ module.exports = {
             order.orderBy = req.body.orderBy ?? order.orderBy;
             order.status = req.body.status ?? order.status;
             order.box = req.body.box ?? order.box;
-            order.createdAt = req.body.createdAt ?? order.createdAt;
+            // createdAt should generally not be updated manually after creation
 
             if (req.body.status === "printing" && !order.startedPrintingAt) {
                 order.startedPrintingAt = new Date();
+            } else if (req.body.startedPrintingAt) {
+                order.startedPrintingAt = req.body.startedPrintingAt;
             }
 
             if (req.body.status === "ready to pickup" && !order.completedAt) {
                 order.completedAt = new Date();
 
-                if (req.body.box) {
+                if (req.body.box) { // Ensure box is assigned if status is ready to pickup
                     order.box = req.body.box;
 
                     const box = await BoxModel.findById(req.body.box);
                     if (!box) {
-                        return res.status(404).json({message: 'Box not found'});
+                        return res.status(404).json({message: 'Box not found for order completion'});
                     }
 
-                    const userId = order.orderBy;
+                    const userId = order.orderBy; // User who placed the order
                     if (!box.authorizedUsers.includes(userId)) {
                         box.authorizedUsers.push(userId);
                         await box.save();
                     }
+                } else if (!order.box) { // If no box is assigned when moving to ready to pickup
+                    return res.status(400).json({ message: 'A box must be assigned to the order when it is ready for pickup.' });
                 }
+            } else if (req.body.completedAt) {
+                order.completedAt = req.body.completedAt;
             }
 
             const updatedOrder = await order.save();
