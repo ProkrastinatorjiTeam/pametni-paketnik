@@ -12,7 +12,7 @@ const unlockLimiter = rateLimit({
 });
 
 // GET
-router.get('/list', requireAdmin, boxController.listBoxes);
+router.get('/list', requireAuth, boxController.listBoxes); 
 router.get('/show/:id', requireAuth, boxController.showBox);
 router.get('/history/:id', requireAuth, boxController.getBoxUnlockHistory);
 
