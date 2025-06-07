@@ -68,8 +68,18 @@ venv.bak/
 .DS_Store
 Thumbs.db
 
-# Upload files
+# Custom
 uploads/
+models/
 
-#temp
-person_recognition/
+data/train/*/
+!data/train/not_user/
+!data/train/test/
+
+data/validation/*/
+!data/validation/not_user/
+!data/validation/test/
+
+data/test/*/
+!data/test/not_user/
+!data/test/test/

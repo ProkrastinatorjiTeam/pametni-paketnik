@@ -1,27 +1,29 @@
 from flask import request, jsonify, Blueprint, current_app
 from .image_saving import handle_image_upload
-
 import sys
 import os
-import logging # Import the standard logging module
+import logging
 
-# Configure a basic logger for module-level messages if current_app is not available
-module_logger = logging.getLogger(__name__)
+module_logger = logging.getLogger(__name__) # Keep this for module-level logging if needed
 
+# --- Updated PROJECT_ROOT and sys.path ---
+# Assuming routes.py is in src/server/, to get to ORV/ (project root)
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
+# --- End Updated PROJECT_ROOT ---
 
+# --- Updated AI import ---
 try:
-    from ai_trainer.model_service import begin_user_training
+    # Now import from the new ai package
+    from src.ai.training_pipeline import start_user_training_pipeline
 except ImportError as e:
-    # Use the standard logger here as current_app context is not available at import time
-    module_logger.error(f"Could not import 'ai_trainer.model_service': {e}. AI training will not be available.")
-    def begin_user_training(user_id: str, source_images_path: str):
-        # This current_app.logger is fine because it's called within a request context
-        current_app.logger.warning("AI training module not loaded. Skipping training.")
+    module_logger.error(f"Could not import 'start_user_training_pipeline' from 'src.ai.training_pipeline': {e}. AI training will not be available.")
+    # Fallback function if import fails
+    def start_user_training_pipeline(user_id: str, source_uploaded_images_dir: str):
+        current_app.logger.warning("AI training module (src.ai.training_pipeline) not loaded. Skipping training initiation.")
         return False, "AI training module not available."
+# --- End Updated AI import ---
 
 api_bp = Blueprint('api', __name__)
 
@@ -33,9 +35,6 @@ def get_data():
 
 @api_bp.route('/user/updateImages', methods=['POST'])
 def update_images_route():
-    """
-    Handles image upload, saves images, and then triggers AI model training.
-    """
     upload_result = handle_image_upload(request.form, request.files)
 
     response_payload = upload_result["response_payload"]
@@ -43,18 +42,28 @@ def update_images_route():
 
     if upload_result["upload_successful"]:
         user_id = upload_result["user_id"]
-        user_image_folder = upload_result["user_image_folder_path"]
+        # This is the path to the 'uploads/{user_id}' directory
+        user_uploaded_images_dir = upload_result["user_image_folder_path"]
         
-        current_app.logger.info(f"Images saved for user {user_id} at {user_image_folder}. Attempting to trigger training.")
+        current_app.logger.info(f"Images saved for user {user_id} at {user_uploaded_images_dir}. Attempting to trigger training pipeline.")
         
-        # --- AI Training Initiation (Placeholder) ---
-        # training_success, training_message = begin_user_training(user_id, user_image_folder) # Actual call commented out
-        training_success = True # Assume training initiated successfully for now
-        training_message = "AI model training initiated successfully (simulated)." 
-        # --- End AI Training Initiation (Placeholder) ---
+        # --- AI Training Initiation ---
+        training_initiated, training_message = start_user_training_pipeline(
+            user_id, 
+            user_uploaded_images_dir
+        )
+        # --- End AI Training Initiation ---
         
         response_payload["training_initiation_status"] = training_message
-        if not training_success: # This block will not be hit with the current placeholder
-            current_app.logger.error(f"Failed to initiate training for user {user_id}: {training_message}")
+        if not training_initiated:
+            current_app.logger.error(f"Failed to initiate training pipeline for user {user_id}: {training_message}")
+            # Optionally, you might want to change the status_code here if initiation fails critically
+            # For now, we'll keep the image upload status and add the training initiation message.
     
     return jsonify(response_payload), status_code
+
+# TODO: Add the /user/verify route here later
+# @api_bp.route('/user/verify', methods=['POST'])
+# def verify_image_route():
+#     # ... implementation for verification ...
+#     pass
