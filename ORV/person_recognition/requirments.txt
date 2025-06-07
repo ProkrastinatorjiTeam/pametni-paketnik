@@ -1,8 +1,0 @@
-tensorflow
-numpy
-matplotlib
-opencv-python
-scikit-learn
-keras
-git+https://github.com/rcmalli/keras-vggface.git
-seaborn

@@ -70,3 +70,6 @@ Thumbs.db
 
 # Upload files
 uploads/
+
+#temp
+person_recognition/
