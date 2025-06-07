@@ -171,4 +171,46 @@ module.exports = {
             });
         }
     },
+
+    /**
+     * orderController.cancelMyOrder()
+     * Allows a user to cancel their own order if it's in a cancelable state.
+     */
+    cancelMyOrder: async function (req, res) {
+        const orderId = req.params.id;
+        const userId = req.session.userId;
+
+        try {
+            const order = await OrderModel.findById(orderId);
+
+            if (!order) {
+                return res.status(404).json({ message: 'Order not found.' });
+            }
+
+            // Check if the logged-in user is the one who placed the order
+            if (order.orderBy.toString() !== userId) {
+                return res.status(403).json({ message: 'You are not authorized to cancel this order.' });
+            }
+
+            // Check if the order is in a cancelable state
+            if (order.status !== 'pending' && order.status !== 'printing') {
+                return res.status(400).json({ message: `Order cannot be cancelled as it is already ${order.status}.` });
+            }
+
+            order.status = 'cancelled';
+            // Optionally, you might want to clear completedAt or startedPrintingAt if it's cancelled
+            // order.completedAt = undefined; 
+            // order.startedPrintingAt = undefined; // If relevant
+
+            const updatedOrder = await order.save();
+            return res.json(updatedOrder);
+
+        } catch (err) {
+            console.error("Error in cancelMyOrder:", err);
+            return res.status(500).json({
+                message: 'Error cancelling order.',
+                error: err.message
+            });
+        }
+    }
 };

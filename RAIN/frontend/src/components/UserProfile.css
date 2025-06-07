@@ -100,7 +100,6 @@
 
 .view-product-link-profile {
   display: inline-block;
-  margin-top: 15px;
   padding: 8px 15px;
   background-color: #007bff;
   color: white;
@@ -112,6 +111,35 @@
 
 .view-product-link-profile:hover {
   background-color: #0056b3;
+}
+
+.order-item-actions-profile {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px; /* Space between buttons if multiple actions */
+  align-items: center;
+}
+
+.cancel-order-button-profile {
+  display: inline-block;
+  padding: 8px 15px;
+  background-color: #dc3545; /* Red for cancel/delete actions */
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  font-size: 0.95em;
+  transition: background-color 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.cancel-order-button-profile:hover {
+  background-color: #c82333;
+}
+
+.cancel-order-button-profile:disabled {
+  background-color: #eda2a9;
+  cursor: not-allowed;
 }
 
 .error-message-profile {

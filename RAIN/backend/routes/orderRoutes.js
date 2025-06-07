@@ -32,6 +32,11 @@ router.delete('/remove/:id', requireAdmin, orderController.removeOrder);
 /*
  * GET
  */
-router.get('/my-orders', requireAuth, orderController.listMyOrders); // Add this line
+router.get('/my-orders', requireAuth, orderController.listMyOrders);
+
+/*
+ * PATCH
+ */
+router.patch('/my-orders/:id/cancel', requireAuth, orderController.cancelMyOrder); // Add this line
 
 module.exports = router;
