@@ -29,6 +29,14 @@ function AdminPanel({ currentUser }) {
   const [loadingBoxes, setLoadingBoxes] = useState(false);
   const [boxError, setBoxError] = useState('');
 
+  // Add Box Modal State
+  const [isAddBoxModalOpen, setIsAddBoxModalOpen] = useState(false);
+  const [newBoxName, setNewBoxName] = useState('');
+  const [newBoxLocation, setNewBoxLocation] = useState('');
+  const [newBoxPhysicalId, setNewBoxPhysicalId] = useState('');
+  const [addBoxError, setAddBoxError] = useState('');
+  const [loadingAddBox, setLoadingAddBox] = useState(false);
+
   // Fetch Users
   const fetchUsers = async () => {
     setLoadingUsers(true);
@@ -142,6 +150,43 @@ function AdminPanel({ currentUser }) {
   const handleCloseBoxModal = () => {
     setIsBoxModalOpen(false);
     setBoxError('');
+  };
+
+  // Add Box Modal Handlers
+  const handleOpenAddBoxModal = () => {
+    setNewBoxName('');
+    setNewBoxLocation('');
+    setNewBoxPhysicalId('');
+    setAddBoxError('');
+    setIsAddBoxModalOpen(true);
+  };
+
+  const handleCloseAddBoxModal = () => {
+    setIsAddBoxModalOpen(false);
+    setAddBoxError('');
+  };
+
+  const handleAddBox = async (e) => {
+    e.preventDefault();
+    setLoadingAddBox(true);
+    setAddBoxError('');
+    try {
+      const response = await axios.post(`${BACKEND_URL}/box/add`, {
+        name: newBoxName,
+        location: newBoxLocation,
+        physicalId: newBoxPhysicalId,
+      });
+      // Assuming the backend returns the created box or a success message
+      if (response.data) {
+        fetchBoxes(); // Refresh the box list
+        handleCloseAddBoxModal();
+      }
+    } catch (err) {
+      console.error('Error adding box:', err);
+      setAddBoxError(err.response?.data?.message || 'Failed to add box.');
+    } finally {
+      setLoadingAddBox(false);
+    }
   };
 
 
@@ -261,7 +306,10 @@ function AdminPanel({ currentUser }) {
       {isBoxModalOpen && (
         <div className="modal-overlay admin-modal-overlay">
           <div className="modal-content admin-modal-content">
-            <h3>Box List</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3>Box List</h3>
+              <button onClick={handleOpenAddBoxModal} className="add-button">ADD +</button>
+            </div>
             {loadingBoxes && <p>Loading boxes...</p>}
             {boxError && <p className="error-message modal-error">{boxError}</p>}
             {!loadingBoxes && !boxError && (
@@ -281,6 +329,56 @@ function AdminPanel({ currentUser }) {
               )
             )}
             <button onClick={handleCloseBoxModal} className="modal-close-button">Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* Add Box Modal */}
+      {isAddBoxModalOpen && (
+        <div className="modal-overlay admin-modal-overlay">
+          <div className="modal-content admin-modal-content">
+            <h3>Add New Box</h3>
+            <form onSubmit={handleAddBox} className="add-box-form">
+              <div className="form-group">
+                <label htmlFor="newBoxName">Name:</label>
+                <input
+                  type="text"
+                  id="newBoxName"
+                  value={newBoxName}
+                  onChange={(e) => setNewBoxName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="newBoxLocation">Location:</label>
+                <input
+                  type="text"
+                  id="newBoxLocation"
+                  value={newBoxLocation}
+                  onChange={(e) => setNewBoxLocation(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="newBoxPhysicalId">Physical ID:</label>
+                <input
+                  type="text"
+                  id="newBoxPhysicalId"
+                  value={newBoxPhysicalId}
+                  onChange={(e) => setNewBoxPhysicalId(e.target.value)}
+                  required
+                />
+              </div>
+              {loadingAddBox && <p>Adding box...</p>}
+              {addBoxError && <p className="error-message modal-error">{addBoxError}</p>}
+              <div className="modal-actions">
+                <button type="submit" className="submit-button" disabled={loadingAddBox}>
+                  {loadingAddBox ? 'Adding...' : 'Add Box'}
+                </button>
+                <button type="button" onClick={handleCloseAddBoxModal} className="modal-close-button" disabled={loadingAddBox}>
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
