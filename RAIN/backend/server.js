@@ -5,6 +5,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var cors = require('cors'); // <--- 1. REQUIRE CORS MIDDLEWARE
 
 var mongoose = require('mongoose');
 var mongoDB = process.env.MONGODB_URI;
@@ -25,6 +26,13 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
+// --- 2. USE CORS MIDDLEWARE ---
+// This should be placed before your routes and session middleware if sessions rely on cookies sent cross-origin.
+app.use(cors({
+  origin: 'http://localhost:3001', // Allow requests specifically from your frontend
+  credentials: true                // Allow cookies and authorization headers to be sent
+}));
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
@@ -34,11 +42,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 var session = require('express-session');
 var MongoStore = require('connect-mongo');
 app.use(session({
-    secret: 'secret',
-    resave: true,
-    saveUninitialized: false,
-    store: MongoStore.create({mongoUrl: mongoDB})
+    secret: 'secret', // Should be a strong secret from .env in production
+    resave: true,     // Consider setting to false if your store supports touch
+    saveUninitialized: false, // Set to false, login will initialize it
+    store: MongoStore.create({mongoUrl: mongoDB}),
+    cookie: {
+        // secure: process.env.NODE_ENV === "production", // Use true if served over HTTPS
+        // sameSite: 'lax' // 'lax' is a good default, 'none' if cross-site with secure:true
+    }
 }));
+
 
 app.use('/', indexRouter);
 app.use('/user', userRouter);
@@ -53,7 +66,7 @@ app.use(function (req, res, next) {
 });
 
 // error handler
-app.use(function (err, req, res) {
+app.use(function (err, req, res, next) { // Corrected 'next' parameter
     // set locals, only providing error in development
     res.locals.message = err.message;
     res.locals.error = req.app.get('env') === 'development' ? err : {};

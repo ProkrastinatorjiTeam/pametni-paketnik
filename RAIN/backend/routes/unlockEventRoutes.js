@@ -10,7 +10,7 @@ router.get('/show/:id', requireAuth, unlockEventController.showUnlockEvent);
 
 
 // POST
-router.post('/create', requireAdmin, unlockEventController.createUnlockEvent);
+router.post('/create', requireAuth, unlockEventController.createUnlockEvent);
 
 
 // PATCH

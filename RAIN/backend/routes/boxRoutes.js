@@ -20,6 +20,7 @@ router.get('/history/:id', requireAuth, boxController.getBoxUnlockHistory);
 router.post('/add', requireAuth, boxController.addBox);
 router.post('/unlock', requireAuth, unlockLimiter, boxController.requestBoxUnlock);
 router.post('/authorize/:id', requireAuth, boxController.authorizeBox);
+router.post('/check-access', requireAuth, boxController.checkAccess)
 
 // PATCH
 router.patch('/update/:id', requireAuth, boxController.updateBox);

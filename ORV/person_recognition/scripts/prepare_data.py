@@ -3,14 +3,14 @@ import shutil
 import random
 import math
 
-RAW_DATA_DIR = '../data/dataset'
+RAW_DATA_DIR = '../data/images'
 TRAIN_DIR = '../data/train'
 VALIDATION_DIR = '../data/validation'
 TEST_DIR = '../data/test'
 
-TRAIN_RATIO = 0.80
-VALIDATION_RATIO = 0.15
-TEST_RATIO = 0.05
+TRAIN_RATIO = 0.70
+VALIDATION_RATIO = 0.20
+TEST_RATIO = 0.10
 
 MIN_IMAGES_PER_PERSON = 10
 

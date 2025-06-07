@@ -1,0 +1,101 @@
+.add-product-page-wrapper {
+  padding: 20px; /* General padding for the content area */
+  min-height: calc(100vh - 40px - 60px); /* Adjust 60px for nav height */
+  /* position: relative; /* Only needed if children are absolutely positioned relative to this */
+}
+
+.page-back-button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+  margin-bottom: 20px; /* Space below the button before the form container */
+  display: block; /* Or inline-block */
+}
+
+.page-back-button:hover {
+  background-color: #5a6268;
+}
+
+.add-product-container {
+  max-width: 600px;
+  margin: 0 auto; /* Center the container, top margin is handled by button's margin-bottom */
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.add-product-container h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.add-product-form .form-group {
+  margin-bottom: 15px;
+}
+
+.add-product-form label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #555;
+}
+
+.add-product-form input[type="text"],
+.add-product-form input[type="number"],
+.add-product-form textarea,
+.add-product-form input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box; /* So padding doesn't add to width */
+}
+
+.add-product-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.submit-product-button {
+  background-color: #28a745; /* Green */
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.submit-product-button:hover {
+  background-color: #218838;
+}
+
+.error-message {
+  color: #dc3545; /* Red */
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.success-message {
+  color: #155724; /* Green */
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  text-align: center;
+}
