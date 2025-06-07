@@ -11,7 +11,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 # AI Model related paths
 DATA_DIR = os.path.join(PROJECT_ROOT, 'data')
-MODELS_DIR = os.path.join(PROJECT_ROOT, 'models')
+MODELS_DIR = 'models' # Base directory for storing trained models
 
 # AI training parameters (examples, adjust as per build_model.py)
 AI_IMAGE_SIZE = (224, 224)
@@ -24,7 +24,12 @@ AI_LEARNING_RATE_INITIAL = 0.001
 AI_LEARNING_RATE_FINETUNE = 0.00005
 AI_OPTIMAL_DROPOUT_DENSE = 0.5
 AI_OPTIMAL_L2_REG = 0.0005
-AI_MODEL_INPUT_SIZE = (224, 224) # Consistent with AI_IMAGE_SIZE, but specific for model
+AI_MODEL_INPUT_SIZE = (224, 224) # (height, width) - consistent with training
+
+# AI Model and Verification Settings
+AI_BEST_MODEL_FILENAME = 'best_vggface_model.keras' # Or 'full_vggface_model.keras'
+AI_VERIFICATION_THRESHOLD = 0.6 # Example threshold, adjust as needed
+AI_VGGFACE_PREPROCESS_VERSION = 1 # For keras_vggface.utils.preprocess_input
 
 # Data splitting ratios
 AI_TRAIN_RATIO = 0.8

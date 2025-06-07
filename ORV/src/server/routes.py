@@ -4,26 +4,15 @@ import sys
 import os
 import logging
 
-module_logger = logging.getLogger(__name__) # Keep this for module-level logging if needed
+from src.ai.training_pipeline import start_user_training_pipeline
+from src.ai.verification_manager import verify_user_with_image
 
-# --- Updated PROJECT_ROOT and sys.path ---
-# Assuming routes.py is in src/server/, to get to ORV/ (project root)
+module_logger = logging.getLogger(__name__) 
+
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
-# --- End Updated PROJECT_ROOT ---
 
-# --- Updated AI import ---
-try:
-    # Now import from the new ai package
-    from src.ai.training_pipeline import start_user_training_pipeline
-except ImportError as e:
-    module_logger.error(f"Could not import 'start_user_training_pipeline' from 'src.ai.training_pipeline': {e}. AI training will not be available.")
-    # Fallback function if import fails
-    def start_user_training_pipeline(user_id: str, source_uploaded_images_dir: str):
-        current_app.logger.warning("AI training module (src.ai.training_pipeline) not loaded. Skipping training initiation.")
-        return False, "AI training module not available."
-# --- End Updated AI import ---
 
 api_bp = Blueprint('api', __name__)
 
@@ -62,8 +51,49 @@ def update_images_route():
     
     return jsonify(response_payload), status_code
 
-# TODO: Add the /user/verify route here later
-# @api_bp.route('/user/verify', methods=['POST'])
-# def verify_image_route():
-#     # ... implementation for verification ...
-#     pass
+@api_bp.route('/api/user/verify', methods=['POST'])
+def verify_image_route():
+    logger = current_app.logger
+    app_config = current_app.config
+
+    if 'user_id' not in request.form:
+        logger.warning("Verification attempt failed: 'user_id' missing from form data.")
+        return jsonify({"error": "user_id is required"}), 400
+    
+    user_id = request.form['user_id']
+
+    if 'image' not in request.files:
+        logger.warning(f"Verification attempt for user {user_id} failed: 'image' file part missing.")
+        return jsonify({"error": "Image file is required"}), 400
+
+    image_file = request.files['image']
+
+    if image_file.filename == '':
+        logger.warning(f"Verification attempt for user {user_id} failed: No image selected.")
+        return jsonify({"error": "No selected image file"}), 400
+
+    try:
+        image_bytes = image_file.read()
+        if not image_bytes:
+            logger.warning(f"Verification attempt for user {user_id} failed: Image file is empty.")
+            return jsonify({"error": "Image file is empty"}), 400
+
+        logger.info(f"Received image for verification for user_id: {user_id}. Image size: {len(image_bytes)} bytes.")
+
+        is_match, probability, message = verify_user_with_image(
+            user_id=user_id,
+            image_bytes=image_bytes,
+            app_config=dict(app_config), # Pass a copy of app_config
+            logger=logger
+        )
+
+        return jsonify({
+            "user_id": user_id,
+            "is_match": is_match,
+            "probability": probability,
+            "message": message
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error during verification process for user {user_id}: {e}", exc_info=True)
+        return jsonify({"error": "Server error during verification process."}), 500
