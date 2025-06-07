@@ -7,6 +7,7 @@ import Register from './components/Register';
 import AddProductPage from './components/AddProductPage';
 import ProductView from './components/ProductView';
 import AdminPanel from './components/AdminPanel';
+import UserProfile from './components/UserProfile';
 
 axios.defaults.withCredentials = true;
 
@@ -85,9 +86,8 @@ function Navigation({ currentUser, onLogout }) {
 
   const handleLogoutClick = async () => {
     try {
-      // Ensure your axios calls are prefixed with BACKEND_URL if not using a proxy
       await axios.post(`${BACKEND_URL}/user/logout`);
-      onLogout(); // This should call handleLogout in App component to set currentUser to null
+      onLogout(); 
       navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
@@ -107,13 +107,13 @@ function Navigation({ currentUser, onLogout }) {
           <>
             {currentUser.role === 'admin' && (
               <>
-                {/* Admin Panel Link moved here */}
                 <Link to="/admin-panel"><span>Admin Panel</span></Link>
-                {/* Link to Add Product (already exists in your provided code) */}
-                {/* <Link to="/admin/add-product"><span>Add Product</span></Link> */}
               </>
             )}
-            <span className="username-display">Welcome, {currentUser.username}</span>
+            {/* Updated username display to be a Link */}
+            <Link to="/profile" className="username-display-link">
+              <span className="username-display">Welcome, {currentUser.username}</span>
+            </Link>
             <button onClick={handleLogoutClick} className="logout-button">Logout</button>
           </>
         ) : (
@@ -129,7 +129,6 @@ function Navigation({ currentUser, onLogout }) {
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
-  // Added loading state for session check
   const [loadingSession, setLoadingSession] = useState(true);
 
 
@@ -160,10 +159,8 @@ function App() {
 
   const handleLogout = () => {
     setCurrentUser(null);
-    // Optionally, clear any local storage items like tokens here
   };
 
-  // Show loading indicator while checking session
   if (loadingSession) {
     return <div className="app-loading">Loading application...</div>;
   }
@@ -186,7 +183,6 @@ function App() {
               )
             }
           />
-          {/* New Route for Admin Panel */}
           <Route
             path="/admin-panel"
             element={
@@ -197,10 +193,19 @@ function App() {
               )
             }
           />
+          <Route 
+            path="/profile"
+            element={
+              currentUser ? (
+                <UserProfile currentUser={currentUser} />
+              ) : (
+                <Navigate to="/login" replace state={{ message: 'Please log in to view your profile.' }} />
+              )
+            }
+          />
           <Route path="/product/:id" element={
             currentUser ? <ProductView currentUser={currentUser} /> : <Navigate to="/login" replace state={{ message: 'Please log in to view product details.'}} />
           } />
-           {/* Fallback for unknown routes - good practice */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

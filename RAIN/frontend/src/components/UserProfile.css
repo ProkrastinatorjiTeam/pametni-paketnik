@@ -1,0 +1,136 @@
+.user-profile-container {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 25px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: 'Arial', sans-serif;
+}
+
+.user-profile-container h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 25px;
+  font-size: 2em;
+}
+
+.user-details-profile {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  border: 1px solid #e9ecef;
+}
+
+.user-details-profile p {
+  margin: 10px 0;
+  font-size: 1.1em;
+  color: #495057;
+}
+
+.user-details-profile p strong {
+  color: #343a40;
+}
+
+.user-orders-section h3 {
+  color: #333;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  font-size: 1.5em;
+}
+
+.order-list-profile {
+  list-style-type: none;
+  padding: 0;
+}
+
+.order-item-profile {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.07);
+  transition: box-shadow 0.3s ease;
+}
+
+.order-item-profile:hover {
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.order-item-header-profile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.order-item-header-profile strong {
+  color: #007bff;
+  font-size: 1.1em;
+}
+
+.order-status-profile {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  font-weight: bold;
+  color: white;
+  text-transform: capitalize;
+  min-width: 100px;
+  text-align: center;
+}
+
+.status-pending { background-color: #ffc107; color: #212529; }
+.status-printing { background-color: #17a2b8; }
+.status-ready-to-pickup { background-color: #28a745; }
+.status-cancelled { background-color: #dc3545; }
+/* Add more statuses if needed */
+
+.order-item-body-profile p {
+  margin: 8px 0;
+  font-size: 1em;
+  color: #555;
+  line-height: 1.6;
+}
+
+.view-product-link-profile {
+  display: inline-block;
+  margin-top: 15px;
+  padding: 8px 15px;
+  background-color: #007bff;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  font-size: 0.95em;
+  transition: background-color 0.2s ease;
+}
+
+.view-product-link-profile:hover {
+  background-color: #0056b3;
+}
+
+.error-message-profile {
+  color: #721c24;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 12px;
+  border-radius: 5px;
+  margin: 20px 0;
+  text-align: center;
+}
+
+/* Style for the username link in the navbar */
+.username-display-link {
+  text-decoration: none;
+  color: inherit; /* Inherits color from parent, or set specific */
+}
+
+.username-display-link .username-display:hover {
+  text-decoration: underline; /* Optional: underline on hover */
+  color: #add8e6; /* Optional: change color on hover */
+}

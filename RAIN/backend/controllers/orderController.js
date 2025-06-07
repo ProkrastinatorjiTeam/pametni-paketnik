@@ -144,5 +144,31 @@ module.exports = {
                 error: err
             });
         }
-    }
+    },
+
+    /**
+     * orderController.listMyOrders()
+     * Fetches orders for the currently authenticated user.
+     */
+    listMyOrders: async function (req, res) {
+        try {
+            // req.session.userId should be populated by requireAuth middleware
+            if (!req.session || !req.session.userId) {
+                return res.status(401).json({ message: 'Not authenticated' });
+            }
+
+            const orders = await OrderModel.find({ orderBy: req.session.userId })
+                                        .populate('model', 'name') // Populate model and select only the name
+                                        .populate('box', 'name location') // Populate box details
+                                        .sort({ createdAt: -1 }); // Sort by newest first
+
+            return res.json(orders);
+        } catch (err) {
+            console.error("Error in listMyOrders:", err);
+            return res.status(500).json({
+                message: 'Error when getting your orders.',
+                error: err.message // Send only err.message for security
+            });
+        }
+    },
 };

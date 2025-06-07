@@ -29,4 +29,9 @@ router.patch('/update/:id', requireAdmin, orderController.updateOrder);
  */
 router.delete('/remove/:id', requireAdmin, orderController.removeOrder);
 
+/*
+ * GET
+ */
+router.get('/my-orders', requireAuth, orderController.listMyOrders); // Add this line
+
 module.exports = router;
