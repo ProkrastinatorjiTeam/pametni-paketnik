@@ -47,6 +47,11 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
+    implementation("com.squareup.okhttp3:okhttp:4.9.0") // Or the latest version
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
+    implementation("commons-io:commons-io:2.11.0") // For converting file to byte array
+    implementation("io.coil-kt:coil:2.5.0") // For image resizing
+
     // CameraX dependencies
     implementation("androidx.camera:camera-core:1.4.0")
     implementation("androidx.camera:camera-view:1.4.0")

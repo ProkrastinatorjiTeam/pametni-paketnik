@@ -1,12 +1,10 @@
-import com.example.paketnik_app.LoginRequest
-import com.example.paketnik_app.LoginResponse
-import com.example.paketnik_app.RegisterRequest
-import com.example.paketnik_app.RegisterResponse
+package com.example.paketnik_app
+
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.POST
 
-interface ApiService {
+interface AuthApiService {
     @POST("user/login")
     fun loginUser(@Body request: LoginRequest): Call<LoginResponse>
 
