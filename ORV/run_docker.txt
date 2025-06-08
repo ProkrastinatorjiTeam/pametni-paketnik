@@ -1,0 +1,8 @@
+//build
+docker build -t pametni-paketnik-app .
+
+//run
+docker run -d -p 3002:3002 --name paketnik-server -v "%CD%\uploads":/app/uploads -v "%CD%\models":/app/models -v "%CD%\data":/app/data pametni-paketnik-app
+
+//stop
+docker stop paketnik-server
