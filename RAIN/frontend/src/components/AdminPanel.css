@@ -92,6 +92,11 @@
   overflow-y: auto; /* Enable vertical scroll if content overflows */
 }
 
+.admin-modal-content.large-modal-content {
+  width: 70%; /* Or a fixed width like 800px */
+  max-width: 900px; /* Example max-width */
+}
+
 .admin-modal-content h3 {
   text-align: center;
   margin-top: 0;
@@ -284,4 +289,14 @@
   border: 1px solid #b7ebc3;
   border-radius: 4px;
   text-align: center;
+}
+
+.user-detail-section {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.user-detail-section h4 {
+  margin-bottom: 10px;
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './AdminPanel.css';
 import BoxDetailModal from './BoxDetailModal'; // Import the new modal
+import UserDetailModal from './UserDetailModal'; // Import the UserDetailModal
 
 const BACKEND_URL = 'http://localhost:3000';
 
@@ -11,6 +12,8 @@ function AdminPanel({ currentUser }) {
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [userError, setUserError] = useState('');
+  const [isUserDetailModalOpen, setIsUserDetailModalOpen] = useState(false);
+  const [selectedUserDetails, setSelectedUserDetails] = useState(null);
 
   // Product Management State
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -77,6 +80,16 @@ function AdminPanel({ currentUser }) {
   const handleCloseUserModal = () => {
     setIsUserModalOpen(false);
     setUserError('');
+  };
+
+  const handleOpenUserDetailModal = (user) => {
+    setSelectedUserDetails(user);
+    setIsUserDetailModalOpen(true);
+  };
+
+  const handleCloseUserDetailModal = () => {
+    setSelectedUserDetails(null);
+    setIsUserDetailModalOpen(false);
   };
 
   // Fetch Products
@@ -300,8 +313,13 @@ function AdminPanel({ currentUser }) {
               users.length > 0 ? (
                 <ul className="data-list user-list">
                   {users.map(user => (
-                    <li key={user._id} className="data-list-item">
+                    <li 
+                      key={user._id} 
+                      className="data-list-item clickable-list-item" // Make it clickable
+                      onClick={() => handleOpenUserDetailModal(user)} // Open detail modal on click
+                    >
                       <span><strong>Username:</strong> {user.username}</span>
+                      <span><strong>Email:</strong> {user.email}</span>
                       <span><strong>Role:</strong> {user.role}</span>
                     </li>
                   ))}
@@ -499,6 +517,15 @@ function AdminPanel({ currentUser }) {
         onBoxUpdated={handleBoxUpdated}
         currentUser={currentUser}
       />
+
+      {selectedUserDetails && (
+        <UserDetailModal
+          user={selectedUserDetails}
+          isOpen={isUserDetailModalOpen}
+          onClose={handleCloseUserDetailModal}
+          currentUser={currentUser} 
+        />
+      )}
     </div>
   );
 }

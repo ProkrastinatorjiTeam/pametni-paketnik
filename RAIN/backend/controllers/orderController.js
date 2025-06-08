@@ -221,6 +221,35 @@ module.exports = {
     },
 
     /**
+     * orderController.listOrdersByUserId()
+     * Lists all orders for a specific user, accessible by admin.
+     */
+    listOrdersByUserId: async function (req, res) {
+        try {
+            const userId = req.params.userId;
+            if (!userId) {
+                return res.status(400).json({ message: 'User ID is required.' });
+            }
+
+            let orders = await OrderModel.find({ orderBy: userId })
+                                        .populate({ path: 'model', select: 'name estimatedPrintTime' })
+                                        .populate('orderBy', 'username')
+                                        .populate('box', 'name location physicalId')
+                                        .sort({ createdAt: -1 });
+
+            orders = await Promise.all(orders.map(order => checkAndUpdateOrderStatus(order)));
+
+            return res.status(200).json({ message: 'Orders for user retrieved successfully', orders: orders });
+        } catch (err) {
+            console.error("Error in listOrdersByUserId:", err);
+            return res.status(500).json({
+                message: 'Error when getting orders for the specified user.',
+                error: err.message || err
+            });
+        }
+    },
+
+    /**
      * orderController.cancelMyOrder()
      */
     cancelMyOrder: async function (req, res) {

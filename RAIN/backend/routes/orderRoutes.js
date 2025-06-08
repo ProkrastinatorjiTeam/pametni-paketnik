@@ -34,6 +34,11 @@ router.delete('/remove/:id', requireAdmin, orderController.removeOrder);
 router.get('/my-orders', requireAuth, orderController.listMyOrders);
 
 /*
+ * GET orders by user ID (for admin panel)
+ */
+router.get('/user/:userId', requireAdmin, orderController.listOrdersByUserId);
+
+/*
  * PATCH
  */
 router.patch('/my-orders/:id/cancel', requireAuth, orderController.cancelMyOrder); // Add this line
