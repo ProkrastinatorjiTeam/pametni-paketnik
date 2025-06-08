@@ -1,0 +1,62 @@
+.product-detail-modal .image-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 15px;
+}
+
+.product-detail-modal .image-item {
+  position: relative;
+  border: 1px solid #ddd;
+  padding: 5px;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+}
+
+.product-detail-modal .image-item img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.product-detail-modal .delete-image-btn {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: rgba(220, 53, 69, 0.8); /* Red, slightly transparent */
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  line-height: 20px;
+  text-align: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.product-detail-modal .delete-image-btn:hover {
+  background-color: #dc3545; /* Solid red on hover */
+}
+
+.product-detail-modal .new-image-previews {
+  border-top: 1px dashed #ccc;
+  padding-top: 10px;
+}
+
+.product-detail-modal .modal-actions {
+  display: flex;
+  justify-content: space-between; /* Align buttons */
+  margin-top: 20px;
+}
+
+.product-detail-modal .modal-actions .delete-button {
+  background-color: #dc3545; /* Red for delete */
+  color: white;
+}
+.product-detail-modal .modal-actions .delete-button:hover {
+  background-color: #c82333;
+}

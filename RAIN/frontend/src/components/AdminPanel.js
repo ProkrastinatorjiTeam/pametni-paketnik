@@ -3,6 +3,7 @@ import axios from 'axios';
 import './AdminPanel.css';
 import BoxDetailModal from './BoxDetailModal'; // Import the new modal
 import UserDetailModal from './UserDetailModal'; // Import the UserDetailModal
+import ProductDetailModal from './ProductDetailModal'; // Import the ProductDetailModal
 
 const BACKEND_URL = 'http://localhost:3000';
 
@@ -20,6 +21,8 @@ function AdminPanel({ currentUser }) {
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [productError, setProductError] = useState('');
+  const [isProductDetailModalOpen, setIsProductDetailModalOpen] = useState(false);
+  const [selectedProductDetails, setSelectedProductDetails] = useState(null);
 
   // Order Management State
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
@@ -116,6 +119,23 @@ function AdminPanel({ currentUser }) {
   const handleCloseProductModal = () => {
     setIsProductModalOpen(false);
     setProductError('');
+  };
+
+  const handleOpenProductDetailModal = (product) => {
+    setSelectedProductDetails(product);
+    setIsProductDetailModalOpen(true);
+  };
+
+  const handleCloseProductDetailModal = () => {
+    setSelectedProductDetails(null);
+    setIsProductDetailModalOpen(false);
+  };
+
+  const handleProductUpdated = () => {
+    fetchProducts(); // Refresh the main list
+    // Optionally, if you want to keep the detail modal open and show updated data,
+    // you might need to fetch the single product again and update selectedProductDetails.
+    // For simplicity now, we can just close it or let the user close it.
   };
 
   // Fetch Orders
@@ -344,9 +364,14 @@ function AdminPanel({ currentUser }) {
               products.length > 0 ? (
                 <ul className="data-list product-list">
                   {products.map(product => (
-                    <li key={product._id} className="data-list-item">
+                    <li 
+                      key={product._id} 
+                      className="data-list-item clickable-list-item"
+                      onClick={() => handleOpenProductDetailModal(product)}
+                    >
                       <span><strong>Name:</strong> {product.name}</span>
                       <span><strong>Print Time:</strong> {product.estimatedPrintTime || 'N/A'} min</span>
+                      <span><strong>Price:</strong> {product.price !== null && product.price !== undefined ? `€${product.price.toFixed(2)}` : 'N/A'}</span>
                     </li>
                   ))}
                 </ul>
@@ -524,6 +549,16 @@ function AdminPanel({ currentUser }) {
           isOpen={isUserDetailModalOpen}
           onClose={handleCloseUserDetailModal}
           currentUser={currentUser} 
+        />
+      )}
+
+      {selectedProductDetails && (
+        <ProductDetailModal
+          product={selectedProductDetails}
+          isOpen={isProductDetailModalOpen}
+          onClose={handleCloseProductDetailModal}
+          onProductUpdated={handleProductUpdated}
+          currentUser={currentUser}
         />
       )}
     </div>

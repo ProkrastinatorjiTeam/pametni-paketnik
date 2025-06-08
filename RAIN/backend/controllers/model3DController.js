@@ -36,14 +36,22 @@ module.exports = {
             console.log("Uploaded Files:", JSON.stringify(req.files, null, 2));
             const imagePaths = req.files.images.map(file => '/images/' + file.filename);
 
+            let priceValue = null;
+            if (req.body.price && req.body.price !== "null" && req.body.price !== "") {
+                const parsedPrice = parseFloat(req.body.price);
+                if (!isNaN(parsedPrice)) {
+                    priceValue = parsedPrice;
+                }
+            }
+
             const model3D = new Model3dModel({
                 name: req.body.name,
                 description: req.body.description,
                 images: imagePaths,
                 createdBy: req.session.userId,
-                createdAt: req.body.createdAt,
-                estimatedPrintTime: req.body.estimatedPrintTime,
-                price: req.body.price ? parseFloat(req.body.price) : null,
+                // createdAt is usually set by default: Date.now in schema or by Mongoose
+                estimatedPrintTime: req.body.estimatedPrintTime ? parseInt(req.body.estimatedPrintTime, 10) : null,
+                price: priceValue, 
             });
             console.log("Body:", req.body);
             console.log("Files:", req.files);
@@ -60,29 +68,74 @@ module.exports = {
 
     // PUT /api/models/:id
     updateModel3D: async (req, res) => {
+        console.log(`[updateModel3D] Attempting to update model ID: ${req.params.id}`);
+        console.log("[updateModel3D] Raw req.body:", JSON.stringify(req.body, null, 2));
+        console.log("[updateModel3D] Raw req.files:", JSON.stringify(req.files, null, 2));
+
         try {
             const model3D = await Model3dModel.findById(req.params.id);
             if (!model3D) {
                 return res.status(404).json({message: 'No such model3D'});
             }
 
-            model3D.name = req.body.name ?? model3D.name;
-            model3D.description = req.body.description ?? model3D.description;
-            model3D.images = req.body.images ?? model3D.images;
-            model3D.createdBy = req.body.createdBy ?? model3D.createdBy;
-            model3D.createdAt = req.body.createdAt ?? model3D.createdAt;
-            model3D.estimatedPrintTime = req.body.estimatedPrintTime ?? model3D.estimatedPrintTime;
-            if (req.body.price !== undefined) {
-                model3D.price = req.body.price === '' || req.body.price === null ? null : parseFloat(req.body.price);
+            // Handle text fields
+            if (req.body.name !== undefined) {
+                console.log(`[updateModel3D] Updating name to: ${req.body.name}`);
+                model3D.name = req.body.name;
+            }
+            if (req.body.description !== undefined) {
+                console.log(`[updateModel3D] Updating description to: ${req.body.description}`);
+                model3D.description = req.body.description;
+            }
+            if (req.body.estimatedPrintTime !== undefined) {
+                const estPrintTime = parseInt(req.body.estimatedPrintTime, 10);
+                console.log(`[updateModel3D] Updating estimatedPrintTime to: ${estPrintTime}`);
+                model3D.estimatedPrintTime = isNaN(estPrintTime) ? null : estPrintTime;
             }
 
+            // Corrected price handling
+            if (req.body.price !== undefined) {
+                if (req.body.price === '' || req.body.price === null || req.body.price === "null") {
+                    console.log(`[updateModel3D] Setting price to null`);
+                    model3D.price = null;
+                } else {
+                    const parsedPrice = parseFloat(req.body.price);
+                    console.log(`[updateModel3D] Updating price to: ${parsedPrice}`);
+                    model3D.price = isNaN(parsedPrice) ? null : parsedPrice;
+                }
+            }
+
+            // Handle new image uploads (assuming multer is configured for 'newImages')
+            if (req.files && req.files.newImages && req.files.newImages.length > 0) {
+                console.log(`[updateModel3D] Adding ${req.files.newImages.length} new image(s).`);
+                const newImagePaths = req.files.newImages.map(file => '/images/' + file.filename);
+                model3D.images = [...model3D.images, ...newImagePaths];
+            } else if (req.files && (!req.files.newImages || req.files.newImages.length === 0)) {
+                console.log("[updateModel3D] req.files.newImages is present but empty or not an array.");
+            } else {
+                console.log("[updateModel3D] No new files found in req.files.newImages.");
+            }
+            // Note: Deletion of existing images is handled by a separate endpoint 
+            // in your frontend (handleDeleteExistingImage). 
+            // If you wanted to manage existing images to keep via this update endpoint,
+            // you'd need to send a list of existing image paths to keep and reconcile.
+            // For now, this just adds new images.
+
+            // createdBy and createdAt are generally not updated after creation.
+            // If you intend to update them, ensure it's the correct logic.
+            // model3D.createdBy = req.body.createdBy ?? model3D.createdBy; 
+            // model3D.createdAt = req.body.createdAt ?? model3D.createdAt;
+
             const updatedModel = await model3D.save();
-            res.json(updatedModel);
+            console.log("[updateModel3D] Model saved successfully.");
+            return res.status(200).json({message: 'Model updated successfully', model3D: updatedModel});
+
         } catch (err) {
-            res.status(500).json({
-                message: 'Error when updating model3D.',
-                error: err
-            });
+            console.error("[updateModel3D] Error during update:", err);
+            if (err.name === 'ValidationError') {
+                return res.status(400).json({ message: 'Validation Error', errors: err.errors });
+            }
+            return res.status(500).json({message: 'Error updating model3D', error: err.message});
         }
     },
 
