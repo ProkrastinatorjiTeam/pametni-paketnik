@@ -42,6 +42,12 @@ function AdminPanel({ currentUser }) {
   const [isBoxDetailModalOpen, setIsBoxDetailModalOpen] = useState(false);
   const [selectedBoxDetails, setSelectedBoxDetails] = useState(null);
 
+  // Opening Management State
+  const [isOpeningModalOpen, setIsOpeningModalOpen] = useState(false);
+  const [openings, setOpenings] = useState([]);
+  const [loadingOpenings, setLoadingOpenings] = useState(false);
+  const [openingError, setOpeningError] = useState('');
+
   // Fetch Users
   const fetchUsers = async () => {
     setLoadingUsers(true);
@@ -214,6 +220,38 @@ function AdminPanel({ currentUser }) {
     // handleCloseBoxDetailModal();
   };
 
+  // Fetch Openings (Unlock Events)
+  const fetchOpenings = async () => {
+    setLoadingOpenings(true);
+    setOpeningError('');
+    try {
+      // Assuming your backend endpoint for all unlock events is /unlock-event/list
+      const response = await axios.get(`${BACKEND_URL}/unlockEvent/list`); // Changed to /unlockEvent/list
+      if (response.data && response.data.unlockEvents) {
+        setOpenings(response.data.unlockEvents);
+      } else {
+        setOpenings([]);
+        setOpeningError('Could not fetch opening data format.');
+      }
+    } catch (err) {
+      console.error('Error fetching openings:', err);
+      setOpeningError(err.response?.data?.message || 'Failed to fetch openings.');
+      setOpenings([]);
+    } finally {
+      setLoadingOpenings(false);
+    }
+  };
+
+  const handleOpenOpeningManagement = () => {
+    fetchOpenings();
+    setIsOpeningModalOpen(true);
+  };
+
+  const handleCloseOpeningModal = () => {
+    setIsOpeningModalOpen(false);
+    setOpeningError('');
+  };
+
   return (
     <div className="admin-panel-container">
       <h2>Admin Panel</h2>
@@ -242,6 +280,12 @@ function AdminPanel({ currentUser }) {
             Box Management
           </h3>
           <p>View and manage boxes.</p>
+        </section>
+        <section className="admin-section">
+          <h3 onClick={handleOpenOpeningManagement} className="clickable-heading">
+            Opening Management
+          </h3>
+          <p>View box opening history.</p>
         </section>
       </div>
 
@@ -413,6 +457,36 @@ function AdminPanel({ currentUser }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Opening Management Modal */}
+      {isOpeningModalOpen && (
+        <div className="modal-overlay admin-modal-overlay">
+          <div className="modal-content admin-modal-content">
+            <h3>Box Opening History</h3>
+            {loadingOpenings && <p>Loading opening history...</p>}
+            {openingError && <p className="error-message modal-error">{openingError}</p>}
+            {!loadingOpenings && !openingError && (
+              openings.length > 0 ? (
+                <ul className="data-list opening-list">
+                  {openings.map(event => (
+                    <li key={event._id} className="data-list-item">
+                      <span><strong>Box:</strong> {event.box?.name || event.box} (ID: {event.box?.physicalId || 'N/A'})</span>
+                      <span><strong>User:</strong> {event.user?.username || event.user}</span>
+                      <span><strong>Time:</strong> {new Date(event.timestamp).toLocaleString()}</span> {/* Changed to event.timestamp */}
+                      <span><strong>Successful:</strong> {event.success ? 'Yes' : 'No'}</span>
+                      {/* The field might be 'authorized' depending on your backend model */}
+                      {/* <span><strong>Authorized:</strong> {event.authorized ? 'Yes' : 'No'}</span> */}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No opening events found.</p>
+              )
+            )}
+            <button onClick={handleCloseOpeningModal} className="modal-close-button">Close</button>
           </div>
         </div>
       )}

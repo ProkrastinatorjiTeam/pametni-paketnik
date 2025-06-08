@@ -7,15 +7,18 @@ module.exports = {
     // List all unlock events (admin only)
     listUnlockEvents: async function (req, res) {
         try {
-            // Fetch all unlock events from the database
-            const unlockEvents = await UnlockEventModel.find({});
+            // Fetch all unlock events from the database, populate related fields, and sort
+            const unlockEvents = await UnlockEventModel.find({})
+                                                .populate('user', 'username') // Populate user's username
+                                                .populate('box', 'name physicalId') // Populate box's name and physicalId
+                                                .sort({ timestamp: -1 }); // Sort by timestamp descending
 
             // Respond with the list of unlock events
             return res.status(200).json({message: 'Unlock events retrieved successfully', unlockEvents: unlockEvents});
 
             // Handle errors
         } catch (err) {
-            console.error(err);
+            console.error("Error in listUnlockEvents:", err);
             return res.status(500).json({
                 message: 'Error retrieving unlock events',
                 error: err.message
