@@ -34,7 +34,7 @@ class FaceScanActivity : AppCompatActivity() {
     private var recordingTimer: CountDownTimer? = null // Added for recording progress
 
     private val RECORDING_DURATION_SECONDS = 10L // Increased duration
-    private val TARGET_FRAME_RATE = 10 // Increased frame rate
+    private val TARGET_FRAME_RATE = 24 // Increased frame rate
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

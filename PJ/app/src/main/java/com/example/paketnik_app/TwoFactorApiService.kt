@@ -12,7 +12,20 @@ interface TwoFactorApiService {
     @Multipart
     @POST("user/updateImages")
     fun updateImages(
-        @Part("userId") userId: RequestBody, // Added userId part
+        @Part("userId") userId: RequestBody,
         @Part images: List<MultipartBody.Part>
     ): Call<ResponseBody>
+
+    @Multipart
+    @POST("user/verify") // New endpoint
+    fun verifyUser(
+        @Part("userId") userId: RequestBody,
+        @Part image: MultipartBody.Part // Single image for verification
+    ): Call<VerifyResponse>
 }
+
+// New data class for the /user/verify response
+data class VerifyResponse(
+    val is_match: Boolean,
+    val message: String? // Optional message from the server
+)
