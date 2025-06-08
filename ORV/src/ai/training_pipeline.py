@@ -5,7 +5,7 @@ import threading
 from flask import current_app # For config and logging
 import logging
 
-from .data_processor import split_user_images_for_training, augment_and_duplicate_user_training_images # Import new function
+from .data_processor import split_user_images_for_training, apply_offline_augmentations # MODIFIED IMPORT
 from .training_manager import train_model_for_user
 
 def start_user_training_pipeline(user_id: str, source_uploaded_images_dir: str):
@@ -56,21 +56,20 @@ def start_user_training_pipeline(user_id: str, source_uploaded_images_dir: str):
     # Step 1.5: Offline Augmentation (Placeholder)
     if user_train_data_path: # Proceed only if splitting was successful and path is valid
         logger.info(f"Starting offline augmentation for user {user_id} training data.")
-        aug_success, aug_message = augment_and_duplicate_user_training_images(
+        aug_success, aug_message = apply_offline_augmentations( # MODIFIED FUNCTION CALL
             user_id=user_id,
             user_train_data_path=user_train_data_path,
-            app_config=dict(app_config), # Pass a copy of app_config
+            app_config=dict(app_config), 
             logger=logger
         )
         if not aug_success:
             logger.warning(f"Offline augmentation step for user {user_id} reported an issue: {aug_message}")
-            # Decide if this is a critical failure or just a warning. For now, log and continue.
         else:
             logger.info(f"Offline augmentation step for user {user_id} completed: {aug_message}")
     else:
-        logger.warning(f"Skipping offline augmentation for user {user_id} due to previous data split error or invalid path.")
-
-
+        logger.error(f"Skipping offline augmentation for user {user_id} due to previous data splitting failure or invalid path.")
+        # Potentially stop pipeline here if user_train_data_path is crucial and missing
+    
     # Step 2: Launch training in a background thread
     logger.info(f"Attempting to launch training for user {user_id} in a background thread.")
     try:
