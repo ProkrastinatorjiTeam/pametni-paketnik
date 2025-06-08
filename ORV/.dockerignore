@@ -1,0 +1,37 @@
+# filepath: d:\MARK\Oddaje Faks\2 Letnik\Pametni paketnik\pametni-paketnik\ORV\.dockerignore
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Git stuff
+.git
+.gitignore
+
+# Docker stuff (don't pack itself)
+.dockerignore
+Dockerfile
+
+# IDE and OS specific
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# These folders will be connected from your computer, not packed inside
+data/
+models/
+uploads/

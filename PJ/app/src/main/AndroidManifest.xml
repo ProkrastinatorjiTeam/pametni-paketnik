@@ -22,6 +22,9 @@
         android:theme="@style/Theme.Paketnikapp"
         tools:targetApi="31">
         <activity
+            android:name=".FaceVerifyActivity"
+            android:exported="false" />
+        <activity
             android:name=".RegisterActivity"
             android:exported="false" />
         <activity

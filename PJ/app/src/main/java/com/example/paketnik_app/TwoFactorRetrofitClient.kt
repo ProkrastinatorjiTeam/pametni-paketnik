@@ -7,8 +7,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object TwoFactorRetrofitClient {
-    // For Android emulator, 10.0.2.2 typically maps to your host machine's localhost
-    private const val BASE_URL = "http://192.168.1.27:3002/"
+    private const val BASE_URL = "https://face.id.fl0rijan.freemyip.com"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
