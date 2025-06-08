@@ -11,7 +11,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.app.AlertDialog // Ensure this import is present
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -20,7 +20,6 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.navigation.NavigationView
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-// import okhttp3.RequestBody // Not directly used in this file after changes
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
@@ -28,8 +27,6 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
-// Assuming TokenPlayerHelper is in this package or imported correctly
-// import com.example.paketnik_app.TokenPlayerHelper
 
 @androidx.camera.core.ExperimentalGetImage
 class MainActivity : AppCompatActivity() {
@@ -39,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navigationView: NavigationView
     private lateinit var toolbar: MaterialToolbar
 
+    //Launch FaceScanActivity to record a video of the user's face
     private val faceScanLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val framePaths = result.data?.getStringArrayListExtra("FRAME_PATHS")
@@ -206,15 +204,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Your original extractBoxIdFromQrCode method
     private fun extractBoxIdFromQrCode(qrCode: String): Int? {
         val segments = qrCode.split("/")
-        // Example QR: "https://api.fl0rijan.freemyip.com/box/3/qr/1" -> segments[4] should be "3" (boxId)
-        // The user's previous working code implies physicalId is at index 4.
-        // Let's assume the ID needed for FaceVerify is the one after /qr/, which is segments[6] if structure is fixed.
-        // If the user's original comment "physicalId is at index 4" refers to the box's own ID (e.g. "3" in example)
-        // and the ID for verification is different, this needs clarification.
-        // For now, sticking to the user's provided logic:
+
         if (segments.size > 4) {
             val idStr = segments[4]
             Log.d("MainActivity", "extractBoxIdFromQrCode: segment[4] is '$idStr'")
@@ -321,8 +313,8 @@ class MainActivity : AppCompatActivity() {
             })
     }
 
+    //Upload extracted frames to the Two-Factor server
     private fun sendImagesToTwoFactorServer(framePaths: List<String>) {
-        // ... (logging inside this method can also be enhanced if needed) ...
         if (framePaths.isEmpty()) {
             Toast.makeText(this, "No frames to send.", Toast.LENGTH_SHORT).show()
             return
@@ -336,6 +328,8 @@ class MainActivity : AppCompatActivity() {
         val userIdRequestBody = userId.toRequestBody("text/plain".toMediaTypeOrNull())
         val imageParts = mutableListOf<MultipartBody.Part>()
         var allFilesValid = true
+
+        // Prepare images for upload
         for (path in framePaths) {
             val file = File(path)
             if (file.exists() && file.isFile) {
@@ -355,6 +349,8 @@ class MainActivity : AppCompatActivity() {
         }
         Toast.makeText(this, "Uploading ${imageParts.size} images for user $userId...", Toast.LENGTH_SHORT).show()
         Log.d("MainActivity", "Attempting to upload ${imageParts.size} images for user $userId to 2FA server.")
+
+        // Send images to the server
         TwoFactorRetrofitClient.instance.updateImages(userIdRequestBody, imageParts).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
@@ -376,7 +372,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun cleanupCachedFrames(framePaths: List<String>) {
-        // ... (logging inside this method can also be enhanced if needed) ...
         var allDeleted = true
         for (path in framePaths) {
             try {

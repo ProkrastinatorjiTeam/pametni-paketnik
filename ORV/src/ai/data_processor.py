@@ -184,18 +184,7 @@ def apply_offline_augmentations(
     logger=None
 ):
     """
-    Applies a set of custom augmentations to a subset of images in the user's training set.
-    Augmented images are saved with a suffix in the same directory.
-
-    Args:
-        user_id (str): The ID of the user.
-        user_train_data_path (str): Path to the directory containing the user's training images.
-        app_config (dict): Application configuration for augmentation parameters.
-        logger: Optional logger instance.
-    
-    Returns:
-        bool: True if successful (or no action needed), False on critical error.
-        str: Message indicating status or error.
+    Applies offline augmentations to images in a user's training data directory.
     """
     if logger is None:
         logger = current_app.logger if current_app else logging.getLogger(__name__)
@@ -203,8 +192,6 @@ def apply_offline_augmentations(
     logger.info(f"Starting offline augmentations for user {user_id} in {user_train_data_path}")
 
     # --- Configuration Loading ---
-    # Load augmentation parameters from the application config or use default values.
-    # This allows for easy tuning of augmentation behavior without code changes.
     augmentation_probability = float(app_config.get('OFFLINE_AUG_PROBABILITY', 0.4)) # Chance to augment an image
     
     # Glare effect parameters
@@ -245,7 +232,6 @@ def apply_offline_augmentations(
     # --- Image Discovery ---
     # List all image files in the user's training directory.
     # It filters for common image extensions and excludes images that already appear to be augmented
-    # (based on filename suffixes) to prevent re-augmenting.
     image_files = [f for f in os.listdir(user_train_data_path)
                    if os.path.isfile(os.path.join(user_train_data_path, f))
                    and f.lower().endswith(('.png', '.jpg', '.jpeg'))
@@ -281,8 +267,6 @@ def apply_offline_augmentations(
                 aug_suffix = ""
 
                 # --- Apply Selected Augmentation ---
-                # Call the appropriate helper function based on the chosen augmentation.
-                # A copy of the image is passed to the helper to keep the original intact.
                 if chosen_aug == 'glare':
                     augmented_image = _add_glare(image.copy(), glare_intensity_range)
                     aug_suffix = "_glare"
@@ -305,22 +289,17 @@ def apply_offline_augmentations(
                     new_img_name = f"{base}{aug_suffix}{ext}"
                     new_img_path = os.path.join(user_train_data_path, new_img_name)
                     
-                    # Save the augmented image to disk.
-                    # Note: The comment about handling existing files is a good point for future robustness.
-                    # For now, it overwrites if a file with the exact same augmented name exists.
+                    # Save the augmented image
                     cv.imwrite(new_img_path, augmented_image)
                     augmented_count += 1
                     logger.debug(f"Applied {chosen_aug} to {img_name}, saved as {new_img_name}")
 
             except Exception as e:
                 # --- Error Handling for Individual Image ---
-                # Log any error during augmentation of a specific image and continue with the next.
-                # `exc_info=True` includes stack trace in the log for better debugging.
                 logger.error(f"Failed to augment image {img_path} with {chosen_aug}: {e}", exc_info=True)
                 # Continue with next image
 
     # --- Final Reporting ---
-    # Log a summary of the augmentation process.
     msg = f"Offline augmentation completed for user {user_id}. Processed {processed_count} original images, created {augmented_count} new augmented versions."
     logger.info(msg)
     return True, msg
