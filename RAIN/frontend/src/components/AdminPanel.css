@@ -112,12 +112,13 @@
 }
 
 .data-list-item {
-  padding: 10px 0;
+  padding: 8px 0; /* Adjusted vertical padding for the item */
   border-bottom: 1px solid #eee;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+  align-items: flex-start; /* Align items to the top, good for multi-line content in spans */
+  flex-wrap: wrap; 
+  gap: 8px; /* Adds consistent spacing between items horizontally and vertically when they wrap */
+  /* Removed justify-content; flex properties on children will handle distribution */
 }
 
 .data-list-item:last-child {
@@ -126,9 +127,20 @@
 
 .data-list-item span {
   font-size: 0.9em;
-  margin-right: 10px; /* Add some spacing between spans */
-  margin-bottom: 5px; /* Spacing for wrapped items */
-  display: inline-block; /* Helps with alignment and spacing */
+  /* margin-right and margin-bottom are effectively replaced by the 'gap' property on the parent .data-list-item */
+  
+  flex: 1; /* Shorthand for flex-grow: 1, flex-shrink: 1, flex-basis: 0%. 
+              This allows items to grow and shrink to share space on the line equally. */
+  min-width: 140px; /* Prevent items from becoming too narrow before wrapping. 
+                       Adjust this value based on the typical number of items and modal width. 
+                       For example, if you often have 3-4 items, this width should allow them to fit comfortably. */
+  padding: 4px 6px; /* Internal padding within each span for better text spacing */
+  box-sizing: border-box; /* Ensures padding doesn't add to the overall width in a disruptive way */
+
+  word-wrap: break-word; /* For older browser compatibility */
+  overflow-wrap: break-word; /* Allows long words or strings to break and wrap to the next line */
+  text-align: left; /* Ensures text within each span is left-aligned */
+  /* display: inline-block; /* No longer needed as flex items behave like blocks in the flex context */
 }
 
 /* Specific styling for order items if they need more complex layout */
@@ -144,6 +156,93 @@
 .status-available {
   color: #28a745; /* Green */
   font-weight: bold;
+}
+
+.status-success {
+  color: #28a745; /* Green */
+  font-weight: bold;
+  background-color: transparent; /* Ensure no background */
+}
+
+.status-failure {
+  color: #dc3545; /* Red */
+  font-weight: bold;
+  background-color: transparent; /* Ensure no background */
+}
+
+.status-printing {
+  color: #ffc107; /* Yellow/Amber */
+  font-weight: bold;
+  background-color: transparent; /* Ensure no background */
+}
+
+.status-cancelled {
+  color: #dc3545; /* Red */
+  font-weight: bold;
+  background-color: transparent; /* Ensure no background */
+}
+
+.status-ready {
+  color: #28a745; /* Green */
+  font-weight: bold;
+  background-color: transparent; /* Ensure no background */
+}
+
+.status-default { /* Optional: Style for any other status */
+  color: #6c757d; /* Grey */
+  font-weight: normal;
+  background-color: transparent; /* Ensure no background */
+}
+
+/* Apply these more specific rules for statuses within admin modals */
+.admin-modal-content .status-success {
+  color: #28a745; /* Green */
+  font-weight: bold;
+  background-color: transparent; 
+}
+
+.admin-modal-content .status-failure {
+  color: #dc3545; /* Red */
+  font-weight: bold;
+  background-color: transparent; 
+}
+
+.admin-modal-content .status-printing {
+  color: #ffc107; /* Yellow/Amber */
+  font-weight: bold;
+  background-color: transparent; 
+}
+
+.admin-modal-content .status-cancelled {
+  color: #dc3545; /* Red */
+  font-weight: bold;
+  background-color: transparent; 
+}
+
+.admin-modal-content .status-ready {
+  color: #28a745; /* Green */
+  font-weight: bold;
+  background-color: transparent; 
+}
+
+.admin-modal-content .status-default { 
+  color: #6c757d; /* Grey */
+  font-weight: normal;
+  background-color: transparent; 
+}
+
+/* You might also want to ensure .status-busy and .status-available are scoped if they risk conflict,
+   though UserProfile.css doesn't seem to define these. For consistency: */
+.admin-modal-content .status-busy {
+  color: #dc3545; /* Red */
+  font-weight: bold;
+  background-color: transparent; /* Assuming text-only for admin panel */
+}
+
+.admin-modal-content .status-available {
+  color: #28a745; /* Green */
+  font-weight: bold;
+  background-color: transparent; /* Assuming text-only for admin panel */
 }
 
 .modal-close-button {

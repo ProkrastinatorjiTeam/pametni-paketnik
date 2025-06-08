@@ -394,15 +394,34 @@ function AdminPanel({ currentUser }) {
             {!loadingOrders && !orderError && (
               orders.length > 0 ? (
                 <ul className="data-list order-list">
-                  {orders.map(order => (
-                    <li key={order._id} className="data-list-item order-item">
-                      <span><strong>ID:</strong> {order._id}</span>
-                      <span><strong>Model:</strong> {order.model?.name || 'N/A'}</span>
-                      <span><strong>User:</strong> {order.orderBy?.username || 'N/A'}</span>
-                      <span><strong>Status:</strong> {order.status}</span>
-                       <span><strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}</span>
-                    </li>
-                  ))}
+                  {orders.map(order => {
+                    let statusClass = '';
+                    switch (order.status?.toLowerCase()) {
+                      case 'printing':
+                        statusClass = 'status-printing';
+                        break;
+                      case 'cancelled':
+                        statusClass = 'status-cancelled';
+                        break;
+                      case 'ready to pickup':
+                        statusClass = 'status-ready';
+                        break;
+                      default:
+                        statusClass = 'status-default'; // Optional: for other statuses
+                    }
+                    return (
+                      <li key={order._id} className="data-list-item order-item">
+                        <span><strong>ID:</strong> {order._id}</span>
+                        <span><strong>Model:</strong> {order.model?.name || 'N/A'}</span>
+                        <span><strong>User:</strong> {order.orderBy?.username || 'N/A'}</span>
+                        <span>
+                          <strong>Status:</strong>
+                          <span className={statusClass}> {order.status}</span>
+                        </span>
+                        <span><strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
               ) : (
                 <p>No order history.</p>
@@ -519,7 +538,12 @@ function AdminPanel({ currentUser }) {
                       <span><strong>Box:</strong> {event.box?.name || event.box} (ID: {event.box?.physicalId || 'N/A'})</span>
                       <span><strong>User:</strong> {event.user?.username || event.user}</span>
                       <span><strong>Time:</strong> {new Date(event.timestamp).toLocaleString()}</span> {/* Changed to event.timestamp */}
-                      <span><strong>Successful:</strong> {event.success ? 'Yes' : 'No'}</span>
+                      <span>
+                        <strong>Successful:</strong>
+                        <span className={event.success ? 'status-success' : 'status-failure'}>
+                          {event.success ? ' Yes' : ' No'}
+                        </span>
+                      </span>
                       {/* The field might be 'authorized' depending on your backend model */}
                       {/* <span><strong>Authorized:</strong> {event.authorized ? 'Yes' : 'No'}</span> */}
                     </li>
