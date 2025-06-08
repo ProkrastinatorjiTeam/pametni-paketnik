@@ -103,4 +103,4 @@ def verify_user_with_image(user_id: str, image_bytes: bytes, app_config: dict, l
         message = f"User {user_id} NOT VERIFIED. Probability: {prediction_prob:.4f} (Threshold: {verification_threshold})"
         logger.info(message)
         
-    return is_match, float(prediction_prob), message
+    return bool(is_match), float(prediction_prob), message # Convert numpy.bool_ to Python bool

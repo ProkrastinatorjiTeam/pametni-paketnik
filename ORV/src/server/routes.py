@@ -51,16 +51,16 @@ def update_images_route():
     
     return jsonify(response_payload), status_code
 
-@api_bp.route('/api/user/verify', methods=['POST'])
+@api_bp.route('/user/verify', methods=['POST'])
 def verify_image_route():
     logger = current_app.logger
     app_config = current_app.config
 
-    if 'user_id' not in request.form:
-        logger.warning("Verification attempt failed: 'user_id' missing from form data.")
-        return jsonify({"error": "user_id is required"}), 400
+    if 'userId' not in request.form: # Changed from 'user_id' to 'userId'
+        logger.warning("Verification attempt failed: 'userId' missing from form data.")
+        return jsonify({"error": "userId is required"}), 400
     
-    user_id = request.form['user_id']
+    user_id = request.form['userId'] # Changed from 'user_id' to 'userId'
 
     if 'image' not in request.files:
         logger.warning(f"Verification attempt for user {user_id} failed: 'image' file part missing.")
