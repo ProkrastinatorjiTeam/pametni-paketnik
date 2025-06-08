@@ -43,6 +43,7 @@ module.exports = {
                 createdBy: req.session.userId,
                 createdAt: req.body.createdAt,
                 estimatedPrintTime: req.body.estimatedPrintTime,
+                price: req.body.price ? parseFloat(req.body.price) : null,
             });
             console.log("Body:", req.body);
             console.log("Files:", req.files);
@@ -71,6 +72,9 @@ module.exports = {
             model3D.createdBy = req.body.createdBy ?? model3D.createdBy;
             model3D.createdAt = req.body.createdAt ?? model3D.createdAt;
             model3D.estimatedPrintTime = req.body.estimatedPrintTime ?? model3D.estimatedPrintTime;
+            if (req.body.price !== undefined) {
+                model3D.price = req.body.price === '' || req.body.price === null ? null : parseFloat(req.body.price);
+            }
 
             const updatedModel = await model3D.save();
             res.json(updatedModel);

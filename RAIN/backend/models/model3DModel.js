@@ -6,6 +6,7 @@ var model3DSchema = new Schema({
 	'description' : String,
 	'images' : [{type: String}],
 	'estimatedPrintTime' : {type: Number},
+	'price' : {type: Number, required: false, default: null},
 	'createdBy' : {
 	 	type: Schema.Types.ObjectId,
 	 	ref: 'user'

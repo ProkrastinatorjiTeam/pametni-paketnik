@@ -7,6 +7,7 @@ function AddProductPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [estimatedPrintTime, setEstimatedPrintTime] = useState('');
+  const [price, setPrice] = useState(''); // Add state for price
   const [images, setImages] = useState([]);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -33,8 +34,13 @@ function AddProductPage() {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('description', description);
-    formData.append('estimatedPrintTime', estimatedPrintTime);
-    images.forEach(image => {
+    if (estimatedPrintTime) {
+      formData.append('estimatedPrintTime', estimatedPrintTime);
+    }
+    if (price) { // Only append if price is provided
+      formData.append('price', price);
+    }
+    images.forEach((image) => {
       formData.append('images', image);
     });
 
@@ -50,6 +56,7 @@ function AddProductPage() {
       setDescription('');
       setEstimatedPrintTime('');
       setImages([]);
+      setPrice(''); // Reset price state
       event.target.reset();
     } catch (err) {
       console.error('Error adding product:', err.response ? err.response.data : err.message);
@@ -90,6 +97,19 @@ function AddProductPage() {
               id="estimatedPrintTime"
               value={estimatedPrintTime}
               onChange={(e) => setEstimatedPrintTime(e.target.value)}
+              min="0"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="price">Price (€):</label>
+            <input
+              type="number"
+              id="price"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              min="0"
+              step="0.01" // Allows decimal values for price
+              placeholder="Optional"
             />
           </div>
           <div className="form-group">

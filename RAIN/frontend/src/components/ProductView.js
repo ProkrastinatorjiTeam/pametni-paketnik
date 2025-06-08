@@ -269,9 +269,12 @@ function ProductView({ currentUser }) {
         )}
       </div>
       <div className="product-details">
-        <p><strong>Description:</strong> {product.description || 'No description available.'}</p>
+        <p className="product-description">{product.description}</p>
         {product.estimatedPrintTime && (
-          <p><strong>Estimated Print Time:</strong> {product.estimatedPrintTime} minutes</p>
+          <p className="product-print-time">Estimated Print Time: {product.estimatedPrintTime} minutes</p>
+        )}
+        {product.price !== null && product.price !== undefined && (
+          <p className="product-price">Price: €{product.price.toFixed(2)}</p>
         )}
         <button onClick={handleBuyNowClick} className="buy-now-button">Buy Now</button>
       </div>
