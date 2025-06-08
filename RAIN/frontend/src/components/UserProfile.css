@@ -1,145 +1,229 @@
+:root {
+  /* Using same variables as App.css for consistency */
+  --bg-light: #F7F9FC;
+  --bg-surface: #FFFFFF;
+  --accent-color: #007BFF;
+  --accent-hover: #0056b3;
+  --text-primary: #2C3E50;
+  --text-secondary: #6c757d;
+  --border-color: #DEE2E6;
+  --error-color: #dc3545;
+  --font-family: 'Montserrat', sans-serif;
+  --border-radius: 8px;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+/* --- General Page Layout --- */
+.user-profile-wrapper {
+  font-family: var(--font-family);
+  background-color: var(--bg-light);
+  min-height: calc(100vh - 70px); /* Adjust based on nav height */
+  padding: 40px 20px;
+}
+
 .user-profile-container {
-  max-width: 900px;
-  margin: 30px auto;
-  padding: 25px;
-  background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  font-family: 'Arial', sans-serif;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px;
 }
 
 .user-profile-container h2 {
   text-align: center;
-  color: #333;
-  margin-bottom: 25px;
-  font-size: 2em;
-}
-
-.user-details-profile {
-  background-color: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
+  font-size: 2.5em;
+  color: var(--text-primary);
   margin-bottom: 30px;
-  border: 1px solid #e9ecef;
 }
 
-.user-details-profile p {
-  margin: 10px 0;
-  font-size: 1.1em;
-  color: #495057;
+/* --- User Details Card --- */
+.user-details-card {
+  background-color: var(--bg-surface);
+  padding: 25px;
+  border-radius: var(--border-radius);
+  margin-bottom: 40px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
 }
 
-.user-details-profile p strong {
-  color: #343a40;
+.details-grid {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 15px 20px;
+  align-items: center;
+}
+.details-grid strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-align: right;
+}
+.details-grid span {
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
+/* --- Orders Section --- */
 .user-orders-section h3 {
-  color: #333;
-  border-bottom: 2px solid #007bff;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
-  font-size: 1.5em;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 15px;
+  margin-bottom: 30px;
+  font-size: 1.8em;
 }
 
 .order-list-profile {
   list-style-type: none;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .order-item-profile {
-  background-color: #fff;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
   padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.07);
-  transition: box-shadow 0.3s ease;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
-
 .order-item-profile:hover {
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
 }
 
-.order-item-header-profile {
+.order-item-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: start;
   margin-bottom: 15px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #e9ecef;
 }
 
-.order-item-header-profile strong {
-  color: #007bff;
-  font-size: 1.1em;
+.order-header-info strong {
+  display: block;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+.order-id-text {
+  font-size: 0.85em;
+  color: var(--text-secondary);
 }
 
-.order-status-profile {
-  padding: 6px 12px;
+.order-status-badge {
+  padding: 5px 12px;
   border-radius: 20px;
-  font-size: 0.9em;
-  font-weight: bold;
+  font-size: 0.8em;
+  font-weight: 700;
   color: white;
-  text-transform: capitalize;
-  min-width: 100px;
-  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
 }
 
-.status-pending { background-color: #ffc107; color: #212529; }
-.status-printing { background-color: #17a2b8; }
+/* Themed Status Colors */
+.status-pending { background-color: #ffc107; color: #333; }
+.status-printing { background-color: var(--accent-color); }
 .status-ready-to-pickup { background-color: #28a745; }
-.status-cancelled { background-color: #dc3545; }
-/* Add more statuses if needed */
+.status-cancelled { background-color: var(--error-color); }
+.status-completed { background-color: var(--text-secondary); }
 
-.order-item-body-profile p {
-  margin: 8px 0;
-  font-size: 1em;
-  color: #555;
-  line-height: 1.6;
+
+/* Grid for neatly aligned order details */
+.order-item-details-grid {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 12px 15px;
+  padding: 20px 0;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 20px;
 }
 
-.view-product-link-profile {
-  display: inline-block;
-  padding: 8px 15px;
-  background-color: #007bff;
-  color: white;
-  text-decoration: none;
-  border-radius: 5px;
-  font-size: 0.95em;
-  transition: background-color 0.2s ease;
+.order-item-details-grid strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.9em;
 }
 
-.view-product-link-profile:hover {
-  background-color: #0056b3;
+.order-item-details-grid span {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.9em;
 }
 
-.order-item-actions-profile {
-  margin-top: 15px;
+/* Actions */
+.order-item-actions {
   display: flex;
-  gap: 10px; /* Space between buttons if multiple actions */
+  gap: 15px;
   align-items: center;
 }
 
-.cancel-order-button-profile {
-  display: inline-block;
-  padding: 8px 15px;
-  background-color: #dc3545; /* Red for cancel/delete actions */
-  color: white;
+.action-link-view, .action-button-cancel {
+  padding: 8px 16px;
+  border-radius: var(--border-radius);
+  font-size: 0.9em;
+  font-weight: 600;
   text-decoration: none;
-  border-radius: 5px;
-  font-size: 0.95em;
-  transition: background-color 0.2s ease;
-  border: none;
+  transition: all 0.3s ease;
   cursor: pointer;
 }
 
-.cancel-order-button-profile:hover {
-  background-color: #c82333;
+.action-link-view {
+  background-color: var(--accent-color);
+  color: white;
+  border: 1px solid var(--accent-color);
+}
+.action-link-view:hover {
+  background-color: var(--accent-hover);
 }
 
-.cancel-order-button-profile:disabled {
-  background-color: #eda2a9;
+.action-button-cancel {
+  background-color: transparent;
+  color: var(--error-color);
+  border: 1px solid var(--error-color);
+}
+.action-button-cancel:hover {
+  background-color: var(--error-color);
+  color: #fff;
+}
+.action-button-cancel:disabled {
+  background-color: #f1f3f5;
+  border-color: var(--border-color);
+  color: var(--text-secondary);
   cursor: not-allowed;
+}
+
+/* Timer styles (from previous CSS) */
+.timer-display {
+  font-weight: bold;
+  color: var(--accent-color);
+}
+.timer-display.completed {
+  color: var(--success-color);
+}
+.timer-display.completing {
+  color: #fd7e14;
+  font-style: italic;
+}
+
+/* Messages */
+.no-orders-message {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 1.1em;
+  padding: 40px;
+  background-color: var(--bg-surface);
+  border-radius: var(--border-radius);
+  border: 1px dashed var(--border-color);
+}
+.no-orders-message a {
+  color: var(--accent-color);
+  font-weight: 600;
+  text-decoration: none;
+}
+.no-orders-message a:hover {
+  text-decoration: underline;
 }
 
 .error-message-profile {
@@ -150,30 +234,4 @@
   border-radius: 5px;
   margin: 20px 0;
   text-align: center;
-}
-
-/* Style for the username link in the navbar */
-.username-display-link {
-  text-decoration: none;
-  color: inherit; /* Inherits color from parent, or set specific */
-}
-
-.username-display-link .username-display:hover {
-  text-decoration: underline; /* Optional: underline on hover */
-  color: #add8e6; /* Optional: change color on hover */
-}
-
-.timer-display {
-  font-weight: bold;
-  color: #17a2b8; /* Default printing color */
-  margin-left: 5px;
-}
-
-.timer-display.completed {
-  color: #28a745; /* Green for completed */
-}
-
-.timer-display.completing { /* When client timer is done, but backend might not have updated yet */
-  color: #fd7e14; /* Orange for processing */
-  font-style: italic;
 }

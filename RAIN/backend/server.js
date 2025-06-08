@@ -29,7 +29,7 @@ app.set('view engine', 'hbs');
 // --- 2. USE CORS MIDDLEWARE ---
 // This should be placed before your routes and session middleware if sessions rely on cookies sent cross-origin.
 app.use(cors({
-  origin: 'http://localhost:3001', // Allow requests specifically from your frontend
+  origin: true, // Allow requests specifically from your frontend
   credentials: true                // Allow cookies and authorization headers to be sent
 }));
 

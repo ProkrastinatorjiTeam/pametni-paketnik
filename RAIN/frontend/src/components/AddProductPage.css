@@ -1,101 +1,223 @@
+:root {
+  /* Using same variables as App.css for consistency */
+  --bg-light: #F7F9FC;
+  --bg-surface: #FFFFFF;
+  --accent-color: #007BFF;
+  --accent-hover: #0056b3;
+  --text-primary: #2C3E50;
+  --text-secondary: #6c757d;
+  --border-color: #DEE2E6;
+  --error-color: #dc3545;
+  --success-color: #28a745;
+  --font-family: 'Montserrat', sans-serif;
+  --border-radius: 8px;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 15px rgba(0,0,0,0.08);
+}
+
 .add-product-page-wrapper {
-  padding: 20px; /* General padding for the content area */
-  min-height: calc(100vh - 40px - 60px); /* Adjust 60px for nav height */
-  /* position: relative; /* Only needed if children are absolutely positioned relative to this */
-}
-
-.page-back-button {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 0.9em;
-  margin-bottom: 20px; /* Space below the button before the form container */
-  display: block; /* Or inline-block */
-}
-
-.page-back-button:hover {
-  background-color: #5a6268;
+  font-family: var(--font-family);
+  background-color: var(--bg-light);
+  min-height: calc(100vh - 70px);
+  padding: 40px 20px;
 }
 
 .add-product-container {
-  max-width: 600px;
-  margin: 0 auto; /* Center the container, top margin is handled by button's margin-bottom */
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 30px 40px;
+  background-color: var(--bg-surface);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+}
+
+.header-with-back-button {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 20px;
+}
+
+.page-back-button {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  padding: 10px 20px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.page-back-button:hover {
+  background-color: var(--border-color);
+  color: var(--text-primary);
 }
 
 .add-product-container h2 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 20px;
+  font-size: 1.8em;
+  color: var(--text-primary);
+  margin: 0;
 }
 
-.add-product-form .form-group {
-  margin-bottom: 15px;
+/* --- Two-Column Form Layout --- */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+@media (max-width: 900px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-.add-product-form label {
+.form-group {
+  margin-bottom: 25px;
+}
+.form-group label {
   display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: #555;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.9em;
 }
 
-.add-product-form input[type="text"],
-.add-product-form input[type="number"],
-.add-product-form textarea,
-.add-product-form input[type="file"] {
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group textarea {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-sizing: border-box; /* So padding doesn't add to width */
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 1em;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-
-.add-product-form textarea {
-  min-height: 100px;
+.form-group input:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+}
+.form-group textarea {
   resize: vertical;
 }
 
-.submit-product-button {
-  background-color: #28a745; /* Green */
-  color: white;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 5px;
+/* --- Image Upload Section --- */
+.image-upload-section {
+  background-color: var(--bg-light);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+}
+.file-input-hidden {
+  display: none;
+}
+.file-input-label {
+  display: inline-block;
+  padding: 10px 15px;
+  background-color: var(--bg-surface);
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+  border-radius: var(--border-radius);
   cursor: pointer;
-  font-size: 1em;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.file-input-label:hover {
+  background-color: var(--accent-color);
+  color: #fff;
+}
+
+/* --- Image Preview Gallery --- */
+.image-preview-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+.image-preview-item {
+  position: relative;
+  border: 1px solid var(--border-color);
+  padding: 5px;
+  border-radius: var(--border-radius);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+  aspect-ratio: 1 / 1;
+}
+.image-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+.remove-image-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: var(--error-color);
+  color: white;
+  border: 2px solid white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 20px;
+  text-align: center;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.2s ease;
+}
+.remove-image-btn:hover {
+  transform: scale(1.1);
+}
+
+/* --- Form Footer & Submit --- */
+.form-footer {
+  border-top: 1px solid var(--border-color);
+  margin-top: 20px;
+  padding-top: 30px;
+}
+
+.submit-product-button {
+  background-color: var(--success-color);
+  color: white;
+  padding: 15px 20px;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 1.1em;
   font-weight: bold;
   display: block;
   width: 100%;
-  margin-top: 10px;
+  transition: all 0.2s ease;
 }
-
-.submit-product-button:hover {
+.submit-product-button:hover:not(:disabled) {
   background-color: #218838;
+  transform: translateY(-2px);
+}
+.submit-product-button:disabled {
+  background-color: #a5d6a7;
+  cursor: not-allowed;
 }
 
+.error-message, .success-message {
+  padding: 12px;
+  border-radius: var(--border-radius);
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: 600;
+}
 .error-message {
-  color: #dc3545; /* Red */
+  color: #721c24;
   background-color: #f8d7da;
   border: 1px solid #f5c6cb;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-  text-align: center;
 }
-
 .success-message {
-  color: #155724; /* Green */
+  color: #155724;
   background-color: #d4edda;
   border: 1px solid #c3e6cb;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-  text-align: center;
 }

@@ -1,62 +1,211 @@
-.product-detail-modal .image-gallery {
+:root {
+  /* Using same variables as App.css for consistency */
+  --bg-light: #F7F9FC;
+  --bg-surface: #FFFFFF;
+  --accent-color: #007BFF;
+  --accent-hover: #0056b3;
+  --text-primary: #2C3E50;
+  --text-secondary: #6c757d;
+  --border-color: #DEE2E6;
+  --error-color: #dc3545;
+  --success-color: #28a745;
+  --font-family: 'Montserrat', sans-serif;
+  --border-radius: 8px;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Modal styles are inherited from AdminPanel.css when used together,
+   but we redefine them here for standalone consistency. */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050; /* Higher than admin panel modal if needed */
+  backdrop-filter: blur(5px);
+}
+.modal-content.large-modal-content {
+  width: 90%;
+  max-width: 1000px;
+  max-height: 90vh;
+}
+
+/* --- Form Grid Layout --- */
+.product-detail-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+@media (max-width: 800px) {
+  .product-detail-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-column.image-management-section {
+  background-color: var(--bg-light);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+}
+
+/* --- Styled Form Elements --- */
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background-color: #fff;
+  color: var(--text-primary);
+  font-size: 1em;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+}
+.form-group textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* --- Custom File Input --- */
+.file-input-hidden {
+  display: none;
+}
+.file-input-label {
+  display: inline-block;
+  padding: 10px 15px;
+  background-color: var(--bg-surface);
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.file-input-label:hover {
+  background-color: var(--accent-color);
+  color: #fff;
+}
+
+/* --- Image Gallery --- */
+.image-gallery {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
-  margin-bottom: 15px;
+  gap: 12px;
+  margin-top: 15px;
 }
-
-.product-detail-modal .image-item {
+.image-item {
   position: relative;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   padding: 5px;
-  border-radius: 4px;
-  background-color: #f9f9f9;
+  border-radius: var(--border-radius);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
 }
-
-.product-detail-modal .image-item img {
-  width: 100px;
-  height: 100px;
+.image-item img {
+  width: 110px;
+  height: 110px;
   object-fit: cover;
-  border-radius: 3px;
+  border-radius: 4px;
 }
-
-.product-detail-modal .delete-image-btn {
+.delete-image-btn {
   position: absolute;
-  top: -5px;
-  right: -5px;
-  background-color: rgba(220, 53, 69, 0.8); /* Red, slightly transparent */
+  top: -8px;
+  right: -8px;
+  background-color: var(--error-color);
   color: white;
-  border: none;
+  border: 2px solid white;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+  font-weight: bold;
   line-height: 20px;
   text-align: center;
   cursor: pointer;
   padding: 0;
+  transition: transform 0.2s ease;
+}
+.delete-image-btn:hover {
+  transform: scale(1.1);
 }
 
-.product-detail-modal .delete-image-btn:hover {
-  background-color: #dc3545; /* Solid red on hover */
+.no-items-message {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  text-align: center;
 }
 
-.product-detail-modal .new-image-previews {
-  border-top: 1px dashed #ccc;
-  padding-top: 10px;
-}
-
-.product-detail-modal .modal-actions {
+/* --- Modal Footer --- */
+.modal-footer {
   display: flex;
-  justify-content: space-between; /* Align buttons */
-  margin-top: 20px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-light);
 }
 
-.product-detail-modal .modal-actions .delete-button {
-  background-color: #dc3545; /* Red for delete */
-  color: white;
+.footer-message-area {
+  flex-grow: 1;
 }
-.product-detail-modal .modal-actions .delete-button:hover {
+.footer-message-area p {
+  margin: 0;
+  text-align: left;
+  font-weight: 600;
+}
+.footer-button-group {
+  display: flex;
+  gap: 15px;
+}
+.action-button-primary, .action-button-danger {
+  padding: 10px 20px;
+  font-size: 1em;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.action-button-primary {
+  background-color: var(--accent-color);
+  color: #fff;
+}
+.action-button-primary:hover {
+  background-color: var(--accent-hover);
+}
+.action-button-danger {
+  background-color: var(--error-color);
+  color: #fff;
+}
+.action-button-danger:hover {
   background-color: #c82333;
+}
+.success-message {
+  color: var(--success-color);
+}
+.error-message {
+  color: var(--error-color);
 }

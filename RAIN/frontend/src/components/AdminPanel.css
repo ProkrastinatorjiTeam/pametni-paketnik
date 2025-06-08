@@ -1,401 +1,240 @@
+:root {
+  /* Using same variables as App.css for consistency */
+  --bg-light: #F7F9FC;
+  --bg-surface: #FFFFFF;
+  --accent-color: #007BFF;
+  --accent-hover: #0056b3;
+  --text-primary: #2C3E50;
+  --text-secondary: #6c757d;
+  --border-color: #DEE2E6;
+  --error-color: #dc3545;
+  --success-color: #28a745;
+  --font-family: 'Montserrat', sans-serif;
+  --border-radius: 8px;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+/* --- General Page Layout --- */
+.admin-panel-wrapper {
+  font-family: var(--font-family);
+  background-color: var(--bg-light);
+  min-height: calc(100vh - 70px);
+  padding: 40px 20px;
+}
+
 .admin-panel-container {
-  padding: 20px;
-  max-width: 1000px;
-  margin: 20px auto;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .admin-panel-container h2 {
   text-align: center;
-  color: #333;
-  margin-bottom: 25px;
-}
-
-.admin-panel-content {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.admin-section {
-  background-color: #ffffff;
-  padding: 15px;
-  border-radius: 5px;
-  border: 1px solid #e0e0e0;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.admin-section h3 {
-  margin-top: 0;
-  color: #007bff;
+  font-size: 2.5em;
+  color: var(--text-primary);
   margin-bottom: 10px;
 }
-
-/* New style for clickable headings */
-.clickable-heading {
-  cursor: pointer;
-  /* Optionally, add a hover effect if desired */
-  /* transition: color 0.2s ease-in-out; */
+.admin-subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 1.1em;
+  margin-bottom: 40px;
 }
 
-/* .clickable-heading:hover { */
-  /* color: #0056b3; */ /* Darker blue on hover */
-/* } */
+/* --- Admin Dashboard Grid --- */
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+}
 
-.admin-section p {
+.admin-card {
+  background-color: var(--bg-surface);
+  padding: 25px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.admin-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent-color);
+}
+.admin-card h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.4em;
+  color: var(--accent-color);
+}
+.admin-card p {
+  margin: 0;
   font-size: 0.95em;
-  color: #555;
+  color: var(--text-secondary);
   line-height: 1.6;
-  margin-bottom: 10px; /* Added margin for spacing before button */
 }
 
-.admin-section button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9em;
-  margin-top: 10px;
-}
-
-.admin-section button:hover {
-  background-color: #0056b3;
-}
-
-/* Modal Styles for Admin Panel */
-.admin-modal-overlay { /* Using a specific class to avoid conflicts if other modals exist */
+/* --- Modal Styles --- */
+.modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  backdrop-filter: blur(5px);
 }
 
-.admin-modal-content {
-  background-color: #fff;
-  padding: 25px;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  text-align: left; /* Align text to left for lists */
-  max-width: 500px;
+.modal-content.admin-modal-content {
+  background-color: var(--bg-surface);
+  border-radius: var(--border-radius);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   width: 90%;
-  max-height: 80vh; /* Max height for scrollability */
-  overflow-y: auto; /* Enable vertical scroll if content overflows */
+  max-width: 900px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.admin-modal-content.large-modal-content {
-  width: 70%; /* Or a fixed width like 800px */
-  max-width: 900px; /* Example max-width */
+.modal-content.small-modal {
+  max-width: 500px;
 }
 
-.admin-modal-content h3 {
-  text-align: center;
-  margin-top: 0;
-  color: #333;
-  margin-bottom: 20px;
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 25px;
+  border-bottom: 1px solid var(--border-color);
+}
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.5em;
+  color: var(--text-primary);
+}
+.close-button {
+  background: none;
+  border: none;
+  font-size: 2em;
+  line-height: 1;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.close-button:hover {
+  color: var(--text-primary);
 }
 
-/* Generic list styles */
+.modal-body {
+  padding: 25px;
+  overflow-y: auto;
+}
+
+/* --- Data List (Table-like) --- */
 .data-list {
-  list-style-type: none;
+  list-style: none;
   padding: 0;
   margin: 0;
 }
-
 .data-list-item {
-  padding: 8px 0; /* Adjusted vertical padding for the item */
-  border-bottom: 1px solid #eee;
-  display: flex;
-  align-items: flex-start; /* Align items to the top, good for multi-line content in spans */
-  flex-wrap: wrap; 
-  gap: 8px; /* Adds consistent spacing between items horizontally and vertically when they wrap */
-  /* Removed justify-content; flex properties on children will handle distribution */
+  display: grid;
+  gap: 15px;
+  padding: 15px 10px;
+  border-bottom: 1px solid var(--border-color);
+  align-items: center;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
 }
-
 .data-list-item:last-child {
   border-bottom: none;
 }
-
+.data-list-item:hover {
+  background-color: var(--bg-light);
+}
 .data-list-item span {
   font-size: 0.9em;
-  /* margin-right and margin-bottom are effectively replaced by the 'gap' property on the parent .data-list-item */
-  
-  flex: 1; /* Shorthand for flex-grow: 1, flex-shrink: 1, flex-basis: 0%. 
-              This allows items to grow and shrink to share space on the line equally. */
-  min-width: 140px; /* Prevent items from becoming too narrow before wrapping. 
-                       Adjust this value based on the typical number of items and modal width. 
-                       For example, if you often have 3-4 items, this width should allow them to fit comfortably. */
-  padding: 4px 6px; /* Internal padding within each span for better text spacing */
-  box-sizing: border-box; /* Ensures padding doesn't add to the overall width in a disruptive way */
-
-  word-wrap: break-word; /* For older browser compatibility */
-  overflow-wrap: break-word; /* Allows long words or strings to break and wrap to the next line */
-  text-align: left; /* Ensures text within each span is left-aligned */
-  /* display: inline-block; /* No longer needed as flex items behave like blocks in the flex context */
+  color: var(--text-secondary);
+  overflow-wrap: break-word;
+}
+.data-list-item span:first-child {
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
-/* Specific styling for order items if they need more complex layout */
-.order-item span {
-  min-width: 120px; /* Give some minimum width to order item details */
-}
+/* Specific Grid Layouts for each list type */
+.user-item { grid-template-columns: 1fr 1.5fr 0.5fr; }
+.product-item { grid-template-columns: 2fr 1fr 1fr; }
+.order-item { grid-template-columns: 2fr 1fr 1fr 1fr; text-align: right; }
+.order-item span:nth-child(-n+3) { text-align: left; }
+.box-item { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.opening-item { grid-template-columns: 1fr 1fr 1.5fr 1fr; }
 
-.status-busy {
-  color: #dc3545; /* Red */
-  font-weight: bold;
+/* Status Indicators */
+.status-badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8em;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
 }
+.status-pending { background-color: #ffc107; color: #333; }
+.status-printing { background-color: var(--accent-color); }
+.status-ready-to-pickup { background-color: var(--success-color); }
+.status-cancelled { background-color: var(--error-color); }
 
-.status-available {
-  color: #28a745; /* Green */
-  font-weight: bold;
+.status-text-success { color: var(--success-color); font-weight: 600; }
+.status-text-error { color: var(--error-color); font-weight: 600; }
+.role-text { font-weight: 600; text-transform: capitalize; }
+
+/* --- Add/Edit Forms in Modals --- */
+.form-group {
+  margin-bottom: 20px;
 }
-
-.status-success {
-  color: #28a745; /* Green */
-  font-weight: bold;
-  background-color: transparent; /* Ensure no background */
-}
-
-.status-failure {
-  color: #dc3545; /* Red */
-  font-weight: bold;
-  background-color: transparent; /* Ensure no background */
-}
-
-.status-printing {
-  color: #ffc107; /* Yellow/Amber */
-  font-weight: bold;
-  background-color: transparent; /* Ensure no background */
-}
-
-.status-cancelled {
-  color: #dc3545; /* Red */
-  font-weight: bold;
-  background-color: transparent; /* Ensure no background */
-}
-
-.status-ready {
-  color: #28a745; /* Green */
-  font-weight: bold;
-  background-color: transparent; /* Ensure no background */
-}
-
-.status-default { /* Optional: Style for any other status */
-  color: #6c757d; /* Grey */
-  font-weight: normal;
-  background-color: transparent; /* Ensure no background */
-}
-
-/* Apply these more specific rules for statuses within admin modals */
-.admin-modal-content .status-success {
-  color: #28a745; /* Green */
-  font-weight: bold;
-  background-color: transparent; 
-}
-
-.admin-modal-content .status-failure {
-  color: #dc3545; /* Red */
-  font-weight: bold;
-  background-color: transparent; 
-}
-
-.admin-modal-content .status-printing {
-  color: #ffc107; /* Yellow/Amber */
-  font-weight: bold;
-  background-color: transparent; 
-}
-
-.admin-modal-content .status-cancelled {
-  color: #dc3545; /* Red */
-  font-weight: bold;
-  background-color: transparent; 
-}
-
-.admin-modal-content .status-ready {
-  color: #28a745; /* Green */
-  font-weight: bold;
-  background-color: transparent; 
-}
-
-.admin-modal-content .status-default { 
-  color: #6c757d; /* Grey */
-  font-weight: normal;
-  background-color: transparent; 
-}
-
-/* You might also want to ensure .status-busy and .status-available are scoped if they risk conflict,
-   though UserProfile.css doesn't seem to define these. For consistency: */
-.admin-modal-content .status-busy {
-  color: #dc3545; /* Red */
-  font-weight: bold;
-  background-color: transparent; /* Assuming text-only for admin panel */
-}
-
-.admin-modal-content .status-available {
-  color: #28a745; /* Green */
-  font-weight: bold;
-  background-color: transparent; /* Assuming text-only for admin panel */
-}
-
-.modal-close-button {
+.form-group label {
   display: block;
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background-color: #fff;
+  color: var(--text-primary);
   font-size: 1em;
-  margin: 20px auto 0;
+  box-sizing: border-box;
 }
 
-.modal-close-button:hover {
-  background-color: #5a6268;
-}
-
-.error-message.modal-error {
-  color: #dc3545;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-  text-align: center;
-}
-
-.add-button {
-  padding: 8px 15px;
-  background-color: #4CAF50; /* Green */
+.add-button, .action-button-primary {
+  background-color: var(--accent-color);
   color: white;
   border: none;
-  border-radius: 4px;
+  padding: 8px 16px;
+  border-radius: var(--border-radius);
   cursor: pointer;
   font-size: 0.9em;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
 }
-
-.add-button:hover {
-  background-color: #45a049;
+.add-button:hover, .action-button-primary:hover {
+  background-color: var(--accent-hover);
 }
-
-.add-box-form .form-group {
-  margin-bottom: 15px;
-}
-
-.add-box-form label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.add-box-form input[type="text"] {
-  width: calc(100% - 20px);
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-
 .modal-actions {
-  margin-top: 20px;
   display: flex;
   justify-content: flex-end;
-  gap: 10px; /* Adds space between buttons */
+  margin-top: 10px;
 }
 
-.modal-actions .submit-button,
-.modal-actions .modal-close-button {
-  padding: 10px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  border: none;
-}
-
-.modal-actions .submit-button {
-  background-color: #007bff; /* Blue */
-  color: white;
-}
-
-.modal-actions .submit-button:hover {
-  background-color: #0056b3;
-}
-
-.modal-actions .modal-close-button {
-  background-color: #6c757d; /* Gray */
-  color: white;
-}
-
-.modal-actions .modal-close-button:hover {
-  background-color: #5a6268;
-}
-
-/* Additional styles from code block */
-.clickable-list-item {
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
-}
-
-.clickable-list-item:hover {
-  background-color: #f0f0f0; /* Light grey hover effect */
-}
-
-.edit-box-form .form-group {
-  margin-bottom: 15px;
-}
-
-.edit-box-form label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.edit-box-form input[type="text"] {
-  width: calc(100% - 22px); /* Account for padding and border */
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-
-.history-section {
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 1px solid #eee;
-}
-
-.history-section h4 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  color: #007bff;
-}
-
-.history-section .data-list-item span {
-  margin-right: 15px; /* More spacing for history items */
-}
-
-.success-message {
-  color: green;
+.error-message {
+  color: #721c24;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 12px;
+  border-radius: 5px;
   margin: 10px 0;
-  padding: 8px;
-  background-color: #e6ffed;
-  border: 1px solid #b7ebc3;
-  border-radius: 4px;
   text-align: center;
-}
-
-.user-detail-section {
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 1px solid #eee;
-}
-
-.user-detail-section h4 {
-  margin-bottom: 10px;
 }

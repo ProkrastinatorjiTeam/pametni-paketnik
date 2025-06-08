@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Navigate } from 'react-router-dom';
 import axios from 'axios';
-import './App.css';
+import './App.css'; // This will be our updated CSS file
 import Login from './components/Login';
 import Register from './components/Register';
 import AddProductPage from './components/AddProductPage';
@@ -9,9 +9,12 @@ import ProductView from './components/ProductView';
 import AdminPanel from './components/AdminPanel';
 import UserProfile from './components/UserProfile';
 
+// For icons, you can install react-icons: npm install react-icons
+// import { FaPlus, FaCube, FaUser, FaSignInAlt, FaSignOutAlt, FaTasks } from 'react-icons/fa';
+
 axios.defaults.withCredentials = true;
 
-const BACKEND_URL = 'http://localhost:3000'; 
+const BACKEND_URL = 'http://localhost:3000';
 
 function HomePage({ currentUser }) {
   const navigate = useNavigate();
@@ -23,8 +26,6 @@ function HomePage({ currentUser }) {
     const fetchModels = async () => {
       try {
         setLoading(true);
-        setError('');
-        // Ensure your axios calls are prefixed with BACKEND_URL if not using a proxy
         const response = await axios.get(`${BACKEND_URL}/model3D/list`);
         setModels(response.data);
       } catch (err) {
@@ -37,47 +38,47 @@ function HomePage({ currentUser }) {
     fetchModels();
   }, []);
 
-  const handleAddClick = () => {
-    navigate('/admin/add-product'); // Path for adding product
-  };
-
   const handleProductClick = (modelId) => {
     navigate(`/product/${modelId}`);
   };
 
   return (
-    <main className="main-content">
-      {currentUser && currentUser.role === 'admin' && (
-        <div className="admin-actions-container">
-          <button onClick={handleAddClick} className="add-product-button">
-            + ADD
-          </button>
+      <main className="main-content">
+        <section className="hero-section">
+          <h1 className="hero-title">The On-Demand Print Hub</h1>
+          <p className="hero-subtitle">
+            From digital design to physical reality. Browse our library and start your 3D print with a single click.
+          </p>
+          {currentUser && currentUser.role === 'admin' && (
+              <button onClick={() => navigate('/admin/add-product')} className="add-product-cta">
+                {/* <FaPlus />  Icon Example */}
+                Add New Model
+              </button>
+          )}
+        </section>
+
+        <div className="models-grid">
+          {loading && <p className="status-message">Loading models...</p>}
+          {error && <p className="status-message error">{error}</p>}
+          {!loading && !error && models.map((model) => (
+              <div key={model._id} className="model-card" onClick={() => handleProductClick(model._id)}>
+                <img
+                    src={model.images?.[0] ? `${BACKEND_URL}${model.images[0]}` : 'placeholder.jpg'}
+                    alt={model.name}
+                    className="model-card-image"
+                    loading="lazy"
+                />
+                <div className="model-card-overlay">
+                  <h3 className="model-card-title">{model.name}</h3>
+                  <div className="model-card-details">
+                    {model.estimatedPrintTime && <span>{model.estimatedPrintTime} min print</span>}
+                    {model.price != null && <span>€{model.price.toFixed(2)}</span>}
+                  </div>
+                </div>
+              </div>
+          ))}
         </div>
-      )}
-      <div className="models-list-container">
-        {loading && <p>Loading models...</p>}
-        {error && <p className="error-message">{error}</p>}
-        {!loading && !error && models.length === 0 && <p>No models available yet.</p>}
-        {!loading && !error && models.map((model) => (
-          <div key={model._id} className="model-item-box" onClick={() => handleProductClick(model._id)}>
-            {model.images && model.images.length > 0 && (
-              <img
-                src={`${BACKEND_URL}${model.images[0]}`}
-                alt={model.name}
-                className="model-image"
-                onError={(e) => { e.target.onerror = null; e.target.src='placeholder.jpg'; }} // Fallback for broken images
-              />
-            )}
-            <div className="model-info">
-              <h3>{model.name}</h3>
-              {model.estimatedPrintTime && (
-                <p>Print Time: {model.estimatedPrintTime} minutes</p>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </main>
+      </main>
   );
 }
 
@@ -87,7 +88,7 @@ function Navigation({ currentUser, onLogout }) {
   const handleLogoutClick = async () => {
     try {
       await axios.post(`${BACKEND_URL}/user/logout`);
-      onLogout(); 
+      onLogout();
       navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
@@ -95,56 +96,51 @@ function Navigation({ currentUser, onLogout }) {
   };
 
   return (
-    <nav className="top-bar">
-      <div className="logo">
-        <Link to="/">
-          Paketnik
-          {currentUser && currentUser.role === 'admin' && ' (Admin)'}
-        </Link>
-      </div>
-      <div className="nav-links">
-        {currentUser ? (
-          <>
-            {currentUser.role === 'admin' && (
+      <header className="top-bar">
+        <div className="logo">
+          <Link to="/">
+            {/* <FaCube /> Icon Example */}
+            PrintHub
+          </Link>
+        </div>
+        <nav className="nav-links">
+          {currentUser ? (
               <>
-                <Link to="/admin-panel"><span>Admin Panel</span></Link>
+                {currentUser.role === 'admin' && (
+                    <Link to="/admin-panel"><span>Admin Panel</span></Link>
+                )}
+                <Link to="/profile" className="nav-link-user">
+                  {/* <FaUser /> Icon Example */}
+                  <span>{currentUser.username}</span>
+                </Link>
+                <button onClick={handleLogoutClick} className="logout-button">
+                  {/* <FaSignOutAlt /> Icon Example */}
+                  Logout
+                </button>
               </>
-            )}
-            {/* Updated username display to be a Link */}
-            <Link to="/profile" className="username-display-link">
-              <span className="username-display">Welcome, {currentUser.username}</span>
-            </Link>
-            <button onClick={handleLogoutClick} className="logout-button">Logout</button>
-          </>
-        ) : (
-          <>
-            <Link to="/register"><span>Register</span></Link>
-            <Link to="/login"><span>Login</span></Link>
-          </>
-        )}
-      </div>
-    </nav>
+          ) : (
+              <>
+                <Link to="/register"><span>Register</span></Link>
+                <Link to="/login"><span>Login</span></Link>
+              </>
+          )}
+        </nav>
+      </header>
   );
 }
 
+// The main App component remains largely the same
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [loadingSession, setLoadingSession] = useState(true);
-
 
   useEffect(() => {
     const checkSession = async () => {
       setLoadingSession(true);
       try {
-        // Ensure your axios calls are prefixed with BACKEND_URL if not using a proxy
-        const response = await axios.get(`${BACKEND_URL}/user/show`); // Assuming /user/show gives current user
-        if (response.data && response.data.user) {
-          setCurrentUser(response.data.user);
-        } else {
-          setCurrentUser(null);
-        }
+        const response = await axios.get(`${BACKEND_URL}/user/show`);
+        setCurrentUser(response.data?.user || null);
       } catch (error) {
-        console.log('No active session or error fetching user:', error.response?.data?.message || error.message);
         setCurrentUser(null);
       } finally {
         setLoadingSession(false);
@@ -153,63 +149,29 @@ function App() {
     checkSession();
   }, []);
 
-  const handleLoginSuccess = (userData) => {
-    setCurrentUser(userData);
-  };
-
-  const handleLogout = () => {
-    setCurrentUser(null);
-  };
+  const handleLoginSuccess = (userData) => setCurrentUser(userData);
+  const handleLogout = () => setCurrentUser(null);
 
   if (loadingSession) {
-    return <div className="app-loading">Loading application...</div>;
+    return <div className="app-loading">Initializing Print Hub...</div>;
   }
 
   return (
-    <Router>
-      <div className="App">
-        <Navigation currentUser={currentUser} onLogout={handleLogout} />
-        <Routes>
-          <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/" element={<HomePage currentUser={currentUser} />} />
-          <Route
-            path="/admin/add-product"
-            element={
-              currentUser && currentUser.role === 'admin' ? (
-                <AddProductPage />
-              ) : (
-                <Navigate to="/login" replace state={{ message: 'Please log in as an admin to add products.' }} />
-              )
-            }
-          />
-          <Route
-            path="/admin-panel"
-            element={
-              currentUser && currentUser.role === 'admin' ? (
-                <AdminPanel currentUser={currentUser} />
-              ) : (
-                <Navigate to="/" replace state={{ message: 'Access Denied: Admins only.' }} />
-              )
-            }
-          />
-          <Route 
-            path="/profile"
-            element={
-              currentUser ? (
-                <UserProfile currentUser={currentUser} />
-              ) : (
-                <Navigate to="/login" replace state={{ message: 'Please log in to view your profile.' }} />
-              )
-            }
-          />
-          <Route path="/product/:id" element={
-            currentUser ? <ProductView currentUser={currentUser} /> : <Navigate to="/login" replace state={{ message: 'Please log in to view product details.'}} />
-          } />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
-    </Router>
+      <Router>
+        <div className="App">
+          <Navigation currentUser={currentUser} onLogout={handleLogout} />
+          <Routes>
+            <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/" element={<HomePage currentUser={currentUser} />} />
+            <Route path="/admin/add-product" element={ currentUser?.role === 'admin' ? <AddProductPage /> : <Navigate to="/" replace /> }/>
+            <Route path="/admin-panel" element={ currentUser?.role === 'admin' ? <AdminPanel currentUser={currentUser} /> : <Navigate to="/" replace /> } />
+            <Route path="/profile" element={ currentUser ? <UserProfile currentUser={currentUser} /> : <Navigate to="/login" replace /> } />
+            <Route path="/product/:id" element={ currentUser ? <ProductView currentUser={currentUser} /> : <Navigate to="/login" replace state={{ message: 'Please log in to view product details.'}} /> } />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </Router>
   );
 }
 
