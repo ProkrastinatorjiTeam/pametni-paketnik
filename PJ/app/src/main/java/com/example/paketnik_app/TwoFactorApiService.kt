@@ -9,6 +9,7 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 
 interface TwoFactorApiService {
+    // API endpoint to update user's face images
     @Multipart
     @POST("user/updateImages")
     fun updateImages(
@@ -16,16 +17,17 @@ interface TwoFactorApiService {
         @Part images: List<MultipartBody.Part>
     ): Call<ResponseBody>
 
+    // API endpoint to verify user's face against a single image
     @Multipart
-    @POST("user/verify") // New endpoint
+    @POST("user/verify")
     fun verifyUser(
         @Part("userId") userId: RequestBody,
-        @Part image: MultipartBody.Part // Single image for verification
+        @Part image: MultipartBody.Part
     ): Call<VerifyResponse>
 }
 
-// New data class for the /user/verify response
+// Data class for the response from the /user/verify endpoint
 data class VerifyResponse(
     val is_match: Boolean,
-    val message: String? // Optional message from the server
+    val message: String?
 )

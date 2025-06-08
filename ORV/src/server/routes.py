@@ -1,66 +1,74 @@
 from flask import request, jsonify, Blueprint, current_app
-from .image_saving import handle_image_upload
+from .image_saving import handle_image_upload 
 import sys
 import os
 import logging
 
+# --- AI Module Imports ---
 from src.ai.training_pipeline import start_user_training_pipeline
 from src.ai.verification_manager import verify_user_with_image
 
 module_logger = logging.getLogger(__name__) 
 
+# --- System Path Configuration for Module Imports ---
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 
+# --- Blueprint Definition ---
 api_bp = Blueprint('api', __name__)
 
+# --- Route: /api/data (GET) ---
 @api_bp.route('/api/data', methods=['GET'])
 def get_data():
+    """A simple test endpoint to return sample JSON data."""
     sample_data = {"message": "Hello from the server!", "items": [1, 2, 3]}
-    return jsonify(sample_data)
+    return jsonify(sample_data) 
 
 
+# --- Route: /user/updateImages (POST) ---
 @api_bp.route('/user/updateImages', methods=['POST'])
 def update_images_route():
+    """Handles image uploads for a user and triggers AI training."""
+    # --- Image Upload Processing ---
     upload_result = handle_image_upload(request.form, request.files)
 
     response_payload = upload_result["response_payload"]
     status_code = upload_result["status_code"]
 
+    # --- AI Training Initiation (Post-Upload) ---
     if upload_result["upload_successful"]:
         user_id = upload_result["user_id"]
-        # This is the path to the 'uploads/{user_id}' directory
         user_uploaded_images_dir = upload_result["user_image_folder_path"]
         
         current_app.logger.info(f"Images saved for user {user_id} at {user_uploaded_images_dir}. Attempting to trigger training pipeline.")
         
-        # --- AI Training Initiation ---
         training_initiated, training_message = start_user_training_pipeline(
             user_id, 
             user_uploaded_images_dir
         )
-        # --- End AI Training Initiation ---
         
         response_payload["training_initiation_status"] = training_message
         if not training_initiated:
             current_app.logger.error(f"Failed to initiate training pipeline for user {user_id}: {training_message}")
-            # Optionally, you might want to change the status_code here if initiation fails critically
-            # For now, we'll keep the image upload status and add the training initiation message.
     
-    return jsonify(response_payload), status_code
+    # --- Response Generation ---
+    return jsonify(response_payload), status_code 
 
+# --- Route: /user/verify (POST) ---
 @api_bp.route('/user/verify', methods=['POST'])
 def verify_image_route():
+    """Handles image-based user verification using AI."""
     logger = current_app.logger
     app_config = current_app.config
 
-    if 'userId' not in request.form: # Changed from 'user_id' to 'userId'
+    # --- Input Validation ---
+    if 'userId' not in request.form:
         logger.warning("Verification attempt failed: 'userId' missing from form data.")
         return jsonify({"error": "userId is required"}), 400
     
-    user_id = request.form['userId'] # Changed from 'user_id' to 'userId'
+    user_id = request.form['userId']
 
     if 'image' not in request.files:
         logger.warning(f"Verification attempt for user {user_id} failed: 'image' file part missing.")
@@ -72,8 +80,9 @@ def verify_image_route():
         logger.warning(f"Verification attempt for user {user_id} failed: No image selected.")
         return jsonify({"error": "No selected image file"}), 400
 
+    # --- Image Processing and AI Verification ---
     try:
-        image_bytes = image_file.read()
+        image_bytes = image_file.read() 
         if not image_bytes:
             logger.warning(f"Verification attempt for user {user_id} failed: Image file is empty.")
             return jsonify({"error": "Image file is empty"}), 400
@@ -83,10 +92,11 @@ def verify_image_route():
         is_match, probability, message = verify_user_with_image(
             user_id=user_id,
             image_bytes=image_bytes,
-            app_config=dict(app_config), # Pass a copy of app_config
+            app_config=dict(app_config), 
             logger=logger
         )
 
+        # --- Response Generation ---
         return jsonify({
             "user_id": user_id,
             "is_match": is_match,

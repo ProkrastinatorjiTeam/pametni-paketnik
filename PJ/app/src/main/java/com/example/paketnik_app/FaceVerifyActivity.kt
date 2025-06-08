@@ -224,24 +224,29 @@ class FaceVerifyActivity : AppCompatActivity() {
     }
 
 
+    // Method in FaceVerifyActivity.kt
     private fun sendImageForVerification(imageFileToSend: File, originalPhotoFile: File) {
         val userId = AuthManager.getUserId()
         if (userId == null) {
             Log.e("FaceVerifyActivity", "User ID is null. Cannot send image for verification.")
             Toast.makeText(this, "User ID not found. Please log in again.", Toast.LENGTH_LONG).show()
-            cleanupFilesAndFinish(imageFileToSend, originalPhotoFile, false, physicalId) // physicalId here
+            cleanupFilesAndFinish(imageFileToSend, originalPhotoFile, false, physicalId)
             return
         }
 
         textViewStatus.text = "Verifying..."
         Log.d("FaceVerifyActivity", "Sending image for verification. User: $userId, File: ${imageFileToSend.name}")
+
+        // Prepare user ID and image file for multipart request
         val userIdRequestBody = userId.toRequestBody("text/plain".toMediaTypeOrNull())
         val imageRequestBody = imageFileToSend.asRequestBody("image/jpeg".toMediaTypeOrNull())
         val imagePart = MultipartBody.Part.createFormData("image", imageFileToSend.name, imageRequestBody)
 
+        // Make the API call to verify user via TwoFactorRetrofitClient
         TwoFactorRetrofitClient.instance.verifyUser(userIdRequestBody, imagePart)
             .enqueue(object : Callback<VerifyResponse> {
                 override fun onResponse(call: Call<VerifyResponse>, response: Response<VerifyResponse>) {
+                    // Handle server response for user verification
                     if (response.isSuccessful) {
                         val verifyResponse = response.body()
                         if (verifyResponse != null) {
@@ -267,6 +272,7 @@ class FaceVerifyActivity : AppCompatActivity() {
                 }
 
                 override fun onFailure(call: Call<VerifyResponse>, t: Throwable) {
+                    // Handle network failure for user verification
                     Log.e("FaceVerifyActivity", "Verification network error: ${t.message}", t)
                     Toast.makeText(this@FaceVerifyActivity, "Network error: ${t.message}", Toast.LENGTH_LONG).show()
                     cleanupFilesAndFinish(imageFileToSend, originalPhotoFile, false, physicalId)

@@ -2,8 +2,12 @@ from flask import Flask
 import os
 
 def create_app():
+    """Initializes and configures the Flask application."""
+    # --- App Initialization and Configuration ---
     app = Flask(__name__)
-    app.config.from_pyfile('config.py')
+    app.config.from_pyfile('config.py') 
+
+    # --- Base Upload Folder Setup ---
     project_root_dir = os.path.dirname(os.path.abspath(__file__))
     base_upload_folder_path = os.path.join(project_root_dir, app.config['BASE_UPLOAD_FOLDER'])
     
@@ -11,10 +15,10 @@ def create_app():
         try:
             os.makedirs(base_upload_folder_path)
             log_message = f"Created base upload directory from main: {base_upload_folder_path}"
-            if hasattr(app, 'logger'):
+            if hasattr(app, 'logger'): 
                 app.logger.info(log_message)
             else:
-                print(log_message)
+                print(log_message) 
         except OSError as e:
             error_message = f"Error creating base upload directory from main {base_upload_folder_path}: {e}"
             if hasattr(app, 'logger'):
@@ -22,16 +26,19 @@ def create_app():
             else:
                 print(error_message)
 
-    from src.server.routes import api_bp
-    app.register_blueprint(api_bp)
+    # --- Blueprint Registration ---
+    from src.server.routes import api_bp 
+    app.register_blueprint(api_bp) 
     return app
 
+# --- Application Instance Creation ---
 app = create_app()
 
+# --- Development Server Start ---
 if __name__ == '__main__':
     with app.app_context():
         app.run(
-            host=app.config.get('HOST', '0.0.0.0'),
-            port=app.config.get('PORT', 3002),
-            debug=app.config.get('DEBUG', True)
+            host=app.config.get('HOST', '0.0.0.0'), 
+            port=app.config.get('PORT', 3002),     
+            debug=app.config.get('DEBUG', True)    
         )
