@@ -1,118 +1,119 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './AdminPanel.css'; 
+import './AdminPanel.css'; // Ponovno uporabimo stile iz AdminPanel
+import './UserDetailModal.css'; // Dodatni, specifični stili
 
 const BACKEND_URL = 'http://localhost:3000';
 
-function UserDetailModal({ user, isOpen, onClose, currentUser }) {
+function UserDetailModal({ user, isOpen, onClose }) {
+  const [activeTab, setActiveTab] = useState('details');
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
-  const [ordersError, setOrdersError] = useState('');
 
   const [unlockEvents, setUnlockEvents] = useState([]);
   const [loadingUnlockEvents, setLoadingUnlockEvents] = useState(false);
-  const [unlockEventsError, setUnlockEventsError] = useState('');
 
   useEffect(() => {
-    if (isOpen && user && user._id) {
-      // Fetch User Orders
-      const fetchUserOrders = async () => {
-        setLoadingOrders(true);
-        setOrdersError('');
-        try {
-          // This endpoint needs to be created on the backend
-          const response = await axios.get(`${BACKEND_URL}/order/user/${user._id}`);
-          setOrders(response.data.orders || []);
-        } catch (err) {
-          console.error('Error fetching user orders:', err);
-          setOrdersError(err.response?.data?.message || 'Failed to fetch user orders.');
-          setOrders([]);
-        } finally {
-          setLoadingOrders(false);
-        }
-      };
-
-      // Fetch User Unlock Events
-      const fetchUserUnlockEvents = async () => {
-        setLoadingUnlockEvents(true);
-        setUnlockEventsError('');
-        try {
-          // This endpoint should exist: GET /user/history/:id
-          const response = await axios.get(`${BACKEND_URL}/user/history/${user._id}`);
-          setUnlockEvents(response.data.unlockEvents || []);
-        } catch (err) {
-          console.error('Error fetching user unlock events:', err);
-          setUnlockEventsError(err.response?.data?.message || 'Failed to fetch user unlock events.');
-          setUnlockEvents([]);
-        } finally {
-          setLoadingUnlockEvents(false);
-        }
-      };
-
-      fetchUserOrders();
-      fetchUserUnlockEvents();
+    if (isOpen && user?._id) {
+      setActiveTab('details'); // Vedno začni na zavihku s podrobnostmi
+      fetchUserOrders(user._id);
+      fetchUserUnlockEvents(user._id);
     }
-  }, [isOpen, user, currentUser]);
+  }, [isOpen, user]);
 
-  if (!isOpen || !user) {
-    return null;
-  }
+  const fetchUserOrders = async (userId) => {
+    setLoadingOrders(true);
+    try {
+      const response = await axios.get(`${BACKEND_URL}/order/user/${userId}`);
+      setOrders(response.data.orders || []);
+    } catch (err) {
+      console.error('Napaka pri pridobivanju naročil uporabnika:', err);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  const fetchUserUnlockEvents = async (userId) => {
+    setLoadingUnlockEvents(true);
+    try {
+      const response = await axios.get(`${BACKEND_URL}/user/history/${userId}`);
+      setUnlockEvents(response.data.unlockEvents || []);
+    } catch (err) {
+      console.error('Napaka pri pridobivanju zgodovine odpiranj:', err);
+    } finally {
+      setLoadingUnlockEvents(false);
+    }
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'orders':
+        return (
+            loadingOrders ? <p>Nalaganje...</p> :
+                <ul className="data-list">
+                  {orders.length > 0 ? orders.map(order => (
+                      <li key={order._id} className="data-list-item history-item-order">
+                        <span>{order.model?.name || 'N/A'}</span>
+                        <span>{order.box?.name || 'N/A'}</span>
+                        <span className={`status-badge status-${order.status?.toLowerCase().replace(/\s+/g, '-')}`}>{order.status}</span>
+                        <span>{new Date(order.createdAt).toLocaleString()}</span>
+                      </li>
+                  )) : <li>Ta uporabnik nima naročil.</li>}
+                </ul>
+        );
+      case 'unlocks':
+        return (
+            loadingUnlockEvents ? <p>Nalaganje...</p> :
+                <ul className="data-list">
+                  {unlockEvents.length > 0 ? unlockEvents.map(event => (
+                      <li key={event._id} className="data-list-item history-item-unlock">
+                        <span>{event.box?.name || 'N/A'}</span>
+                        <span className={event.authorized ? 'status-text-success' : 'status-text-error'}>{event.authorized ? 'Pooblaščen' : 'Nepooblaščen'}</span>
+                        <span>{new Date(event.createdAt).toLocaleString()}</span>
+                      </li>
+                  )) : <li>Ta uporabnik nima zgodovine odpiranj.</li>}
+                </ul>
+        );
+      case 'details':
+      default:
+        return (
+            <div className="details-grid-user">
+              <strong>Uporabniško ime:</strong>
+              <span>{user.username}</span>
+              <strong>Email:</strong>
+              <span>{user.email}</span>
+              <strong>Vloga:</strong>
+              <span className="role-text">{user.role}</span>
+              <strong>Ime:</strong>
+              <span>{user.firstName || 'N/A'}</span>
+              <strong>Priimek:</strong>
+              <span>{user.lastName || 'N/A'}</span>
+            </div>
+        );
+    }
+  };
+
+  if (!isOpen || !user) return null;
 
   return (
-    <div className="modal-overlay admin-modal-overlay">
-      <div className="modal-content admin-modal-content large-modal-content"> {/* Added large-modal-content for more space */}
-        <h3>Details for {user.username}</h3>
-        <p><strong>Email:</strong> {user.email}</p>
-        <p><strong>Role:</strong> {user.role}</p>
+      <div className="modal-overlay">
+        <div className="modal-content admin-modal-content large-modal-content">
+          <div className="modal-header">
+            <h3>Podrobnosti uporabnika: {user.username}</h3>
+            <button onClick={onClose} className="close-button">×</button>
+          </div>
 
-        <div className="user-detail-section">
-          <h4>Order History</h4>
-          {loadingOrders && <p>Loading orders...</p>}
-          {ordersError && <p className="error-message modal-error">{ordersError}</p>}
-          {!loadingOrders && !ordersError && (
-            orders.length > 0 ? (
-              <ul className="data-list order-list">
-                {orders.map(order => (
-                  <li key={order._id} className="data-list-item order-item">
-                    <span><strong>ID:</strong> {order._id}</span>
-                    <span><strong>Model:</strong> {order.model?.name || 'N/A'}</span>
-                    <span><strong>Box:</strong> {order.box?.name || 'N/A'}</span>
-                    <span><strong>Status:</strong> {order.status}</span>
-                    <span><strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No orders found for this user.</p>
-            )
-          )}
+          <div className="tab-navigation">
+            <button onClick={() => setActiveTab('details')} className={activeTab === 'details' ? 'active' : ''}>Podrobnosti</button>
+            <button onClick={() => setActiveTab('orders')} className={activeTab === 'orders' ? 'active' : ''}>Zgodovina naročil</button>
+            <button onClick={() => setActiveTab('unlocks')} className={activeTab === 'unlocks' ? 'active' : ''}>Zgodovina odpiranj</button>
+          </div>
+
+          <div className="modal-body tab-content">
+            {renderContent()}
+          </div>
         </div>
-
-        <div className="user-detail-section">
-          <h4>Box Opening Attempts</h4>
-          {loadingUnlockEvents && <p>Loading opening attempts...</p>}
-          {unlockEventsError && <p className="error-message modal-error">{unlockEventsError}</p>}
-          {!loadingUnlockEvents && !unlockEventsError && (
-            unlockEvents.length > 0 ? (
-              <ul className="data-list opening-list">
-                {unlockEvents.map(event => (
-                  <li key={event._id} className="data-list-item">
-                    <span><strong>Box:</strong> {event.box?.name || event.box_physical_id || 'N/A'} (ID: {event.box?.physicalId || 'N/A'})</span>
-                    <span><strong>Time:</strong> {new Date(event.timestamp).toLocaleString()}</span>
-                    <span><strong>Successful:</strong> {event.success ? 'Yes' : 'No'}</span>
-                    {/* You might have 'authorized' field instead of 'success' depending on your unlockEventModel */}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No opening attempts found for this user.</p>
-            )
-          )}
-        </div>
-
-        <button onClick={onClose} className="modal-close-button">Close</button>
       </div>
-    </div>
   );
 }
 

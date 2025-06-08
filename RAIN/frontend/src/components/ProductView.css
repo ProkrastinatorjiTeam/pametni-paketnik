@@ -154,7 +154,7 @@
 .product-description {
   color: var(--text-secondary);
   line-height: 1.7;
-  font-size: 1em;
+  font-size: 1.2em;
   margin-bottom: 25px;
 }
 
@@ -180,9 +180,10 @@
 
 .buy-now-button {
   width: 100%;
-  background-color: var(--accent-color);
-  color: #fff;
-  border: none;
+  max-width: 400px;
+  background-color: transparent;
+  color: var(--accent-color);
+  border: 2px solid var(--accent-color);
   padding: 15px 20px;
   border-radius: var(--border-radius);
   cursor: pointer;
@@ -193,7 +194,8 @@
 }
 
 .buy-now-button:hover {
-  background-color: var(--accent-hover);
+  background-color: var(--accent-color);
+  color: #fff;
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }

@@ -12,11 +12,9 @@
   --error-color: #dc3545;
   --font-family: 'Montserrat', sans-serif;
   --border-radius: 8px;
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 15px rgba(0,0,0,0.08);
 }
 
-/* --- Global Styles --- */
+/* --- Globalni stili --- */
 body {
   margin: 0;
   font-family: var(--font-family);
@@ -39,7 +37,7 @@ body {
   color: var(--text-secondary);
 }
 
-/* --- Navigation Bar --- */
+/* --- Navigacijska vrstica --- */
 .top-bar {
   position: sticky;
   top: 0;
@@ -47,7 +45,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 40px;
+  padding: 20px 40px;
   background-color: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-color);
@@ -74,7 +72,7 @@ body {
   color: var(--text-secondary);
   text-decoration: none;
   font-weight: 600;
-  font-size: 1em;
+  font-size: 1.1em;
   transition: color 0.3s;
 }
 .nav-links a:hover {
@@ -90,11 +88,11 @@ body {
   background-color: transparent;
   color: var(--accent-color);
   border: 1px solid var(--accent-color);
-  padding: 8px 16px;
+  padding: 12px 20px;
   border-radius: var(--border-radius);
   cursor: pointer;
-  font-size: 0.9em;
-  font-weight: 600;
+  font-size: 1em;
+  font-weight: 700;
   transition: all 0.3s ease;
 }
 
@@ -103,7 +101,12 @@ body {
   color: #fff;
 }
 
-/* --- Main Content & Hero Section --- */
+/* --- Ovojnica glavne vsebine --- */
+.main-content-wrapper {
+  /* Ta razred uporablja MainLayout v App.js */
+}
+
+/* --- Domača stran & Hero sekcija --- */
 .main-content {
   padding: 0 40px 40px 40px;
 }
@@ -140,15 +143,13 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   transition: all 0.3s ease;
-  box-shadow: var(--shadow-sm);
 }
 .add-product-cta:hover {
   background-color: var(--accent-hover);
-  box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
 
-/* --- Models Grid & Cards --- */
+/* --- Mreža modelov --- */
 .models-grid {
   display: flex;
   flex-wrap: wrap;
@@ -167,12 +168,11 @@ body {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   width: 300px;
   flex-shrink: 0;
-  box-shadow: var(--shadow-sm);
 }
 
 .model-card:hover {
   transform: translateY(-8px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
 }
 
 .model-card-image {
@@ -225,41 +225,41 @@ body {
   color: var(--error-color);
 }
 
-/* --- Auth Form Styles (Login/Register) --- */
-.auth-form {
-  max-width: 400px;
-  margin: 80px auto;
-  padding: 30px;
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-md);
-}
-.auth-form h2 {
-  color: var(--text-primary);
-}
-.auth-form input {
-  background-color: #fff;
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-}
-.auth-form button {
-  background-color: var(--accent-color);
-  color: #fff;
-  font-weight: bold;
-}
-.auth-form button:hover {
-  background-color: var(--accent-hover);
+
+/* --- POSTAVITEV ZA PRIJAVO/REGISTRACIJO (AuthLayout) --- */
+.auth-page-wrapper {
+  font-family: var(--font-family);
+  background-color: var(--bg-light);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
-/* --- Universal Error Message Style --- */
-.error-message {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-  padding: 10px;
-  border-radius: 4px;
-  margin-top: 10px;
-  margin-bottom: 10px;
+.auth-header {
+  width: 100%;
   text-align: center;
+  padding: 20px 0;
+  flex-shrink: 0;
+}
+
+.auth-logo-link {
+  font-size: 2em;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.auth-logo-link:hover {
+  color: var(--accent-color);
+}
+
+.auth-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  width: 100%;
 }
