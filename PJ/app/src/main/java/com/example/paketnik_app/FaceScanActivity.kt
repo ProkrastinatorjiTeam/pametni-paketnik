@@ -30,11 +30,11 @@ class FaceScanActivity : AppCompatActivity() {
     private lateinit var previewView: PreviewView
     private var videoCapture: VideoCapture<Recorder>? = null
     private lateinit var outputDirectory: File
-    private lateinit var textViewStatus: TextView // Added TextView reference
-    private var recordingTimer: CountDownTimer? = null // Added for recording progress
+    private lateinit var textViewStatus: TextView
+    private var recordingTimer: CountDownTimer? = null
 
-    private val RECORDING_DURATION_SECONDS = 10L // Increased duration
-    private val TARGET_FRAME_RATE = 24 // Increased frame rate
+    private val RECORDING_DURATION_SECONDS = 10L
+    private val TARGET_FRAME_RATE = 24
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,6 +87,7 @@ class FaceScanActivity : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
+    // Start recording a video of the user's face
     private fun startRecording() {
         val videoCapture = this.videoCapture ?: return
 
@@ -104,13 +105,13 @@ class FaceScanActivity : AppCompatActivity() {
             }
         }.start()
 
+        // Start recording
         val recording = videoCapture.output
             .prepareRecording(this, outputFileOptions)
             .start(ContextCompat.getMainExecutor(this)) { event ->
                 when (event) {
                     is VideoRecordEvent.Start -> {
                         Log.d("FaceScanActivity", "Recording started.")
-                        // Toast.makeText(this, "Recording started...", Toast.LENGTH_SHORT).show() // Replaced by TextView
                     }
                     is VideoRecordEvent.Finalize -> {
                         recordingTimer?.cancel() // Stop the countdown timer
@@ -120,13 +121,13 @@ class FaceScanActivity : AppCompatActivity() {
                             textViewStatus.text = "Recording failed."
                             setResult(Activity.RESULT_CANCELED)
                         } else {
-                            // Toast.makeText(this, "Face scan complete! Processing...", Toast.LENGTH_SHORT).show() // Replaced by TextView
                             textViewStatus.text = "Processing frames..."
                             val videoUri = event.outputResults.outputUri
                             Log.d("FaceScanActivity", "Video saved to: $videoUri")
 
                             val framePaths = extractFramesFromVideo(videoUri)
 
+                            // Return frame paths to MainActivty
                             val resultIntent = Intent()
                             resultIntent.putStringArrayListExtra("FRAME_PATHS", ArrayList(framePaths))
                             setResult(Activity.RESULT_OK, resultIntent)
@@ -143,6 +144,7 @@ class FaceScanActivity : AppCompatActivity() {
         }, RECORDING_DURATION_SECONDS, TimeUnit.SECONDS)
     }
 
+    // Extract frames from the recorded video
     private fun cropToSquareAndResizeBitmap(sourceBitmap: Bitmap, targetSquareSize: Int): Bitmap {
         val originalWidth = sourceBitmap.width
         val originalHeight = sourceBitmap.height
@@ -210,6 +212,7 @@ class FaceScanActivity : AppCompatActivity() {
         return framePaths
     }
 
+    // Save a single frame as an image
     private fun saveFrameAsImage(bitmap: Bitmap, frameIndex: Int): String {
         if (!outputDirectory.exists()) {
             outputDirectory.mkdirs()
