@@ -34,4 +34,9 @@ router.patch(
  */
 router.delete('/remove/:id', requireAdmin, model3DController.removeModel3D);
 
+/*
+ * DELETE an image from a model
+ */
+router.delete('/:id/images/:imageFilename', requireAdmin, model3DController.removeImageFromModel);
+
 module.exports = router;

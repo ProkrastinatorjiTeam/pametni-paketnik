@@ -150,5 +150,64 @@ module.exports = {
                 error: err
             });
         }
+    },
+
+    removeImageFromModel: async (req, res) => {
+        const { id, imageFilename } = req.params;
+        console.log(`[removeImageFromModel] Attempting to remove image: ${imageFilename} from model ID: ${id}`);
+
+        try {
+            const model3D = await Model3dModel.findById(id);
+            if (!model3D) {
+                return res.status(404).json({ message: 'Model not found' });
+            }
+
+            const imagePathToDelete = '/images/' + imageFilename; // Construct the path as stored in DB
+            const imageIndex = model3D.images.findIndex(img => img === imagePathToDelete);
+
+            if (imageIndex === -1) {
+                // Fallback: check if imageFilename is the full path (e.g. if frontend sent it differently)
+                // This shouldn't be necessary if frontend sends only filename as in current ProductDetailModal.js
+                const alternativeIndex = model3D.images.findIndex(img => img.endsWith('/' + imageFilename));
+                if (alternativeIndex === -1) {
+                    console.log(`[removeImageFromModel] Image ${imagePathToDelete} (or ending with ${imageFilename}) not found in model's images array:`, model3D.images);
+                    return res.status(404).json({ message: 'Image not found in this model' });
+                }
+                // If found by alternative, use that (though ideally frontend is consistent)
+                // imagePathToDelete = model3D.images[alternativeIndex]; 
+                // imageIndex = alternativeIndex; 
+                // For now, let's stick to the primary check. If issues persist, this fallback can be enabled.
+            }
+            
+            // Remove from filesystem
+            const fs = require('fs');
+            const path = require('path');
+            const fullFilePath = path.join(__dirname, '../public', imagePathToDelete); // Assumes images are in public/images
+
+            if (fs.existsSync(fullFilePath)) {
+                fs.unlink(fullFilePath, (err) => {
+                    if (err) {
+                        console.error('[removeImageFromModel] Error deleting file from filesystem:', err);
+                        // Don't block DB update if file deletion fails, but log it.
+                        // Could also return an error here if file deletion is critical.
+                    } else {
+                        console.log(`[removeImageFromModel] Successfully deleted file: ${fullFilePath}`);
+                    }
+                });
+            } else {
+                console.warn(`[removeImageFromModel] File not found on filesystem: ${fullFilePath}`);
+            }
+
+            // Remove from model's images array
+            model3D.images.splice(imageIndex, 1);
+            await model3D.save();
+
+            console.log(`[removeImageFromModel] Image ${imagePathToDelete} removed from model ${id}. New images:`, model3D.images);
+            res.status(200).json({ message: 'Image deleted successfully', model3D });
+
+        } catch (err) {
+            console.error('[removeImageFromModel] Error:', err);
+            res.status(500).json({ message: 'Error deleting image', error: err.message });
+        }
     }
 };
