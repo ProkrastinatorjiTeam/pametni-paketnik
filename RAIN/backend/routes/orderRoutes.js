@@ -1,7 +1,6 @@
 var express = require('express');
 var router = express.Router();
 var orderController = require('../controllers/orderController.js');
-
 const {requireAdmin, requireAuth} = require('../middleware/auth');
 
 /*
@@ -38,5 +37,10 @@ router.get('/my-orders', requireAuth, orderController.listMyOrders);
  * PATCH
  */
 router.patch('/my-orders/:id/cancel', requireAuth, orderController.cancelMyOrder); // Add this line
+
+/*
+ * GET orders by box ID (for admin panel)
+ */
+router.get('/by-box/:boxId', requireAuth, requireAdmin, orderController.listOrdersByBox);
 
 module.exports = router;

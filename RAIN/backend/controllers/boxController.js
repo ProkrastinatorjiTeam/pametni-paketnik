@@ -97,12 +97,15 @@ module.exports = {
             }
 
             // Check if the user is an admin or is authorized for the box
-            if (user.role !== 'admin' && !box.authorizedUsers.includes(userId)) {
+            // For admin panel, typically only admin should see full history.
+            if (user.role !== 'admin') {
                 return res.status(403).json({message: 'You are not authorized to view this box\'s unlock history'});
             }
 
             // Retrieve the unlock events for the box from the database
-            const unlockEvents = await UnlockEventModel.find({box: boxId});
+            const unlockEvents = await UnlockEventModel.find({box: boxId})
+                                                .populate('user', 'username') // Populate username
+                                                .sort({createdAt: -1}); // Sort by most recent
 
             // Respond with the list of unlock events
             return res.status(200).json({
@@ -112,7 +115,7 @@ module.exports = {
 
             // Handle errors
         } catch (err) {
-            console.error(err);
+            console.error('Error retrieving box unlock history:', err);
             return res.status(500).json({message: 'Error retrieving box unlock history', error: err.message});
         }
     },

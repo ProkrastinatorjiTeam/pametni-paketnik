@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './AdminPanel.css';
+import BoxDetailModal from './BoxDetailModal'; // Import the new modal
 
 const BACKEND_URL = 'http://localhost:3000';
 
@@ -36,6 +37,10 @@ function AdminPanel({ currentUser }) {
   const [newBoxPhysicalId, setNewBoxPhysicalId] = useState('');
   const [addBoxError, setAddBoxError] = useState('');
   const [loadingAddBox, setLoadingAddBox] = useState(false);
+
+  // State for Box Detail Modal
+  const [isBoxDetailModalOpen, setIsBoxDetailModalOpen] = useState(false);
+  const [selectedBoxDetails, setSelectedBoxDetails] = useState(null);
 
   // Fetch Users
   const fetchUsers = async () => {
@@ -189,6 +194,25 @@ function AdminPanel({ currentUser }) {
     }
   };
 
+  // Handlers for Box Detail Modal
+  const handleOpenBoxDetailModal = (box) => {
+    setSelectedBoxDetails(box);
+    setIsBoxDetailModalOpen(true);
+  };
+
+  const handleCloseBoxDetailModal = () => {
+    setSelectedBoxDetails(null);
+    setIsBoxDetailModalOpen(false);
+  };
+
+  const handleBoxUpdated = (updatedBox) => {
+    // Refresh the main box list after an update
+    fetchBoxes();
+    // Optionally, update the selectedBoxDetails if you want the detail modal to reflect changes immediately
+    // setSelectedBoxDetails(updatedBox); 
+    // Or close the detail modal
+    // handleCloseBoxDetailModal();
+  };
 
   return (
     <div className="admin-panel-container">
@@ -302,7 +326,7 @@ function AdminPanel({ currentUser }) {
         </div>
       )}
 
-      {/* Box Management Modal */}
+      {/* Box Management List Modal */}
       {isBoxModalOpen && (
         <div className="modal-overlay admin-modal-overlay">
           <div className="modal-content admin-modal-content">
@@ -316,11 +340,15 @@ function AdminPanel({ currentUser }) {
               boxes.length > 0 ? (
                 <ul className="data-list box-list">
                   {boxes.map(box => (
-                    <li key={box._id} className="data-list-item">
+                    <li 
+                      key={box._id} 
+                      className="data-list-item clickable-list-item" // Add class for styling
+                      onClick={() => handleOpenBoxDetailModal(box)} // Make item clickable
+                    >
                       <span><strong>Name:</strong> {box.name}</span>
                       <span><strong>Location:</strong> {box.location || 'N/A'}</span>
                       <span><strong>Physical ID:</strong> {box.physicalId}</span>
-                      <span><strong>Authorized Users:</strong> {box.authorizedUsers?.length || 0}</span>
+                      <span><strong>Auth Users:</strong> {box.authorizedUsers?.length || 0}</span>
                       <span>
                         <strong>Status:</strong> 
                         <span className={box.isBusy ? 'status-busy' : 'status-available'}>
@@ -388,6 +416,15 @@ function AdminPanel({ currentUser }) {
           </div>
         </div>
       )}
+
+      {/* Box Detail Modal */}
+      <BoxDetailModal
+        box={selectedBoxDetails}
+        isOpen={isBoxDetailModalOpen}
+        onClose={handleCloseBoxDetailModal}
+        onBoxUpdated={handleBoxUpdated}
+        currentUser={currentUser}
+      />
     </div>
   );
 }

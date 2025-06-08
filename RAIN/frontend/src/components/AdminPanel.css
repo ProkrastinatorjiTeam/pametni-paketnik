@@ -231,3 +231,57 @@
 .modal-actions .modal-close-button:hover {
   background-color: #5a6268;
 }
+
+/* Additional styles from code block */
+.clickable-list-item {
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.clickable-list-item:hover {
+  background-color: #f0f0f0; /* Light grey hover effect */
+}
+
+.edit-box-form .form-group {
+  margin-bottom: 15px;
+}
+
+.edit-box-form label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.edit-box-form input[type="text"] {
+  width: calc(100% - 22px); /* Account for padding and border */
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.history-section {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.history-section h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #007bff;
+}
+
+.history-section .data-list-item span {
+  margin-right: 15px; /* More spacing for history items */
+}
+
+.success-message {
+  color: green;
+  margin: 10px 0;
+  padding: 8px;
+  background-color: #e6ffed;
+  border: 1px solid #b7ebc3;
+  border-radius: 4px;
+  text-align: center;
+}

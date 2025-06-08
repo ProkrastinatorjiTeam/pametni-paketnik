@@ -264,5 +264,35 @@ module.exports = {
                 error: err.message
             });
         }
-    }
+    },
+
+    /**
+     * orderController.listOrdersByBox()
+     * Lists all orders associated with a specific box.
+     */
+    listOrdersByBox: async function (req, res) {
+        try {
+            const { boxId } = req.params;
+            if (!boxId) {
+                return res.status(400).json({ message: 'Box ID is required.' });
+            }
+
+            let orders = await OrderModel.find({ box: boxId })
+                                        .populate({ path: 'model', select: 'name estimatedPrintTime' })
+                                        .populate('orderBy', 'username')
+                                        // .populate('box', 'name location') // Box details are known since we are querying by boxId
+                                        .sort({ createdAt: -1 });
+
+            // Optionally, update status if needed, though for history it might not be critical
+            // orders = await Promise.all(orders.map(order => checkAndUpdateOrderStatus(order)));
+
+            return res.json(orders);
+        } catch (err) {
+            console.error("Error in listOrdersByBox:", err);
+            return res.status(500).json({
+                message: 'Error when getting orders for the specified box.',
+                error: err.message || err
+            });
+        }
+    },
 };
