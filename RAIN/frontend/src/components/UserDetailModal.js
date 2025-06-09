@@ -3,7 +3,7 @@ import axios from 'axios';
 import './AdminPanel.css'; // Ponovno uporabimo stile iz AdminPanel
 import './UserDetailModal.css'; // Dodatni, specifični stili
 
-const BACKEND_URL = 'http://localhost:3000';
+const BACKEND_URL = '/api';
 
 function UserDetailModal({ user, isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('details');

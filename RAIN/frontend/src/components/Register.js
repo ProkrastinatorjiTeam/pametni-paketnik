@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import './Auth.css'; // Uvozimo nove, skupne stile
+import './Auth.css';
 
-const BACKEND_URL = 'http://localhost:3000';
+const BACKEND_URL = '/api';
 
 function Register() {
   const [formData, setFormData] = useState({

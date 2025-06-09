@@ -5,7 +5,7 @@ import './ProductView.css';
 // For icons, you can install react-icons: npm install react-icons
 // import { FaClock, FaEuroSign } from 'react-icons/fa';
 
-const BACKEND_URL = 'http://localhost:3000';
+const BACKEND_URL = '/api';
 
 function ProductView({ currentUser }) {
   const { id } = useParams();

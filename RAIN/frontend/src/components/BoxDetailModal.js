@@ -3,7 +3,7 @@ import axios from 'axios';
 import './AdminPanel.css'; // Ponovno uporabimo stile iz AdminPanel
 import './BoxDetailModal.css'; // Dodatni, specifični stili
 
-const BACKEND_URL = 'http://localhost:3000';
+const BACKEND_URL = '/api';
 
 function BoxDetailModal({ box, isOpen, onClose, onBoxUpdated }) {
   // Stanje za nadzor zavihkov

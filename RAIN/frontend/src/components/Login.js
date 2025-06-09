@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import './Auth.css'; // Uvozimo nove, skupne stile
 
-const BACKEND_URL = 'http://localhost:3000';
+const BACKEND_URL = '/api';
 
 function Login({ onLoginSuccess }) {
   const [username, setUsername] = useState('');
