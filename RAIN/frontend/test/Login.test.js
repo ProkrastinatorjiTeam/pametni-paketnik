@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import Login from './Login';
+import Login from '../src/components/Login';
 
 // Mock the onLoginSuccess prop as it's required by the Login component
 const mockOnLoginSuccess = jest.fn();
