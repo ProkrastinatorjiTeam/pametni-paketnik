@@ -34,6 +34,7 @@ def split_user_images_for_training(
     if logger is None:
         logger = current_app.logger if current_app else logging.getLogger(__name__)
 
+    # --- Input Validation and Image Discovery ---
     if not os.path.isdir(source_image_dir):
         msg = f"Source image directory not found: {source_image_dir}"
         logger.error(msg)
@@ -58,21 +59,20 @@ def split_user_images_for_training(
         logger.error(msg)
         return False, msg, None
     
+    # --- Calculate Split Sizes ---
     test_ratio = 1.0 - train_ratio - validation_ratio
-
     num_train = math.floor(num_total_images * train_ratio)
     num_validation = math.floor(num_total_images * validation_ratio)
     num_test = num_total_images - num_train - num_validation
     
-    # Adjust if rounding causes issues, ensure test set gets at least one if possible
     if num_total_images > 0 and (num_train + num_validation + num_test) != num_total_images:
         num_test = num_total_images - num_train - num_validation
-
 
     train_images = all_images[:num_train]
     validation_images = all_images[num_train : num_train + num_validation]
     test_images = all_images[num_train + num_validation :]
 
+    # --- Create Destination Directories ---
     user_train_dir_path = os.path.join(base_data_dir, 'train', user_id)
     user_val_dir_path = os.path.join(base_data_dir, 'validation', user_id)
     user_test_dir_path = os.path.join(base_data_dir, 'test', user_id)
@@ -86,18 +86,19 @@ def split_user_images_for_training(
             logger.error(msg)
             return False, msg, None
 
+    # --- Copy Files to Destination ---
     def copy_files(files_list, destination_dir):
         for img_name in files_list:
             try:
                 shutil.copy(os.path.join(source_image_dir, img_name), os.path.join(destination_dir, img_name))
             except Exception as e:
                 logger.error(f"Failed to copy {img_name} to {destination_dir}: {e}")
-                # Decide if one failure should stop the whole process or just be logged
 
     copy_files(train_images, user_train_dir_path)
     copy_files(validation_images, user_val_dir_path)
     copy_files(test_images, user_test_dir_path)
 
+    # --- Final Reporting ---
     msg = (f"Data for user {user_id} split: "
            f"{len(train_images)} train, {len(validation_images)} validation, {len(test_images)} test. "
            f"Train: {user_train_dir_path}, Val: {user_val_dir_path}, Test: {user_test_dir_path}")
@@ -112,7 +113,6 @@ def _add_glare(image, intensity_range=(0.2, 0.5)):
     
     center_x = random.randint(0, w)
     center_y = random.randint(0, h)
-    # Ensure axes are positive and reasonable
     axis_major = random.randint(max(1, min(w,h)//4), max(1, min(w,h)//2))
     axis_minor = random.randint(max(1, axis_major//4), max(1, axis_major//2))
     angle = random.uniform(0, 180)
@@ -132,9 +132,7 @@ def _add_shadow(image, intensity_range=(0.3, 0.6)):
     pt1 = (min(x1,x2), min(y1,y2))
     pt2 = (max(x1,x2), max(y1,y2))
 
-    # Ensure the shadow is not too small, at least 10% of dimensions
     if pt2[0] - pt1[0] < w // 10 or pt2[1] - pt1[1] < h // 10:
-        # Define a default larger shadow if the random one is too small
         s_x1 = random.randint(0, w//3)
         s_y1 = random.randint(0, h//3)
         s_x2 = random.randint(s_x1 + w//3, w-1)
@@ -164,7 +162,7 @@ def _add_random_spots(image, num_spots_range=(3, 10), spot_size_range=(3, 15), s
         spot_x = random.randint(0, w - 1)
         spot_y = random.randint(0, h - 1)
         spot_radius = random.randint(spot_size_range[0], spot_size_range[1]) // 2
-        if spot_radius == 0: spot_radius = 1 # Ensure radius is at least 1
+        if spot_radius == 0: spot_radius = 1
         
         color_b = random.randint(spot_color_range[0][0], spot_color_range[0][1])
         color_g = random.randint(spot_color_range[1][0], spot_color_range[1][1])
