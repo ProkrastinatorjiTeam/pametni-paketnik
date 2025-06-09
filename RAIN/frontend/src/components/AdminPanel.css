@@ -108,7 +108,7 @@
 .status-pending { background-color: #f0ad4e; }
 .status-printing { background-color: #007BFF; }
 .status-ready-to-pickup { background-color: #28a745; }
-.status-completed, .status-done { background-color: #6c757d; }
+.status-done { background-color: lightblue;}
 .status-cancelled { background-color: #dc3545; }
 .status-text-success { color: var(--success-color); font-weight: 600; }
 .status-text-error { color: var(--error-color); font-weight: 600; }

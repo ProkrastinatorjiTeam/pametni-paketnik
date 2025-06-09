@@ -6,18 +6,24 @@ import './BoxDetailModal.css'; // Dodatni, specifični stili
 const BACKEND_URL = 'http://localhost:3000';
 
 function BoxDetailModal({ box, isOpen, onClose, onBoxUpdated }) {
+  // Stanje za nadzor zavihkov
   const [activeTab, setActiveTab] = useState('details');
+
+  // Stanje za urejanje podatkov
   const [editData, setEditData] = useState({ name: '', location: '', physicalId: '' });
+
+  // Stanja za povratno informacijo uporabniku
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Stanja za zgodovino
   const [printHistory, setPrintHistory] = useState([]);
   const [loadingPrintHistory, setLoadingPrintHistory] = useState(false);
-
   const [unlockHistory, setUnlockHistory] = useState([]);
   const [loadingUnlockHistory, setLoadingUnlockHistory] = useState(false);
 
+  // Ponastavi stanje, ko se modal odpre
   useEffect(() => {
     if (box && isOpen) {
       setEditData({
@@ -25,15 +31,18 @@ function BoxDetailModal({ box, isOpen, onClose, onBoxUpdated }) {
         location: box.location || '',
         physicalId: box.physicalId || '',
       });
-      setActiveTab('details');
+      setActiveTab('details'); // Vedno začni na zavihku s podrobnostmi
       setError('');
       setSuccessMessage('');
+      // Ob odprtju modala takoj pridobi obe zgodovini
       fetchPrintHistory(box._id);
       fetchUnlockHistory(box._id);
     }
   }, [box, isOpen]);
 
+  // --- MANJKAJOČE FUNKCIJE ZA PRIDOBIVANJE PODATKOV ---
   const fetchPrintHistory = async (boxId) => {
+    if (!boxId) return;
     setLoadingPrintHistory(true);
     try {
       const response = await axios.get(`${BACKEND_URL}/order/by-box/${boxId}`);
@@ -46,6 +55,7 @@ function BoxDetailModal({ box, isOpen, onClose, onBoxUpdated }) {
   };
 
   const fetchUnlockHistory = async (boxId) => {
+    if (!boxId) return;
     setLoadingUnlockHistory(true);
     try {
       const response = await axios.get(`${BACKEND_URL}/box/history/${boxId}`);
@@ -57,12 +67,13 @@ function BoxDetailModal({ box, isOpen, onClose, onBoxUpdated }) {
     }
   };
 
-  // --- POPRAVLJENA FUNKCIJA ---
+  // --- MANJKAJOČA FUNKCIJA ZA SPREMEMBO VNOSA ---
   const handleChange = (e) => {
-    const { name: inputName, value } = e.target; // Preimenovano iz 'name' v 'inputName'
+    const { name: inputName, value } = e.target;
     setEditData(prev => ({ ...prev, [inputName]: value }));
   };
 
+  // Funkcija za shranjevanje sprememb
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -72,7 +83,7 @@ function BoxDetailModal({ box, isOpen, onClose, onBoxUpdated }) {
       const response = await axios.patch(`${BACKEND_URL}/box/update/${box._id}`, editData);
       setSuccessMessage('Box uspešno posodobljen!');
       if (onBoxUpdated) {
-        onBoxUpdated(response.data.box);
+        onBoxUpdated(response.data.box); // Obvesti starša, da osveži seznam
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Posodobitev boxa ni uspela.');
@@ -81,11 +92,33 @@ function BoxDetailModal({ box, isOpen, onClose, onBoxUpdated }) {
     }
   };
 
+  // Funkcija za brisanje
+  const handleDeleteBox = async () => {
+    if (!window.confirm(`Ali ste prepričani, da želite trajno izbrisati box "${box.name}"?`)) {
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      await axios.delete(`${BACKEND_URL}/box/remove/${box._id}`);
+      onBoxUpdated(); // Obvesti starša, da osveži seznam
+      onClose();      // Zapri modal
+    } catch (err) {
+      setError(err.response?.data?.message || 'Brisanje boxa ni uspelo.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Render funkcija za vsebino zavihkov
   const renderContent = () => {
     switch (activeTab) {
       case 'printHistory':
         return (
-            loadingPrintHistory ? <p>Nalaganje...</p> :
+            loadingPrintHistory ? <div className="loading-state">Nalaganje zgodovine...</div> :
                 <ul className="data-list">
                   {printHistory.length > 0 ? printHistory.map(order => (
                       <li key={order._id} className="data-list-item history-item-print">
@@ -99,7 +132,7 @@ function BoxDetailModal({ box, isOpen, onClose, onBoxUpdated }) {
         );
       case 'unlockHistory':
         return (
-            loadingUnlockHistory ? <p>Nalaganje...</p> :
+            loadingUnlockHistory ? <div className="loading-state">Nalaganje zgodovine...</div> :
                 <ul className="data-list">
                   {unlockHistory.length > 0 ? unlockHistory.map(event => (
                       <li key={event._id} className="data-list-item history-item-unlock">
@@ -113,7 +146,7 @@ function BoxDetailModal({ box, isOpen, onClose, onBoxUpdated }) {
       case 'details':
       default:
         return (
-            <form onSubmit={handleSubmit} className="edit-box-form">
+            <form id="edit-box-form" onSubmit={handleSubmit} className="edit-box-form">
               <div className="form-group">
                 <label htmlFor="editBoxName">Ime:</label>
                 <input type="text" id="editBoxName" name="name" value={editData.name} onChange={handleChange} required />
@@ -125,14 +158,6 @@ function BoxDetailModal({ box, isOpen, onClose, onBoxUpdated }) {
               <div className="form-group">
                 <label htmlFor="editBoxPhysicalId">Fizični ID:</label>
                 <input type="text" id="editBoxPhysicalId" name="physicalId" value={editData.physicalId} onChange={handleChange} required />
-              </div>
-              <div className="modal-footer form-footer">
-                <div className="footer-message-area">
-                  {isLoading && <p>Shranjevanje...</p>}
-                  {error && <p className="error-message">{error}</p>}
-                  {successMessage && <p className="success-message">{successMessage}</p>}
-                </div>
-                <button type="submit" className="action-button-primary" disabled={isLoading}>Shrani spremembe</button>
               </div>
             </form>
         );
@@ -157,6 +182,26 @@ function BoxDetailModal({ box, isOpen, onClose, onBoxUpdated }) {
 
           <div className="modal-body tab-content">
             {renderContent()}
+          </div>
+
+          <div className="modal-footer">
+            <div className="footer-message-area">
+              {isLoading && <p>Obdelovanje...</p>}
+              {error && <p className="error-message">{error}</p>}
+              {successMessage && <p className="success-message">{successMessage}</p>}
+            </div>
+            <div className="footer-button-group">
+              {activeTab === 'details' && (
+                  <>
+                    <button type="button" onClick={handleDeleteBox} className="action-button-danger" disabled={isLoading}>
+                      Izbriši Box
+                    </button>
+                    <button type="submit" form="edit-box-form" className="action-button-primary" disabled={isLoading}>
+                      Shrani spremembe
+                    </button>
+                  </>
+              )}
+            </div>
           </div>
         </div>
       </div>

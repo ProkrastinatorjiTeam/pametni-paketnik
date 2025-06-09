@@ -1,6 +1,7 @@
 var UnlockEventModel = require('../models/unlockEventModel.js');
 var UserModel = require('../models/userModel.js');
 var BoxModel = require('../models/boxModel.js');
+var OrderModel = require('../models/orderModel.js');
 
 module.exports = {
 
@@ -80,6 +81,26 @@ module.exports = {
 
             // Save the new unlock event to the database
             const savedUnlockEvent = await unlockEvent.save();
+
+            if (success) {
+                const orderToComplete = await OrderModel.findOne({
+                    box: boxId,
+                    status: 'ready to pickup',
+                    orderBy: userId
+                });
+
+                if (orderToComplete) {
+                    orderToComplete.status = 'done';
+                    orderToComplete.completedAt = new Date();
+
+                    const updatedOrderPromise = orderToComplete.save();
+                    const updatedBoxPromise = BoxModel.findByIdAndUpdate(boxId, {
+                        $pull: { authorizedUsers: userId }
+                    });
+
+                    await Promise.all([updatedOrderPromise, updatedBoxPromise]);
+                }
+            }
 
             // Respond with success message
             return res.status(201).json({message: 'Unlock event created successfully', unlockEvent: savedUnlockEvent});

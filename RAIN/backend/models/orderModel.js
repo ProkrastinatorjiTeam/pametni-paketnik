@@ -14,7 +14,7 @@ var orderSchema = new Schema({
     },
     'status': {
         type: String,
-        enum: ['pending', 'printing', 'ready to pickup', 'cancelled'],
+        enum: ['pending', 'printing', 'ready to pickup', 'cancelled', 'done'],
         default: 'pending'
     },
     'box': {

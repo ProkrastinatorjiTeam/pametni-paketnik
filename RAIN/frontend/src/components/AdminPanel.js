@@ -53,11 +53,15 @@ function AdminPanel({ currentUser }) {
             setError('');
             try {
                 if (currentView === 'dashboard') {
-                    // Lažni podatki za hiter razvoj in prikaz. Zamenjajte s pravimi API klici.
-                    await new Promise(resolve => setTimeout(resolve, 500)); // Simulacija nalaganja
-                    setStats({ totalRevenue: 1250.75, totalOrders: 112, userCount: 42, availableBoxes: 4 });
-                    setTopProducts([{ name: 'Kocka', orderCount: 35 }, { name: 'Držalo', orderCount: 28 }, { name: 'Vaza', orderCount: 19 }, { name: 'Ohišje', orderCount: 15 }]);
-                    setRecentOrders([{ _id: '1', model: { name: 'Držalo za telefon' }, orderBy: { username: 'janez_k' }, status: 'ready to pickup' }, { _id: '2', model: { name: 'Vaza' }, orderBy: { username: 'meta_h' }, status: 'printing' }]);
+                    const [statsRes, topProductsRes, recentOrdersRes] = await Promise.all([
+                        axios.get(`${BACKEND_URL}/stats/overview`),
+                        axios.get(`${BACKEND_URL}/stats/top-products`),
+                        axios.get(`${BACKEND_URL}/stats/recent-orders`)
+                    ]);
+
+                    setStats(statsRes.data);
+                    setTopProducts(topProductsRes.data);
+                    setRecentOrders(recentOrdersRes.data);
                 } else {
                     const endpoints = {
                         users: '/user/list', products: '/model3D/list', orders: '/order/list',
@@ -87,16 +91,35 @@ function AdminPanel({ currentUser }) {
     // Funkcije za upravljanje modalov za DODAJANJE
     const handleOpenAddProductModal = () => setIsAddProductModalOpen(true);
     const handleCloseAddProductModal = () => setIsAddProductModalOpen(false);
-    const handleProductAdded = () => {
+    const handleProductAdded = async () => {
         handleCloseAddProductModal();
-        handleViewChange('products'); // Preklopi na seznam izdelkov in ga osveži
+        setLoading(true);
+        try {
+            const response = await axios.get(`${BACKEND_URL}/model3D/list`);
+            setListData(response.data || []);
+
+            setCurrentView('products');
+        } catch (err) {
+            setError('Osveževanje seznama izdelkov ni uspelo.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleOpenAddBoxModal = () => setIsAddBoxModalOpen(true);
     const handleCloseAddBoxModal = () => setIsAddBoxModalOpen(false);
-    const handleBoxAdded = () => {
+    const handleBoxAdded = async () => {
         handleCloseAddBoxModal();
-        handleViewChange('boxes'); // Preklopi na seznam boxov in ga osveži
+        setLoading(true);
+        try {
+            const response = await axios.get(`${BACKEND_URL}/box/list`);
+            setListData(response.data?.boxes || []);
+            setCurrentView('boxes');
+        } catch (err) {
+            setError('Osveževanje seznama boxov ni uspelo.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Podatki in opcije za graf
@@ -113,16 +136,30 @@ function AdminPanel({ currentUser }) {
         <>
             <h2>Pregled stanja</h2>
             <div className="stats-grid">
-                <div className="stat-card"><strong>€{stats.totalRevenue?.toFixed(2)}</strong><span>Skupni prihodki</span></div>
-                <div className="stat-card"><strong>{stats.totalOrders}</strong><span>Vsa naročila</span></div>
-                <div className="stat-card"><strong>{stats.userCount}</strong><span>Uporabniki</span></div>
-                <div className="stat-card"><strong>{stats.availableBoxes}</strong><span>Prosti tiskalniki</span></div>
+                {/* Dodajmo varnostna preverjanja tudi tukaj */}
+                <div className="stat-card"><strong>€{stats.totalRevenue?.toFixed(2) || '0.00'}</strong><span>Skupni prihodki</span></div>
+                <div className="stat-card"><strong>{stats.totalOrders || 0}</strong><span>Vsa naročila</span></div>
+                <div className="stat-card"><strong>{stats.userCount || 0}</strong><span>Uporabniki</span></div>
+                <div className="stat-card"><strong>{stats.availableBoxes || 0}</strong><span>Prosti tiskalniki</span></div>
             </div>
             <div className="dashboard-widgets-grid">
                 <div className="widget chart-widget"><Bar options={chartOptions} data={chartData} /></div>
                 <div className="widget list-widget">
                     <h3>Zadnje aktivnosti</h3>
-                    <ul>{recentOrders.map(order => (<li key={order._id}><span>{order.model.name} (<strong>{order.orderBy.username}</strong>)</span><span className={`status-badge status-${order.status.toLowerCase().replace(/\s+/g, '-')}`}>{order.status}</span></li>))}</ul>
+                    <ul>
+                        {recentOrders.length > 0 ? recentOrders.map(order => (
+                            <li key={order._id}>
+                <span>
+                  {/* TUKAJ JE KLJUČNI POPRAVEK */}
+                    {order.model?.name || 'Neznan izdelek'}
+                    (<strong>{order.orderBy?.username || 'Neznan uporabnik'}</strong>)
+                </span>
+                                <span className={`status-badge status-${order.status?.toLowerCase().replace(/\s+/g, '-') || 'default'}`}>
+                  {order.status || 'Neznano'}
+                </span>
+                            </li>
+                        )) : <li>Ni nedavnih aktivnosti.</li>}
+                    </ul>
                 </div>
             </div>
         </>
