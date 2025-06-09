@@ -1,40 +1,28 @@
-name: Frontend CI
+name: Run Frontend Tests
 
 on:
   push:
-    branches: [ main, master, PP-43-CI-CD-cevovod-z-GitHub-Actions ]
-    paths: 
-      - 'RAIN/frontend/**'
+    branches: [ master ]
   pull_request:
-    branches: [ main, master, PP-43-CI-CD-cevovod-z-GitHub-Actions ]
-    paths:
-      - 'RAIN/frontend/**'
+    branches: [ master ]
 
 jobs:
   test:
     runs-on: self-hosted
 
-    defaults:
-      run:
-        working-directory: ./RAIN/frontend
-
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: package-lock.json 
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm install
+        working-directory: RAIN/frontend
 
-    - name: Run tests
-      run: npm test
+      - name: Run tests
+        run: npm test
+        working-directory: RAIN/frontend
