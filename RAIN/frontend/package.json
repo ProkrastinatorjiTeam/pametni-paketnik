@@ -40,10 +40,5 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:3000",
-  "jest": {
-    "setupFilesAfterEnv": [
-      "<rootDir>/src/setupTests.js"
-    ]
-  }
+  "proxy": "http://localhost:3000"
 }
