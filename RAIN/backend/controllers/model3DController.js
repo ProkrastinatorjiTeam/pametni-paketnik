@@ -142,7 +142,12 @@ module.exports = {
     // DELETE /api/models/:id
     removeModel3D: async (req, res) => {
         try {
-            await Model3dModel.findByIdAndDelete(req.params.id);
+            const deletedModel = await Model3dModel.findByIdAndDelete(req.params.id);
+
+            if (!deletedModel) {
+                return res.status(404).json({ message: 'Model not found.' });
+            }
+
             res.status(204).send();
         } catch (err) {
             res.status(500).json({
