@@ -2,9 +2,13 @@ name: Frontend CI
 
 on:
   push:
-    branches: [ main, master, PP-43-CI-CD-cevovod-z-GitHub-Actions ] 
+    branches: [ main, master, PP-43-CI-CD-cevovod-z-GitHub-Actions ]
+    paths: 
+      - 'RAIN/frontend/**'
   pull_request:
-    branches: [ main, master, PP-43-CI-CD-cevovod-z-GitHub-Actions ] 
+    branches: [ main, master, PP-43-CI-CD-cevovod-z-GitHub-Actions ]
+    paths:
+      - 'RAIN/frontend/**'
 
 jobs:
   test:
@@ -12,11 +16,11 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./ # json in root
+        working-directory: ./RAIN/frontend
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x] # Test on multiple Node.js versions
+        node-version: [18.x, 20.x]
 
     steps:
     - name: Checkout code
@@ -27,10 +31,10 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-        cache-dependency-path: package-lock.json 
+        cache-dependency-path: RAIN/frontend/package-lock.json 
 
     - name: Install dependencies
-      run: npm ci 
+      run: npm ci
 
     - name: Run tests
       run: npm test
