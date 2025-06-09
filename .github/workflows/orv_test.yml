@@ -1,0 +1,49 @@
+name: ORV CI Workflow
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'ORV/**'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'ORV/**'
+
+jobs:
+  test:
+    runs-on: self-hosted
+    
+    defaults:
+      run:
+        working-directory: ./ORV
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt 
+          # If your tests require additional packages like pytest, install them here:
+          # pip install pytest
+
+
+      - name: Run tests
+        run: |
+          echo "TODO: Add your test command here."
+          # For example, if you use pytest and your tests are in ORV/src/tests:
+          # pytest src/tests
+          #
+          # Or, if you use Python's unittest module and tests are discoverable in ORV/src/tests:
+          # python -m unittest discover -s src/tests -p '*_test.py'
+          #
+          # For now, this step will pass.
+          exit 0
