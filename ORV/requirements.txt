@@ -16,3 +16,5 @@ keras==2.10.0
 Keras-Applications==1.0.8
 keras_vggface @ git+https://github.com/rcmalli/keras-vggface.git@bee35376e76e35d00aeec503f2f242611a97b38a
 seaborn==0.13.2
+
+pytest
