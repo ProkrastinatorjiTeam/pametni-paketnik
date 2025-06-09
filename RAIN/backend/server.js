@@ -19,6 +19,7 @@ var boxRouter = require('./routes/boxRoutes');
 var unlockEventRouter = require('./routes/unlockEventRoutes');
 var model3DRouter = require('./routes/model3DRoutes');
 var orderRouter = require('./routes/orderRoutes');
+const statsRoutes = require('./routes/statsRoutes');
 
 var app = express();
 
@@ -29,7 +30,7 @@ app.set('view engine', 'hbs');
 // --- 2. USE CORS MIDDLEWARE ---
 // This should be placed before your routes and session middleware if sessions rely on cookies sent cross-origin.
 app.use(cors({
-  origin: 'http://localhost:3001', // Allow requests specifically from your frontend
+  origin: true, // Allow requests specifically from your frontend
   credentials: true                // Allow cookies and authorization headers to be sent
 }));
 
@@ -59,6 +60,7 @@ app.use('/box', boxRouter);
 app.use('/unlockEvent', unlockEventRouter);
 app.use('/model3D', model3DRouter);
 app.use('/order', orderRouter);
+app.use('/stats', statsRoutes);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

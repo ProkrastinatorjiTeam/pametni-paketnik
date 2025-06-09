@@ -1,10 +1,8 @@
 var express = require('express');
 var router = express.Router();
 var model3DController = require('../controllers/model3DController.js');
-var multer = require('multer');
-var upload = multer({dest: 'public/images/'});
-
-const {requireAdmin} = require('../middleware/auth');
+var { requireAdmin } = require('../middleware/auth'); // Your auth middleware
+var upload = require('../middleware/multerConfig'); // YOUR MULTER CONFIGURATION MIDDLEWARE
 
 /*
  * GET
@@ -24,11 +22,21 @@ router.post('/add', requireAdmin, upload.fields([{name: 'images', maxCount: 5}])
 /*
  * PUT
  */
-router.patch('update/:id', requireAdmin, model3DController.updateModel3D);
+router.patch(
+    '/update/:id',
+    requireAdmin,
+    upload.fields([{ name: 'newImages', maxCount: 5 }]), // Adjust maxCount as needed
+    model3DController.updateModel3D
+);
 
 /*
  * DELETE
  */
-router.delete('remove/:id', requireAdmin, model3DController.removeModel3D);
+router.delete('/remove/:id', requireAdmin, model3DController.removeModel3D);
+
+/*
+ * DELETE an image from a model
+ */
+router.delete('/:id/images/:imageFilename', requireAdmin, model3DController.removeImageFromModel);
 
 module.exports = router;

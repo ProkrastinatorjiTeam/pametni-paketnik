@@ -1,0 +1,136 @@
+/* Auth.css - Shared styles for Login and Register pages */
+:root {
+    /* ... spremenljivke ostanejo enake ... */
+    --bg-light: #F7F9FC;
+    --bg-surface: #FFFFFF;
+    --accent-color: #007BFF;
+    --accent-hover: #0056b3;
+    --text-primary: #2C3E50;
+    --text-secondary: #6c757d;
+    --border-color: #DEE2E6;
+    --error-color: #dc3545;
+    --success-color: #28a745;
+    --font-family: 'Montserrat', sans-serif;
+    --border-radius: 8px;
+    --shadow-md: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+/* To je nov ključni stil, ki ga uporablja AuthLayout */
+.auth-page-wrapper {
+    font-family: var(--font-family);
+    background-color: var(--bg-light);
+    min-height: 100vh; /* Raztegne se čez celoten zaslon */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.auth-container {
+    max-width: 420px;
+    width: 100%;
+    padding: 40px;
+    background-color: var(--bg-surface);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+}
+
+/* ... ostali stili (.auth-container h2, .auth-form, itd.) ostanejo enaki ... */
+
+.auth-container h2 {
+    text-align: center;
+    font-size: 2em;
+    color: var(--text-primary);
+    margin: 0 0 30px 0;
+}
+
+.auth-form .form-group {
+    margin-bottom: 20px;
+}
+
+.auth-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.9em;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 1em;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+}
+
+.auth-form button {
+    background-color: var(--accent-color);
+    color: white;
+    padding: 15px 20px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    display: block;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.auth-form button:hover:not(:disabled) {
+    background-color: var(--accent-hover);
+    transform: translateY(-2px);
+}
+.auth-form button:disabled {
+    background-color: #a0c7ff;
+    cursor: not-allowed;
+}
+
+.auth-link {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+}
+.auth-link a {
+    color: var(--accent-color);
+    font-weight: 600;
+    text-decoration: none;
+}
+.auth-link a:hover {
+    text-decoration: underline;
+}
+
+.error-message, .success-message, .info-message {
+    padding: 12px;
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 600;
+}
+.error-message {
+    color: #721c24;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+}
+.success-message {
+    color: #155724;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+}
+.info-message {
+    color: #004085;
+    background-color: #cce5ff;
+    border: 1px solid #b8daff;
+}

@@ -1,0 +1,58 @@
+/* --- Stili za zavihke (Tabs) --- */
+.tab-navigation {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 25px; /* Poravnaj s paddingom telesa modala */
+    flex-shrink: 0;
+}
+
+.tab-navigation button {
+    padding: 15px 20px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+    margin-bottom: -1px; /* Prekrije spodnjo obrobo za lepši prehod */
+}
+
+.tab-navigation button.active {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+}
+
+.tab-navigation button:hover:not(.active) {
+    color: var(--text-primary);
+}
+
+.tab-content {
+    flex-grow: 1; /* Zagotovi, da se vsebina raztegne */
+    overflow-y: auto;
+}
+
+/* --- Stili za obrazec v zavihku "Podrobnosti" --- */
+.edit-box-form {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Obrazec naj zapolni ves prostor */
+}
+.edit-box-form .form-footer {
+    margin-top: auto; /* Potisne nogo na dno */
+    background-color: var(--bg-light);
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Stili za sezname zgodovine */
+.history-item-print {
+    grid-template-columns: 2fr 1fr 1fr 1.5fr;
+}
+.history-item-unlock {
+    grid-template-columns: 1fr 1fr 2fr;
+}

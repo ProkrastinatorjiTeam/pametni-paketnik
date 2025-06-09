@@ -1,158 +1,143 @@
-.admin-panel-container {
-  padding: 20px;
-  max-width: 1000px;
-  margin: 20px auto;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+:root {
+  /* Enake spremenljivke kot v App.css za doslednost */
+  --bg-light: #F7F9FC;
+  --bg-surface: #FFFFFF;
+  --accent-color: #007BFF;
+  --accent-hover: #0056b3;
+  --text-primary: #2C3E50;
+  --text-secondary: #6c757d;
+  --border-color: #DEE2E6;
+  --error-color: #dc3545;
+  --success-color: #28a745;
+  --font-family: 'Montserrat', sans-serif;
+  --border-radius: 8px;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 15px rgba(0,0,0,0.08);
 }
 
-.admin-panel-container h2 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 25px;
-}
-
-.admin-panel-content {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.admin-section {
-  background-color: #ffffff;
-  padding: 15px;
-  border-radius: 5px;
-  border: 1px solid #e0e0e0;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.admin-section h3 {
-  margin-top: 0;
-  color: #007bff;
-  margin-bottom: 10px;
-}
-
-/* New style for clickable headings */
-.clickable-heading {
-  cursor: pointer;
-  /* Optionally, add a hover effect if desired */
-  /* transition: color 0.2s ease-in-out; */
-}
-
-/* .clickable-heading:hover { */
-  /* color: #0056b3; */ /* Darker blue on hover */
-/* } */
-
-.admin-section p {
-  font-size: 0.95em;
-  color: #555;
-  line-height: 1.6;
-  margin-bottom: 10px; /* Added margin for spacing before button */
-}
-
-.admin-section button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9em;
-  margin-top: 10px;
-}
-
-.admin-section button:hover {
-  background-color: #0056b3;
-}
-
-/* Modal Styles for Admin Panel */
-.admin-modal-overlay { /* Using a specific class to avoid conflicts if other modals exist */
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+/* --- Nova postavitev z stransko vrstico --- */
+.admin-panel-layout {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+  font-family: var(--font-family);
+  background-color: var(--bg-light);
+  min-height: calc(100vh - 90px);
 }
 
-.admin-modal-content {
-  background-color: #fff;
+.admin-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background-color: var(--bg-surface);
+  border-right: 1px solid var(--border-color);
   padding: 25px;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  text-align: left; /* Align text to left for lists */
-  max-width: 500px;
-  width: 90%;
-  max-height: 80vh; /* Max height for scrollability */
-  overflow-y: auto; /* Enable vertical scroll if content overflows */
+  box-sizing: border-box;
+  transition: transform 0.3s ease-in-out;
 }
-
-.admin-modal-content h3 {
-  text-align: center;
-  margin-top: 0;
-  color: #333;
-  margin-bottom: 20px;
-}
-
-/* Generic list styles */
-.data-list {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-.data-list-item {
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
+.sidebar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.data-list-item:last-child {
-  border-bottom: none;
+.success-row {
+  background-color: #d4edda !important; /* Svetlo zelena, kot pri sporočilih */
+  border-left: 4px solid var(--success-color); /* Poudarjen levi rob */
 }
 
-.data-list-item span {
-  font-size: 0.9em;
-  margin-right: 10px; /* Add some spacing between spans */
-  margin-bottom: 5px; /* Spacing for wrapped items */
+.failure-row {
+  background-color: #f8d7da !important; /* Svetlo rdeča, kot pri sporočilih */
+  border-left: 4px solid var(--error-color); /* Poudarjen levi rob */
 }
+.sidebar-header h3 { font-size: 1.2em; color: var(--text-primary); margin: 0; }
+.admin-sidebar ul { list-style: none; padding: 0; margin: 0; }
+.admin-sidebar li { padding: 12px 15px; margin-bottom: 5px; border-radius: var(--border-radius); color: var(--text-secondary); font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+.admin-sidebar li:hover, .admin-sidebar li.active { background-color: var(--accent-color); color: #fff; }
 
-/* Specific styling for order items if they need more complex layout */
-.order-item span {
-  min-width: 120px; /* Give some minimum width to order item details */
+.open-sidebar-btn, .close-sidebar-btn { display: none; }
+
+/* --- Glavna vsebina --- */
+.admin-main-content {
+  flex-grow: 1;
+  padding: 40px;
+  overflow-y: auto;
 }
+.admin-main-content h2 { font-size: 2.2em; color: var(--text-primary); margin: 0 0 30px 0; }
 
+/* Stili za nadzorno ploščo */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; margin-bottom: 40px; }
+.stat-card { background-color: var(--bg-surface); padding: 25px; border-radius: var(--border-radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); }
+.stat-card strong { display: block; font-size: 2.5em; color: var(--accent-color); margin-bottom: 5px; }
+.stat-card span { font-size: 1em; color: var(--text-secondary); font-weight: 600; }
+.dashboard-widgets-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; }
+.widget { background-color: var(--bg-surface); padding: 25px; border-radius: var(--border-radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); }
+.chart-widget { min-height: 400px; }
+.list-widget h3 { margin: 0 0 20px 0; font-size: 1.2em; }
+.list-widget ul { list-style: none; padding: 0; margin: 0; }
+.list-widget li { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); font-size: 0.9em; }
+.list-widget li:last-child { border-bottom: none; }
+.list-widget li > span:first-child { color: var(--text-primary); }
 
-.modal-close-button {
-  display: block;
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1em;
-  margin: 20px auto 0;
-}
+/* Stili za sezname podatkov */
+.data-list-container { background-color: var(--bg-surface); padding: 25px; border-radius: var(--border-radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); }
+.list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.list-header h3 { margin: 0; }
+.add-button { background-color: var(--accent-color); color: white; border: none; padding: 8px 16px; border-radius: var(--border-radius); cursor: pointer; font-size: 0.9em; font-weight: 600; transition: background-color 0.2s ease; }
+.add-button:hover { background-color: var(--accent-hover); }
+.data-list { list-style: none; padding: 0; margin: 0; }
+.data-list-item { display: grid; gap: 15px; padding: 15px 10px; border-bottom: 1px solid var(--border-color); align-items: center; transition: background-color 0.2s ease; cursor: pointer; }
+.data-list-item:last-child { border-bottom: none; }
+.data-list-item:hover { background-color: var(--bg-light); }
+.data-list-item span { font-size: 0.9em; color: var(--text-secondary); overflow-wrap: break-word; }
+.data-list-item span:first-child, .product-info-cell span { font-weight: 600; color: var(--text-primary); }
 
-.modal-close-button:hover {
-  background-color: #5a6268;
-}
+.user-item { grid-template-columns: 1fr 1.5fr 0.5fr; }
+.product-item { grid-template-columns: 3fr 1fr 1fr; }
+.order-item { grid-template-columns: 2fr 1fr 1fr 1fr; text-align: right; }
+.order-item span:nth-child(-n+3) { text-align: left; }
+.box-item { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.opening-item { grid-template-columns: 1fr 1fr 1.5fr 1fr; }
 
-.error-message.modal-error {
-  color: #dc3545;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-  text-align: center;
+/* Stili za predogledno sliko */
+.product-info-cell { display: flex; align-items: center; gap: 15px; text-align: left; }
+.list-item-image { width: 50px; height: 50px; object-fit: cover; border-radius: var(--border-radius); flex-shrink: 0; background-color: #e9ecef; }
+
+/* Statusne značke */
+.status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; color: #fff; }
+.status-pending { background-color: #f0ad4e; }
+.status-printing { background-color: #007BFF; }
+.status-ready-to-pickup { background-color: #28a745; }
+.status-done { background-color: lightblue;}
+.status-cancelled { background-color: #dc3545; }
+.status-text-success { color: var(--success-color); font-weight: 600; }
+.status-text-error { color: var(--error-color); font-weight: 600; }
+.role-text { font-weight: 600; text-transform: capitalize; }
+
+.loading-state, .error-message { text-align: center; padding: 40px; color: var(--text-secondary); }
+.error-message { color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: var(--border-radius); }
+
+/* RESPONZIVNOST */
+@media (max-width: 992px) {
+  .admin-panel-layout { flex-direction: column; }
+  .admin-main-content { padding: 20px; }
+  .dashboard-widgets-grid { grid-template-columns: 1fr; }
+  .admin-sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); z-index: 2000; }
+  .admin-sidebar.open { transform: translateX(0); box-shadow: 5px 0 15px rgba(0,0,0,0.1); }
+  .close-sidebar-btn { display: block; background: none; border: none; font-size: 2em; color: var(--text-secondary); cursor: pointer; }
+  .open-sidebar-btn { display: inline-flex; align-items: center; gap: 8px; background-color: var(--bg-surface); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: var(--border-radius); margin-bottom: 20px; cursor: pointer; font-size: 1.1em; }
+
+  .data-list-item { grid-template-columns: 1fr !important; padding: 15px; gap: 8px; }
+  .data-list-item > span, .data-list-item > div { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; }
+  .data-list-item > span:last-child, .data-list-item > div:last-child { border-bottom: none; }
+  .data-list-item > span::before, .product-info-cell::before { font-weight: 600; color: var(--text-primary); margin-right: 10px; }
+
+  .user-item span:nth-of-type(1)::before { content: 'Uporabnik:'; }
+  .user-item span:nth-of-type(2)::before { content: 'Email:'; }
+  .user-item span:nth-of-type(3)::before { content: 'Vloga:'; }
+
+  .product-item .product-info-cell::before { content: 'Ime:'; }
+  .product-item .product-info-cell .list-item-image { display: none; }
+  .product-item > span:nth-of-type(1)::before { content: 'Čas tiska:'; }
+  .product-item > span:nth-of-type(2)::before { content: 'Cena:'; }
 }

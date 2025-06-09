@@ -1,7 +1,6 @@
 var express = require('express');
 var router = express.Router();
 var orderController = require('../controllers/orderController.js');
-
 const {requireAdmin, requireAuth} = require('../middleware/auth');
 
 /*
@@ -28,5 +27,25 @@ router.patch('/update/:id', requireAdmin, orderController.updateOrder);
  * DELETE
  */
 router.delete('/remove/:id', requireAdmin, orderController.removeOrder);
+
+/*
+ * GET
+ */
+router.get('/my-orders', requireAuth, orderController.listMyOrders);
+
+/*
+ * GET orders by user ID (for admin panel)
+ */
+router.get('/user/:userId', requireAdmin, orderController.listOrdersByUserId);
+
+/*
+ * PATCH
+ */
+router.patch('/my-orders/:id/cancel', requireAuth, orderController.cancelMyOrder); // Add this line
+
+/*
+ * GET orders by box ID (for admin panel)
+ */
+router.get('/by-box/:boxId', requireAuth, requireAdmin, orderController.listOrdersByBox);
 
 module.exports = router;

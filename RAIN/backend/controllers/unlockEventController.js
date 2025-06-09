@@ -1,21 +1,25 @@
 var UnlockEventModel = require('../models/unlockEventModel.js');
 var UserModel = require('../models/userModel.js');
 var BoxModel = require('../models/boxModel.js');
+var OrderModel = require('../models/orderModel.js');
 
 module.exports = {
 
     // List all unlock events (admin only)
     listUnlockEvents: async function (req, res) {
         try {
-            // Fetch all unlock events from the database
-            const unlockEvents = await UnlockEventModel.find({});
+            // Fetch all unlock events from the database, populate related fields, and sort
+            const unlockEvents = await UnlockEventModel.find({})
+                                                .populate('user', 'username') // Populate user's username
+                                                .populate('box', 'name physicalId') // Populate box's name and physicalId
+                                                .sort({ timestamp: -1 }); // Sort by timestamp descending
 
             // Respond with the list of unlock events
             return res.status(200).json({message: 'Unlock events retrieved successfully', unlockEvents: unlockEvents});
 
             // Handle errors
         } catch (err) {
-            console.error(err);
+            console.error("Error in listUnlockEvents:", err);
             return res.status(500).json({
                 message: 'Error retrieving unlock events',
                 error: err.message
@@ -77,6 +81,26 @@ module.exports = {
 
             // Save the new unlock event to the database
             const savedUnlockEvent = await unlockEvent.save();
+
+            if (success) {
+                const orderToComplete = await OrderModel.findOne({
+                    box: boxId,
+                    status: 'ready to pickup',
+                    orderBy: userId
+                });
+
+                if (orderToComplete) {
+                    orderToComplete.status = 'done';
+                    orderToComplete.completedAt = new Date();
+
+                    const updatedOrderPromise = orderToComplete.save();
+                    const updatedBoxPromise = BoxModel.findByIdAndUpdate(boxId, {
+                        $pull: { authorizedUsers: userId }
+                    });
+
+                    await Promise.all([updatedOrderPromise, updatedBoxPromise]);
+                }
+            }
 
             // Respond with success message
             return res.status(201).json({message: 'Unlock event created successfully', unlockEvent: savedUnlockEvent});

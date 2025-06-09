@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Navigate, Outlet } from 'react-router-dom';
 import axios from 'axios';
 import './App.css';
 import Login from './components/Login';
@@ -7,10 +7,36 @@ import Register from './components/Register';
 import AddProductPage from './components/AddProductPage';
 import ProductView from './components/ProductView';
 import AdminPanel from './components/AdminPanel';
+import UserProfile from './components/UserProfile';
 
 axios.defaults.withCredentials = true;
+const BACKEND_URL = 'http://localhost:3000';
 
-const BACKEND_URL = 'http://localhost:3000'; 
+// --- GLAVNA POSTAVITEV Z NAVIGACIJO ---
+function MainLayout({ currentUser, onLogout }) {
+  return (
+      <>
+        <Navigation currentUser={currentUser} onLogout={onLogout} />
+        <div className="main-content-wrapper">
+          <Outlet /> {/* Tukaj se bodo prikazale vgnezdene komponente */}
+        </div>
+      </>
+  );
+}
+
+// --- POSTAVITEV ZA AVTENTIKACIJO (BREZ NAVIGACIJE, A Z LOGOTIPOM) ---
+function AuthLayout() {
+  return (
+      <div className="auth-page-wrapper">
+        <header className="auth-header">
+          <Link to="/" className="auth-logo-link">PrintHub</Link>
+        </header>
+        <main className="auth-content">
+          <Outlet /> {/* Tukaj se bosta prikazala Login in Register */}
+        </main>
+      </div>
+  );
+}
 
 function HomePage({ currentUser }) {
   const navigate = useNavigate();
@@ -22,13 +48,10 @@ function HomePage({ currentUser }) {
     const fetchModels = async () => {
       try {
         setLoading(true);
-        setError('');
-        // Ensure your axios calls are prefixed with BACKEND_URL if not using a proxy
         const response = await axios.get(`${BACKEND_URL}/model3D/list`);
         setModels(response.data);
       } catch (err) {
-        console.error('Error fetching models:', err);
-        setError('Failed to load models. Please try again later.');
+        setError('Nalaganje modelov ni uspelo. Poskusite znova kasneje.');
       } finally {
         setLoading(false);
       }
@@ -36,116 +59,73 @@ function HomePage({ currentUser }) {
     fetchModels();
   }, []);
 
-  const handleAddClick = () => {
-    navigate('/admin/add-product'); // Path for adding product
-  };
-
   const handleProductClick = (modelId) => {
     navigate(`/product/${modelId}`);
   };
 
   return (
-    <main className="main-content">
-      {currentUser && currentUser.role === 'admin' && (
-        <div className="admin-actions-container">
-          <button onClick={handleAddClick} className="add-product-button">
-            + ADD
-          </button>
+      <div className="main-content">
+        <section className="hero-section">
+          <h1 className="hero-title">The On-Demand Print Hub</h1>
+          <p className="hero-subtitle">From digital design to physical reality. Browse our library and start your 3D print with a single click.</p>
+          {currentUser && currentUser.role === 'admin' && (
+              <button onClick={() => navigate('/admin-panel')} className="add-product-cta">Admin Dashboard</button>
+          )}
+        </section>
+        <div className="models-grid">
+          {loading && <p className="status-message">Nalaganje modelov...</p>}
+          {error && <p className="status-message error">{error}</p>}
+          {!loading && !error && models.map((model) => (
+              <div key={model._id} className="model-card" onClick={() => handleProductClick(model._id)}>
+                <img src={model.images?.[0] ? `${BACKEND_URL}${model.images[0]}` : 'placeholder.jpg'} alt={model.name} className="model-card-image" loading="lazy" />
+                <div className="model-card-overlay"><h3 className="model-card-title">{model.name}</h3><div className="model-card-details">{model.estimatedPrintTime && <span>{model.estimatedPrintTime} min print</span>}{model.price != null && <span>€{model.price.toFixed(2)}</span>}</div></div>
+              </div>
+          ))}
         </div>
-      )}
-      <div className="models-list-container">
-        {loading && <p>Loading models...</p>}
-        {error && <p className="error-message">{error}</p>}
-        {!loading && !error && models.length === 0 && <p>No models available yet.</p>}
-        {!loading && !error && models.map((model) => (
-          <div key={model._id} className="model-item-box" onClick={() => handleProductClick(model._id)}>
-            {model.images && model.images.length > 0 && (
-              <img
-                src={`${BACKEND_URL}${model.images[0]}`}
-                alt={model.name}
-                className="model-image"
-                onError={(e) => { e.target.onerror = null; e.target.src='placeholder.jpg'; }} // Fallback for broken images
-              />
-            )}
-            <div className="model-info">
-              <h3>{model.name}</h3>
-              {model.estimatedPrintTime && (
-                <p>Print Time: {model.estimatedPrintTime} minutes</p>
-              )}
-            </div>
-          </div>
-        ))}
       </div>
-    </main>
   );
 }
 
 function Navigation({ currentUser, onLogout }) {
   const navigate = useNavigate();
-
   const handleLogoutClick = async () => {
     try {
-      // Ensure your axios calls are prefixed with BACKEND_URL if not using a proxy
       await axios.post(`${BACKEND_URL}/user/logout`);
-      onLogout(); // This should call handleLogout in App component to set currentUser to null
+      onLogout();
       navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
     }
   };
-
   return (
-    <nav className="top-bar">
-      <div className="logo">
-        <Link to="/">
-          Paketnik
-          {currentUser && currentUser.role === 'admin' && ' (Admin)'}
-        </Link>
-      </div>
-      <div className="nav-links">
-        {currentUser ? (
-          <>
-            {currentUser.role === 'admin' && (
+      <header className="top-bar">
+        <div className="logo"><Link to="/">PrintHub</Link></div>
+        <nav className="nav-links">
+          {currentUser ? (
               <>
-                {/* Admin Panel Link moved here */}
-                <Link to="/admin-panel"><span>Admin Panel</span></Link>
-                {/* Link to Add Product (already exists in your provided code) */}
-                {/* <Link to="/admin/add-product"><span>Add Product</span></Link> */}
+                {currentUser.role === 'admin' && (<Link to="/admin-panel"><span>Admin Panel</span></Link>)}
+                <Link to="/profile" className="nav-link-user"><span>{currentUser.username}</span></Link>
+                <button onClick={handleLogoutClick} className="logout-button">Logout</button>
               </>
-            )}
-            <span className="username-display">Welcome, {currentUser.username}</span>
-            <button onClick={handleLogoutClick} className="logout-button">Logout</button>
-          </>
-        ) : (
-          <>
-            <Link to="/register"><span>Register</span></Link>
-            <Link to="/login"><span>Login</span></Link>
-          </>
-        )}
-      </div>
-    </nav>
+          ) : (
+              <><Link to="/register"><span>Register</span></Link><Link to="/login"><span>Login</span></Link></>
+          )}
+        </nav>
+      </header>
   );
 }
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
-  // Added loading state for session check
   const [loadingSession, setLoadingSession] = useState(true);
-
 
   useEffect(() => {
     const checkSession = async () => {
       setLoadingSession(true);
       try {
-        // Ensure your axios calls are prefixed with BACKEND_URL if not using a proxy
-        const response = await axios.get(`${BACKEND_URL}/user/show`); // Assuming /user/show gives current user
-        if (response.data && response.data.user) {
-          setCurrentUser(response.data.user);
-        } else {
-          setCurrentUser(null);
-        }
+        const response = await axios.get(`${BACKEND_URL}/user/show`);
+        setCurrentUser(response.data?.user || null);
       } catch (error) {
-        console.log('No active session or error fetching user:', error.response?.data?.message || error.message);
         setCurrentUser(null);
       } finally {
         setLoadingSession(false);
@@ -154,57 +134,37 @@ function App() {
     checkSession();
   }, []);
 
-  const handleLoginSuccess = (userData) => {
-    setCurrentUser(userData);
-  };
+  const handleLoginSuccess = (userData) => setCurrentUser(userData);
+  const handleLogout = () => setCurrentUser(null);
 
-  const handleLogout = () => {
-    setCurrentUser(null);
-    // Optionally, clear any local storage items like tokens here
-  };
-
-  // Show loading indicator while checking session
   if (loadingSession) {
-    return <div className="app-loading">Loading application...</div>;
+    return <div className="app-loading">Initializing Print Hub...</div>;
   }
 
   return (
-    <Router>
-      <div className="App">
-        <Navigation currentUser={currentUser} onLogout={handleLogout} />
-        <Routes>
-          <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/" element={<HomePage currentUser={currentUser} />} />
-          <Route
-            path="/admin/add-product"
-            element={
-              currentUser && currentUser.role === 'admin' ? (
-                <AddProductPage />
-              ) : (
-                <Navigate to="/login" replace state={{ message: 'Please log in as an admin to add products.' }} />
-              )
-            }
-          />
-          {/* New Route for Admin Panel */}
-          <Route
-            path="/admin-panel"
-            element={
-              currentUser && currentUser.role === 'admin' ? (
-                <AdminPanel currentUser={currentUser} />
-              ) : (
-                <Navigate to="/" replace state={{ message: 'Access Denied: Admins only.' }} />
-              )
-            }
-          />
-          <Route path="/product/:id" element={
-            currentUser ? <ProductView currentUser={currentUser} /> : <Navigate to="/login" replace state={{ message: 'Please log in to view product details.'}} />
-          } />
-           {/* Fallback for unknown routes - good practice */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
-    </Router>
+      <Router>
+        <div className="App">
+          <Routes>
+            {/* Strani za prijavo in registracijo znotraj AuthLayout (brez glavne navigacije) */}
+            <Route element={<AuthLayout />}>
+              <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+              <Route path="/register" element={<Register />} />
+            </Route>
+
+            {/* Glavne strani znotraj MainLayout (z glavno navigacijo) */}
+            <Route element={<MainLayout currentUser={currentUser} onLogout={handleLogout} />}>
+              <Route path="/" element={<HomePage currentUser={currentUser} />} />
+              <Route path="/admin/add-product" element={ currentUser?.role === 'admin' ? <AddProductPage /> : <Navigate to="/" replace /> }/>
+              <Route path="/admin-panel" element={ currentUser?.role === 'admin' ? <AdminPanel currentUser={currentUser} /> : <Navigate to="/" replace /> } />
+              <Route path="/profile" element={ currentUser ? <UserProfile currentUser={currentUser} /> : <Navigate to="/login" replace /> } />
+              <Route path="/product/:id" element={ currentUser ? <ProductView currentUser={currentUser} /> : <Navigate to="/login" replace state={{ message: 'Please log in to view product details.'}} /> } />
+            </Route>
+
+            {/* V primeru neobstoječe poti, preusmeri na domačo stran */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </Router>
   );
 }
 

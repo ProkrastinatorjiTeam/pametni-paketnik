@@ -109,11 +109,13 @@ module.exports = {
 
         try {
             // Retrieve the unlock events for the user from the database
-            const unlockEvents = await UnlockEventModel.find({user: id});
+            const unlockEvents = await UnlockEventModel.find({user: id})
+                                                .populate('box', 'name physicalId') // Populate box name and physicalId
+                                                .sort({ timestamp: -1 }); // Optional: sort by most recent
 
-            // Handle case where user is not found
-            if (!unlockEvents) {
-                return res.status(404).json({message: 'No unlock events found for this user'});
+            // It's better to check if the array is empty rather than if unlockEvents itself is falsy
+            if (!unlockEvents || unlockEvents.length === 0) {
+                return res.status(200).json({message: 'No unlock events found for this user', unlockEvents: []});
             }
 
             // Respond with the list of unlock events

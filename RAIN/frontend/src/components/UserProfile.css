@@ -1,0 +1,237 @@
+:root {
+  /* Using same variables as App.css for consistency */
+  --bg-light: #F7F9FC;
+  --bg-surface: #FFFFFF;
+  --accent-color: #007BFF;
+  --accent-hover: #0056b3;
+  --text-primary: #2C3E50;
+  --text-secondary: #6c757d;
+  --border-color: #DEE2E6;
+  --error-color: #dc3545;
+  --font-family: 'Montserrat', sans-serif;
+  --border-radius: 8px;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+/* --- General Page Layout --- */
+.user-profile-wrapper {
+  font-family: var(--font-family);
+  background-color: var(--bg-light);
+  min-height: calc(100vh - 70px); /* Adjust based on nav height */
+  padding: 40px 20px;
+}
+
+.user-profile-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px;
+}
+
+.user-profile-container h2 {
+  text-align: center;
+  font-size: 2.5em;
+  color: var(--text-primary);
+  margin-bottom: 30px;
+}
+
+/* --- User Details Card --- */
+.user-details-card {
+  background-color: var(--bg-surface);
+  padding: 25px;
+  border-radius: var(--border-radius);
+  margin-bottom: 40px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 15px 20px;
+  align-items: center;
+}
+.details-grid strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-align: right;
+}
+.details-grid span {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* --- Orders Section --- */
+.user-orders-section h3 {
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 15px;
+  margin-bottom: 30px;
+  font-size: 1.8em;
+}
+
+.order-list-profile {
+  list-style-type: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.order-item-profile {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.order-item-profile:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.order-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 15px;
+}
+
+.order-header-info strong {
+  display: block;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+.order-id-text {
+  font-size: 0.85em;
+  color: var(--text-secondary);
+}
+
+.order-status-badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8em;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+/* Themed Status Colors */
+.status-pending { background-color: #ffc107; color: #333; }
+.status-printing { background-color: var(--accent-color); }
+.status-ready-to-pickup { background-color: #28a745; }
+.status-cancelled { background-color: var(--error-color); }
+.status-completed { background-color: var(--text-secondary); }
+
+
+/* Grid for neatly aligned order details */
+.order-item-details-grid {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 12px 15px;
+  padding: 20px 0;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 20px;
+}
+
+.order-item-details-grid strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.9em;
+}
+
+.order-item-details-grid span {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.9em;
+}
+
+/* Actions */
+.order-item-actions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.action-link-view, .action-button-cancel {
+  padding: 8px 16px;
+  border-radius: var(--border-radius);
+  font-size: 0.9em;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.action-link-view {
+  background-color: var(--accent-color);
+  color: white;
+  border: 1px solid var(--accent-color);
+}
+.action-link-view:hover {
+  background-color: var(--accent-hover);
+}
+
+.action-button-cancel {
+  background-color: transparent;
+  color: var(--error-color);
+  border: 1px solid var(--error-color);
+}
+.action-button-cancel:hover {
+  background-color: var(--error-color);
+  color: #fff;
+}
+.action-button-cancel:disabled {
+  background-color: #f1f3f5;
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+/* Timer styles (from previous CSS) */
+.timer-display {
+  font-weight: bold;
+  color: var(--accent-color);
+}
+.timer-display.completed {
+  color: var(--success-color);
+}
+.timer-display.completing {
+  color: #fd7e14;
+  font-style: italic;
+}
+
+/* Messages */
+.no-orders-message {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 1.1em;
+  padding: 40px;
+  background-color: var(--bg-surface);
+  border-radius: var(--border-radius);
+  border: 1px dashed var(--border-color);
+}
+.no-orders-message a {
+  color: var(--accent-color);
+  font-weight: 600;
+  text-decoration: none;
+}
+.no-orders-message a:hover {
+  text-decoration: underline;
+}
+
+.error-message-profile {
+  color: #721c24;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 12px;
+  border-radius: 5px;
+  margin: 20px 0;
+  text-align: center;
+}
