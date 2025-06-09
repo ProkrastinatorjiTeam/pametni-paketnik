@@ -313,7 +313,7 @@ class MainActivity : AppCompatActivity() {
             })
     }
 
-    //Upload extracted frames to the Two-Factor server
+    // Upload extracted frames to the Two-Factor server
     private fun sendImagesToTwoFactorServer(framePaths: List<String>) {
         if (framePaths.isEmpty()) {
             Toast.makeText(this, "No frames to send.", Toast.LENGTH_SHORT).show()
@@ -325,11 +325,12 @@ class MainActivity : AppCompatActivity() {
             cleanupCachedFrames(framePaths)
             return
         }
+
+        // Prepare user ID and image files for multipart request
         val userIdRequestBody = userId.toRequestBody("text/plain".toMediaTypeOrNull())
         val imageParts = mutableListOf<MultipartBody.Part>()
         var allFilesValid = true
 
-        // Prepare images for upload
         for (path in framePaths) {
             val file = File(path)
             if (file.exists() && file.isFile) {
@@ -350,9 +351,10 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, "Uploading ${imageParts.size} images for user $userId...", Toast.LENGTH_SHORT).show()
         Log.d("MainActivity", "Attempting to upload ${imageParts.size} images for user $userId to 2FA server.")
 
-        // Send images to the server
+        // Make the API call to update images via TwoFactorRetrofitClient
         TwoFactorRetrofitClient.instance.updateImages(userIdRequestBody, imageParts).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                // Handle server response for image update
                 if (response.isSuccessful) {
                     Toast.makeText(this@MainActivity, "Face images updated successfully!", Toast.LENGTH_LONG).show()
                     Log.d("MainActivity", "Images uploaded successfully. Server response: ${response.body()?.string()}")
@@ -364,6 +366,7 @@ class MainActivity : AppCompatActivity() {
                 cleanupCachedFrames(framePaths)
             }
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                // Handle network failure for image update
                 Toast.makeText(this@MainActivity, "Network error updating images: ${t.message}", Toast.LENGTH_LONG).show()
                 Log.e("MainActivity", "Image upload network error. Exception: ${t::class.java.simpleName}, Message: ${t.message}", t)
                 cleanupCachedFrames(framePaths)

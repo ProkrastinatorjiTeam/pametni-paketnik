@@ -144,8 +144,8 @@ class FacesSequence(Sequence):
     def on_epoch_end(self):
         random.shuffle(self.samples)
 
-    def custom_augment(self, image_uint8):  # SPREMEMBA: pričakuje in vrača uint8, 0-255
-        image = image_uint8.astype(np.float32) / 255.0  # Začasna normalizacija za tvojo obstoječo logiko
+    def custom_augment(self, image_uint8):
+        image = image_uint8.astype(np.float32) / 255.0
 
         # Flip horizontal with 50% probability
         if random.random() > 0.5:
@@ -264,7 +264,7 @@ training_model.compile(
     metrics=["accuracy"]
 )
 
-checkpoint_path = f"../models/{username}/best_vggface_model.keras"  # Novo ime za model
+checkpoint_path = f"../models/{username}/best_vggface_model.keras"
 checkpoint = ModelCheckpoint(
     checkpoint_path,
     monitor="val_accuracy",
@@ -274,19 +274,19 @@ checkpoint = ModelCheckpoint(
 )
 early_stopping = EarlyStopping(
     monitor="val_loss",
-    patience=10,  # Lahko prilagodiš potrpežljivost
+    patience=10,
     verbose=1,
     mode="min",
     restore_best_weights=True  # Pomembno!
 )
 reduce_lr = ReduceLROnPlateau(
     monitor="val_loss",
-    patience=5,  # Lahko prilagodiš
+    patience=5,
     verbose=1,
     mode="min",
     min_delta=0.0001,
     cooldown=0,
-    min_lr=1e-7  # Prilagojeno za nižje LR
+    min_lr=1e-7
 )
 
 history_initial = training_model.fit(
