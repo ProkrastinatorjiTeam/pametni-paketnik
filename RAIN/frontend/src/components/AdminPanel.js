@@ -13,7 +13,7 @@ import OrderDetailModal from './OrderDetailModal'; // Uvoz modala za podrobnosti
 // Registracija potrebnih komponent za Chart.js
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const BACKEND_URL = 'http://localhost:3000';
+const BACKEND_URL = '/api';
 
 function AdminPanel({ currentUser }) {
     // --- Stanja (States) ---

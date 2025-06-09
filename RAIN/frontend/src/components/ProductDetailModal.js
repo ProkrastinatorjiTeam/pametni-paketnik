@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ProductDetailModal.css'; // Uvozimo pripadajoče stile
 
-const BACKEND_URL = 'http://localhost:3000';
+const BACKEND_URL = '/api';
 
 function ProductDetailModal({ product, isOpen, onClose, onProductUpdated }) {
   // Stanje za urejanje podatkov

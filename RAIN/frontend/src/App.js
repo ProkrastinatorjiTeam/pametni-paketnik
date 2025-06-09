@@ -10,7 +10,7 @@ import AdminPanel from './components/AdminPanel';
 import UserProfile from './components/UserProfile';
 
 axios.defaults.withCredentials = true;
-const BACKEND_URL = 'http://localhost:3000';
+const BACKEND_URL = '/api';
 
 // --- GLAVNA POSTAVITEV Z NAVIGACIJO ---
 function MainLayout({ currentUser, onLogout }) {
