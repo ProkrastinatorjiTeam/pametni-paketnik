@@ -1,0 +1,36 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ main, master, PP-43-CI-CD-cevovod-z-GitHub-Actions ] 
+  pull_request:
+    branches: [ main, master, PP-43-CI-CD-cevovod-z-GitHub-Actions ] 
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./ # json in root
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x] # Test on multiple Node.js versions
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: package-lock.json 
+
+    - name: Install dependencies
+      run: npm ci 
+
+    - name: Run tests
+      run: npm test
