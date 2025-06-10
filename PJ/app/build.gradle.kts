@@ -52,6 +52,8 @@ dependencies {
     implementation("commons-io:commons-io:2.11.0") // For converting file to byte array
     implementation("io.coil-kt:coil:2.5.0") // For image resizing
 
+    implementation("com.squareup.okhttp3:okhttp-urlconnection:4.9.3")
+
     // CameraX dependencies
     implementation("androidx.camera:camera-core:1.4.0")
     implementation("androidx.camera:camera-view:1.4.0")

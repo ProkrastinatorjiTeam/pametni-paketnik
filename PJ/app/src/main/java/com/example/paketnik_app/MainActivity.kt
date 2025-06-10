@@ -65,9 +65,9 @@ class MainActivity : AppCompatActivity() {
                 val message = if (physicalIdFromResult != -1 && !isMatch) {
                     "Face verification failed (no match). Cannot open box."
                 } else if (physicalIdFromResult == -1) {
-                    "Face verification process error: Box ID not returned from verify activity."
+                    "Face verification error: Box ID not received from verification."
                 } else {
-                    "Face verification failed."
+                    "Face verification failed for an unknown reason. Cannot open box."
                 }
                 Log.w("MainActivity", "FaceVerifyLauncher: RESULT_OK but verification failed or ID missing. Message: $message")
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show()
@@ -131,6 +131,12 @@ class MainActivity : AppCompatActivity() {
                     Log.i("MainActivity", "Update Face selected.")
                     val intent = Intent(this, FaceScanActivity::class.java)
                     faceScanLauncher.launch(intent)
+                    true
+                }
+                R.id.nav_unlock_history -> {
+                    Log.i("MainActivity", "Unlock History selected.")
+                    val intent = Intent(this, UnlockHistoryActivity::class.java)
+                    startActivity(intent)
                     true
                 }
                 else -> false
