@@ -19,7 +19,9 @@ var boxRouter = require('./routes/boxRoutes');
 var unlockEventRouter = require('./routes/unlockEventRoutes');
 var productRouter = require('./routes/productRoutes');
 var orderRouter = require('./routes/orderRoutes');
+var recommendationRouter = require('./routes/recommendationRoutes');
 const statsRoutes = require('./routes/statsRoutes');
+
 
 var app = express();
 
@@ -59,6 +61,7 @@ app.use('/unlockEvent', unlockEventRouter);
 app.use('/product', productRouter);
 app.use('/order', orderRouter);
 app.use('/stats', statsRoutes);
+app.use('/recommendations', recommendationRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
