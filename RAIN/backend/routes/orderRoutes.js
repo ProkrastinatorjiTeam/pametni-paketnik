@@ -23,6 +23,12 @@ router.post('/create', requireAuth, orderController.createOrder);
  */
 router.patch('/update/:id', requireAdmin, orderController.updateOrder);
 
+router.patch(
+    '/update/:id/status',
+    requireAdmin,
+    orderController.updateOrderStatus
+);
+
 /*
  * DELETE
  */
@@ -41,7 +47,7 @@ router.get('/user/:userId', requireAdmin, orderController.listOrdersByUserId);
 /*
  * PATCH
  */
-router.patch('/my-orders/:id/cancel', requireAuth, orderController.cancelMyOrder); // Add this line
+router.patch('/my-orders/:id/cancel', requireAuth, orderController.cancelMyOrder);
 
 /*
  * GET orders by box ID (for admin panel)

@@ -3,11 +3,11 @@
 const Order = require('../models/orderModel');
 const User = require('../models/userModel');
 const Box = require('../models/boxModel');
-const Model3D = require('../models/model3DModel');
+const Product = require('../models/productModel');
 
+// --- 1. GET /stats/overview ---
 exports.getOverviewStats = async (req, res) => {
     try {
-        // Uporabimo Promise.all, da vse poizvedbe tečejo hkrati
         const [
             totalOrders,
             userCount,
@@ -17,74 +17,79 @@ exports.getOverviewStats = async (req, res) => {
         ] = await Promise.all([
             Order.countDocuments(),
             User.countDocuments(),
-            Box.countDocuments(), // 1. Preštejemo VSE boxe v sistemu
-            // 2. Poiščemo ID-je vseh boxov, ki so vezani na naročila s statusom 'printing' ALI 'pending'
-            Order.find({ status: { $in: ['printing', 'pending'] } }).distinct('box'),
-            // Poizvedba za prihodke ostane enaka
+            Box.countDocuments(),
+            Order.find({status: {$in: ['reserved', 'printing', 'pending']}}).distinct('box'),
+            // Prihodki upoštevajo quantity
             Order.aggregate([
-                { $match: { status: { $in: ['ready to pickup', 'done'] } } },
+                {$match: {status: {$in: ['ready for pickup', 'done']}}},
                 {
-                    $lookup: { from: 'model3ds', localField: 'model', foreignField: '_id', as: 'productDetails' }
+                    $lookup: {
+                        from: 'products',
+                        localField: 'product',
+                        foreignField: '_id',
+                        as: 'productDetails'
+                    }
                 },
-                { $unwind: '$productDetails' },
+                {$unwind: '$productDetails'},
                 {
-                    $group: { _id: null, totalRevenue: { $sum: '$productDetails.price' } }
+                    $group: {
+                        _id: null,
+                        totalRevenue: {$sum: {$multiply: ['$productDetails.price', '$quantity']}}
+                    }
                 }
             ])
         ]);
 
-        // 3. Izračunamo število prostih boxov
         const availableBoxes = totalBoxCount - busyBoxIds.length;
-
         const totalRevenue = revenueData.length > 0 ? revenueData[0].totalRevenue : 0;
 
         res.status(200).json({
             totalOrders,
             userCount,
-            availableBoxes, // 4. V odgovor vključimo pravilno izračunano vrednost
+            availableBoxes,
             totalRevenue
         });
 
     } catch (error) {
         console.error("Napaka pri pridobivanju preglednih statistik:", error);
-        res.status(500).json({ message: "Napaka na strežniku." });
+        res.status(500).json({message: "Napaka na strežniku."});
     }
 };
 
-
 // --- 2. GET /stats/top-products ---
-// Agregacija za štetje, kateri izdelki so bili največkrat naročeni
 exports.getTopProducts = async (req, res) => {
     try {
         const topProducts = await Order.aggregate([
-            // 1. Združi naročila po ID-ju modela in preštej vsakega
+            // DODAN FILTRIRNI KORAK ZA STATUS NAROČILA
             {
-                $group: {
-                    _id: '$model', // Grupiraj po `model` polju
-                    orderCount: { $sum: 1 } // Preštej, kolikokrat se pojavi vsak ID
+                $match: {
+                    status: {$in: ['ready for pickup', 'completed', 'done']} // Prilagodi te statuse svojim dejanskim dokončanim statusom
+                    // Morda 'ready for pickup' (kot smo imeli prej) ali 'ready for pickup' (kar imaš v validaciji)
                 }
             },
-            // 2. Razvrsti padajoče glede na število naročil
-            { $sort: { orderCount: -1 } },
-            // 3. Omeji na top 5
-            { $limit: 5 },
-            // 4. Poveži z `model3ds` kolekcijo, da dobiš ime izdelka
+            // Grupiraj po produktu in seštej količino
+            {
+                $group: {
+                    _id: '$product',
+                    totalOrdered: {$sum: '$quantity'}
+                }
+            },
+            {$sort: {totalOrdered: -1}},
+            {$limit: 5},
             {
                 $lookup: {
-                    from: 'model3ds',
+                    from: 'products', // Ime kolekcije 'products'
                     localField: '_id',
                     foreignField: '_id',
                     as: 'productInfo'
                 }
             },
-            // 5. "Razpakiraj" polje productInfo
-            { $unwind: '$productInfo' },
-            // 6. Oblikuj izhodne podatke
+            {$unwind: '$productInfo'},
             {
                 $project: {
-                    _id: 0, // Ne potrebujemo ID-ja iz agregacije
+                    _id: 0,
                     name: '$productInfo.name',
-                    orderCount: '$orderCount'
+                    totalOrdered: 1
                 }
             }
         ]);
@@ -93,25 +98,23 @@ exports.getTopProducts = async (req, res) => {
 
     } catch (error) {
         console.error("Napaka pri pridobivanju najbolj prodajanih izdelkov:", error);
-        res.status(500).json({ message: "Napaka na strežniku." });
+        res.status(500).json({message: "Napaka na strežniku."});
     }
 };
 
-
 // --- 3. GET /stats/recent-orders ---
-// Pridobi zadnjih nekaj naročil
 exports.getRecentOrders = async (req, res) => {
     try {
         const recentOrders = await Order.find()
-            .sort({ createdAt: -1 }) // Razvrsti po datumu nastanka, najnovejši najprej
-            .limit(5) // Vrne zadnjih 5 naročil
-            .populate('model', 'name') // Pridobi samo ime modela
-            .populate('orderBy', 'username'); // Pridobi samo uporabniško ime naročnika
+            .sort({createdAt: -1})
+            .limit(5)
+            .populate('product', 'name price')
+            .populate('orderBy', 'username');
 
         res.status(200).json(recentOrders);
 
     } catch (error) {
         console.error("Napaka pri pridobivanju zadnjih naročil:", error);
-        res.status(500).json({ message: "Napaka na strežniku." });
+        res.status(500).json({message: "Napaka na strežniku."});
     }
 };

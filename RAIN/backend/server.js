@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -13,11 +14,10 @@ mongoose.connect(mongoDB);
 mongoose.Promise = global.Promise;
 mongoose.connection.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
-var indexRouter = require('./routes/index');
 var userRouter = require('./routes/userRoutes');
 var boxRouter = require('./routes/boxRoutes');
 var unlockEventRouter = require('./routes/unlockEventRoutes');
-var model3DRouter = require('./routes/model3DRoutes');
+var productRouter = require('./routes/productRoutes');
 var orderRouter = require('./routes/orderRoutes');
 const statsRoutes = require('./routes/statsRoutes');
 
@@ -53,12 +53,10 @@ app.use(session({
     }
 }));
 
-
-app.use('/', indexRouter);
 app.use('/user', userRouter);
 app.use('/box', boxRouter);
 app.use('/unlockEvent', unlockEventRouter);
-app.use('/model3D', model3DRouter);
+app.use('/product', productRouter);
 app.use('/order', orderRouter);
 app.use('/stats', statsRoutes);
 

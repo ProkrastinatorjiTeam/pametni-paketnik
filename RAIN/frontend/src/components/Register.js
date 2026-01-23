@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import './Auth.css';
 
-const BACKEND_URL = '/api';
+
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -28,7 +28,7 @@ function Register() {
     setSuccessMessage('');
     setIsLoading(true);
     try {
-      await axios.post(`${BACKEND_URL}/user/register`, formData);
+      await axios.post(`/user/register`, formData);
       setSuccessMessage('Registration successful! You will be redirected to login.');
       setTimeout(() => {
         navigate('/login');

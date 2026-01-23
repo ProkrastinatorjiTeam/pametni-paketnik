@@ -27,6 +27,7 @@
     "mongoose": "^8.14.2",
     "morgan": "~1.9.1",
     "multer": "^2.0.0",
+    "sharp": "^0.34.5",
     "sinon": "^20.0.0"
   },
   "devDependencies": {

@@ -28,7 +28,7 @@ COPY --from=builder /app/build .
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port 80
-EXPOSE 80
+EXPOSE 3001
 
 # Start Nginx and serve static files
 CMD ["nginx", "-g", "daemon off;"]

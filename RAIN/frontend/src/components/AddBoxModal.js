@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const BACKEND_URL = '/api';
-
 function AddBoxModal({ isOpen, onClose, onBoxAdded }) {
     const [name, setName] = useState('');
     const [location, setLocation] = useState('');
@@ -26,7 +24,7 @@ function AddBoxModal({ isOpen, onClose, onBoxAdded }) {
         setIsLoading(true);
         setError('');
         try {
-            await axios.post(`${BACKEND_URL}/box/add`, { name, location, physicalId });
+            await axios.post(`/box/add`, { name, location, physicalId });
             onBoxAdded(); // Pokliče funkcijo v staršu za osvežitev in zaprtje
         } catch (err) {
             setError(err.response?.data?.message || 'Dodajanje boxa ni uspelo.');

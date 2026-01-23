@@ -1,0 +1,7 @@
+node_modules
+compress
+public/temp
+.env
+compress/dct.exe
+compress/*.dll
+compress/*.obj

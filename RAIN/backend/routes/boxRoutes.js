@@ -12,20 +12,20 @@ const unlockLimiter = rateLimit({
 });
 
 // GET
-router.get('/list', requireAuth, boxController.listBoxes); 
-router.get('/show/:id', requireAuth, boxController.showBox);
-router.get('/history/:id', requireAuth, boxController.getBoxUnlockHistory);
+router.get('/list', requireAdmin, boxController.listBoxes);
+router.get('/show/:id', requireAdmin, boxController.showBox);
+router.get('/history/:id', requireAdmin, boxController.getBoxUnlockHistory);
 
 // POST
-router.post('/add', requireAuth, boxController.addBox);
+router.post('/add', requireAdmin, boxController.addBox);
 router.post('/unlock', requireAuth, unlockLimiter, boxController.requestBoxUnlock);
-router.post('/authorize/:id', requireAuth, boxController.authorizeBox);
-router.post('/check-access', requireAuth, boxController.checkAccess)
+router.post('/authorize/:id', requireAdmin, boxController.authorizeBox);
+router.post('/check-access', requireAdmin, boxController.checkAccess)
 
 // PATCH
-router.patch('/update/:id', requireAuth, boxController.updateBox);
+router.patch('/update/:id', requireAdmin, boxController.updateBox);
 
 // DELETE
-router.delete('/remove/:id', requireAuth, boxController.removeBox);
+router.delete('/remove/:id', requireAdmin, boxController.removeBox);
 
 module.exports = router;

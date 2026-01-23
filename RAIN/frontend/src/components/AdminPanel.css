@@ -138,6 +138,6 @@
 
   .product-item .product-info-cell::before { content: 'Ime:'; }
   .product-item .product-info-cell .list-item-image { display: none; }
-  .product-item > span:nth-of-type(1)::before { content: 'Čas tiska:'; }
+  .product-item > span:nth-of-type(1)::before { content: 'Količina:'; }
   .product-item > span:nth-of-type(2)::before { content: 'Cena:'; }
 }

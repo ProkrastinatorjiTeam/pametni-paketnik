@@ -11,7 +11,7 @@ import java.net.CookiePolicy
 import okhttp3.JavaNetCookieJar // Import JavaNetCookieJar
 
 object AuthRetrofitClient {
-    private const val BASE_URL = "https://api.fl0rijan.freemyip.com/"
+    private const val BASE_URL = "http://10.0.2.2:3000"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

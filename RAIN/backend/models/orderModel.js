@@ -1,29 +1,38 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-var orderSchema = new Schema({
-    'model': {
+const orderSchema = new Schema({
+    product: {
         type: Schema.Types.ObjectId,
-        ref: 'model3D',
+        ref: 'product',
         required: true
     },
-    'orderBy': {
+    orderBy: {
         type: Schema.Types.ObjectId,
         ref: 'user',
         required: true
     },
-    'status': {
+    quantity: {
+        type: Number,
+        required: true,
+        min: 1,
+        default: 1
+    },
+    status: {
         type: String,
-        enum: ['pending', 'printing', 'ready to pickup', 'cancelled', 'done'],
+        enum: ['pending', 'ready for pickup', 'cancelled', 'done'],
         default: 'pending'
     },
-    'box': {
+    box: {
         type: Schema.Types.ObjectId,
         ref: 'box'
     },
-    createdAt: {type: Date, default: Date.now},
-    'startedPrintingAt': Date,
-    'completedAt': Date
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    startedPreparingAt: Date,
+    completedAt: Date
 });
 
 module.exports = mongoose.model('order', orderSchema);

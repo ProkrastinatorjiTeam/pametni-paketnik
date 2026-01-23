@@ -17,9 +17,9 @@ describe('Pametni Paketnik API', function () {
             });
     });
 
-    it('GET /model3D/list - should return status 200 and an array', function (done) {
+    it('GET /product/list - should return status 200 and an array', function (done) {
         agent
-            .get('/model3D/list')
+            .get('/product/list')
             .expect('Content-Type', /json/)
             .expect(200)
             .end((err, res) => {
@@ -29,22 +29,22 @@ describe('Pametni Paketnik API', function () {
             });
     });
 
-    it('GET /model3D/show/:id - should 404 for non-existing model', function (done) {
+    it('GET /product/show/:id - should 404 for non-existing model', function (done) {
         agent
-            .get(`/model3D/show/${fakeId}`)
+            .get(`/product/show/${fakeId}`)
             .expect(404, done);
     });
 
-    it('PATCH /model3D/update/:id - should 404 for non-existing model', function (done) {
+    it('PATCH /product/update/:id - should 404 for non-existing model', function (done) {
         agent
-            .patch(`/model3D/update/${fakeId}`)
+            .patch(`/product/update/${fakeId}`)
             .send({description: 'Updated description'})
             .expect(404, done);
     });
 
-    it('DELETE /model3D/remove/:id - should 404 for non-existing model', function (done) {
+    it('DELETE /product/remove/:id - should 404 for non-existing model', function (done) {
         agent
-            .delete(`/model3D/remove/${fakeId}`)
+            .delete(`/product/remove/${fakeId}`)
             .expect(404, done);
     });
 
@@ -106,7 +106,7 @@ describe('Pametni Paketnik API', function () {
         if (!createdModelId) return done();
 
         agent
-            .delete(`/model3D/remove/${createdModelId}`)
+            .delete(`/product/remove/${createdModelId}`)
             .end(() => done());
     });
 

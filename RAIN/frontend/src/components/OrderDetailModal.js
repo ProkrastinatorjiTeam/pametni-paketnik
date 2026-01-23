@@ -1,10 +1,30 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './AdminPanel.css'; // Ponovno uporabimo glavne stile
-import './OrderDetailModal.css'; // Dodatni, specifični stili
+import axios from 'axios';
+import './AdminPanel.css';
+import './OrderDetailModal.css';
+import { useToast } from '../contexts/ToastContext';
 
-function OrderDetailModal({ order, isOpen, onClose }) {
+function OrderDetailModal({ order, isOpen, onClose, onStatusUpdated }) {
+    const { showToast } = useToast();
+
     if (!isOpen || !order) return null;
+
+    const updateStatus = async (newStatus) => {
+        try {
+            const res = await axios.patch(
+                `/order/update/${order._id}/status`,
+                { status: newStatus },
+                { withCredentials: true }
+            );
+            showToast(`Status naročila uspešno spremenjen: "${newStatus}"`, 'success');
+
+            onStatusUpdated?.(res.data);
+            onClose();
+        } catch (err) {
+            showToast(err.response?.data?.message || 'Napaka pri posodabljanju statusa', 'error');
+        }
+    };
 
     return (
         <div className="modal-overlay">
@@ -13,13 +33,17 @@ function OrderDetailModal({ order, isOpen, onClose }) {
                     <h3>Podrobnosti naročila</h3>
                     <button onClick={onClose} className="close-button">×</button>
                 </div>
+
                 <div className="modal-body order-detail-body">
                     <div className="order-detail-section">
                         <h4>Osnovni podatki</h4>
                         <div className="details-grid-order">
                             <strong>ID Naročila:</strong><span>{order._id}</span>
                             <strong>Datum:</strong><span>{new Date(order.createdAt).toLocaleString()}</span>
-                            <strong>Status:</strong><span className={`status-badge status-${order.status?.toLowerCase().replace(/\s+/g, '-')}`}>{order.status}</span>
+                            <strong>Status:</strong>
+                            <span className={`status-badge status-${order.status?.toLowerCase().replace(/\s+/g, '-')}`}>
+                                {order.status}
+                            </span>
                         </div>
                     </div>
 
@@ -35,18 +59,18 @@ function OrderDetailModal({ order, isOpen, onClose }) {
 
                     <div className="order-detail-section">
                         <h4>Izdelek</h4>
-                        {order.model ? (
+                        {order.product ? (
                             <div className="details-grid-order">
-                                <strong>Ime:</strong><span>{order.model.name}</span>
-                                <strong>Cena:</strong><span>€{order.model.price?.toFixed(2) || 'N/A'}</span>
-                                <strong>Čas tiska:</strong><span>{order.model.estimatedPrintTime || 'N/A'} min</span>
-                                <strong>Povezava:</strong><Link to={`/product/${order.model._id}`} className="detail-link">Odpri stran izdelka</Link>
+                                <strong>Ime:</strong><span>{order.product.name}</span>
+                                <strong>Cena:</strong><span>€{order.product.price?.toFixed(2) || 'N/A'}</span>
+                                <strong>Povezava:</strong>
+                                <Link to={`/product/${order.product._id}`} className="detail-link">Odpri stran izdelka</Link>
                             </div>
                         ) : <p>Podatki o izdelku niso na voljo.</p>}
                     </div>
 
                     <div className="order-detail-section">
-                        <h4>Tiskalniški Box</h4>
+                        <h4>Paketnik</h4>
                         {order.box ? (
                             <div className="details-grid-order">
                                 <strong>Ime:</strong><span>{order.box.name}</span>
@@ -55,6 +79,20 @@ function OrderDetailModal({ order, isOpen, onClose }) {
                             </div>
                         ) : <p>Podatki o boxu niso na voljo.</p>}
                     </div>
+                </div>
+
+                {/* Dodamo Actions sekcijo za spremembo statusa */}
+                <div className="modal-actions order-detail-actions">
+                    {(order.status === 'pending' || order.status === 'reserved') && (
+                        <button className="primary" onClick={() => updateStatus('ready for pickup')}>
+                            Mark as Ready for Pickup
+                        </button>
+                    )}
+                    {order.status !== 'cancelled' && (
+                        <button className="danger" onClick={() => updateStatus('cancelled')}>
+                            Cancel Order
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

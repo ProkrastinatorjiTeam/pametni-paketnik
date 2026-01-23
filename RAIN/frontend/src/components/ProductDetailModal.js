@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ProductDetailModal.css'; // Uvozimo pripadajoče stile
 
-const BACKEND_URL = '/api';
-
 function ProductDetailModal({ product, isOpen, onClose, onProductUpdated }) {
   // Stanje za urejanje podatkov
   const [editData, setEditData] = useState({});
@@ -22,11 +20,12 @@ function ProductDetailModal({ product, isOpen, onClose, onProductUpdated }) {
       setEditData({
         name: product.name || '',
         description: product.description || '',
-        estimatedPrintTime: product.estimatedPrintTime || '',
         price: product.price?.toString() || '',
+        unit: product.unit || 'piece',
+        quantityAvailable: product.quantityAvailable || 0,
+        expiresAt: product.expiresAt ? product.expiresAt.split('T')[0] : ''
       });
       setCurrentImages(product.images || []);
-      // Ponastavi polja za novo sejo
       setNewImageFiles([]);
       setImagePreviews([]);
       setError('');
@@ -34,13 +33,18 @@ function ProductDetailModal({ product, isOpen, onClose, onProductUpdated }) {
     }
   }, [product, isOpen]);
 
-  // Čiščenje URL-jev za predogled slik, da preprečimo puščanje pomnilnika
+  // Čiščenje URL-jev za predogled slik
   useEffect(() => {
     return () => {
       imagePreviews.forEach(fileUrl => URL.revokeObjectURL(fileUrl));
     };
   }, [imagePreviews]);
 
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return 'placeholder.jpg';
+    const filename = imagePath.split('/').pop();
+    return `/product/image/${filename}`;
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -56,7 +60,7 @@ function ProductDetailModal({ product, isOpen, onClose, onProductUpdated }) {
   };
 
   const removeNewImagePreview = (indexToRemove) => {
-    URL.revokeObjectURL(imagePreviews[indexToRemove]); // Počisti pomnilnik
+    URL.revokeObjectURL(imagePreviews[indexToRemove]);
     setNewImageFiles(prev => prev.filter((_, i) => i !== indexToRemove));
     setImagePreviews(prev => prev.filter((_, i) => i !== indexToRemove));
   };
@@ -66,10 +70,10 @@ function ProductDetailModal({ product, isOpen, onClose, onProductUpdated }) {
     setIsLoading(true);
     try {
       const imageName = imagePath.split('/').pop();
-      await axios.delete(`${BACKEND_URL}/model3D/${product._id}/images/${imageName}`);
+      await axios.delete(`/product/${product._id}/images/${imageName}`);
       setSuccessMessage('Slika uspešno izbrisana.');
       setCurrentImages(prev => prev.filter(img => img !== imagePath));
-      onProductUpdated(); // Osveži seznam izdelkov v Admin Panelu
+      onProductUpdated();
     } catch (err) {
       setError(err.response?.data?.message || 'Brisanje slike ni uspelo.');
     } finally {
@@ -88,13 +92,13 @@ function ProductDetailModal({ product, isOpen, onClose, onProductUpdated }) {
     newImageFiles.forEach(file => formData.append('newImages', file));
 
     try {
-      await axios.patch(`${BACKEND_URL}/model3D/update/${product._id}`, formData, {
+      await axios.patch(`/product/update/${product._id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setSuccessMessage('Izdelek uspešno posodobljen!');
       setNewImageFiles([]);
       setImagePreviews([]);
-      onProductUpdated(); // Osveži seznam izdelkov v Admin Panelu
+      onProductUpdated();
     } catch (err) {
       setError(err.response?.data?.message || 'Posodabljanje izdelka ni uspelo.');
     } finally {
@@ -106,10 +110,10 @@ function ProductDetailModal({ product, isOpen, onClose, onProductUpdated }) {
     if (!product || !window.confirm(`Ali ste prepričani, da želite izbrisati izdelek "${product.name}"? Tega dejanja ni mogoče razveljaviti.`)) return;
     setIsLoading(true);
     try {
-      await axios.delete(`${BACKEND_URL}/model3D/remove/${product._id}`);
+      await axios.delete(`/product/remove/${product._id}`);
       setSuccessMessage('Izdelek uspešno izbrisan.');
       onProductUpdated();
-      onClose(); // Zapri modal po brisanju
+      onClose();
     } catch (err) {
       setError(err.response?.data?.message || 'Brisanje izdelka ni uspelo.');
     } finally {
@@ -140,12 +144,24 @@ function ProductDetailModal({ product, isOpen, onClose, onProductUpdated }) {
                   <textarea id="editProductDescription" name="description" value={editData.description} onChange={handleInputChange} rows="6" />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="editProductPrintTime">Predviden čas tiska (minute)</label>
-                  <input type="number" id="editProductPrintTime" name="estimatedPrintTime" value={editData.estimatedPrintTime} onChange={handleInputChange} min="0" />
-                </div>
-                <div className="form-group">
                   <label htmlFor="editProductPrice">Cena (€)</label>
                   <input type="number" id="editProductPrice" name="price" value={editData.price} onChange={handleInputChange} min="0" step="0.01" placeholder="npr., 12.99" />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="editProductUnit">Enota</label>
+                  <select id="editProductUnit" name="unit" value={editData.unit} onChange={handleInputChange}>
+                    <option value="piece">kos</option>
+                    <option value="kg">kg</option>
+                    <option value="pack">paket</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="editProductQuantity">Razpoložljivo število</label>
+                  <input type="number" id="editProductQuantity" name="quantityAvailable" value={editData.quantityAvailable} onChange={handleInputChange} min="0" />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="editProductExpires">Rok uporabe</label>
+                  <input type="date" id="editProductExpires" name="expiresAt" value={editData.expiresAt} onChange={handleInputChange} />
                 </div>
               </div>
 
@@ -157,7 +173,11 @@ function ProductDetailModal({ product, isOpen, onClose, onProductUpdated }) {
                       <div className="image-gallery">
                         {currentImages.map((imgSrc, index) => (
                             <div key={index} className="image-item">
-                              <img src={`${BACKEND_URL}${imgSrc}`} alt={`Izdelek ${index + 1}`} />
+                              <img
+                                  src={getImageUrl(imgSrc)}
+                                  alt={`Izdelek ${index + 1}`}
+                                  onError={(e) => { e.target.src = 'placeholder.jpg'; }}
+                              />
                               <button type="button" className="delete-image-btn" onClick={() => handleDeleteExistingImage(imgSrc)} disabled={isLoading}>×</button>
                             </div>
                         ))}
@@ -169,7 +189,6 @@ function ProductDetailModal({ product, isOpen, onClose, onProductUpdated }) {
                   <label>Dodaj nove slike</label>
                   <label htmlFor="newProductImages" className="file-input-label">Izberi datoteke...</label>
                   <input type="file" id="newProductImages" multiple accept="image/*" onChange={handleImageFileChange} className="file-input-hidden" />
-
                   {imagePreviews.length > 0 && (
                       <div className="image-gallery new-image-previews">
                         {imagePreviews.map((previewSrc, index) => (

@@ -85,7 +85,7 @@ module.exports = {
             if (success) {
                 const orderToComplete = await OrderModel.findOne({
                     box: boxId,
-                    status: 'ready to pickup',
+                    status: 'ready for pickup',
                     orderBy: userId
                 });
 

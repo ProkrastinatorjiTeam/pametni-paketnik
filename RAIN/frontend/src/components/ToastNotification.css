@@ -1,0 +1,50 @@
+/* src/components/ToastNotification.css */
+.toast-notification {
+    position: fixed; /* Global fixed position */
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 280px; /* Slightly wider */
+    max-width: 90%; /* Responsive max width */
+    z-index: 9999; /* Ensure it's on top of everything */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    animation: fadeInOut 3.5s forwards; /* Animation for fading */
+    text-align: center; /* Center text */
+}
+
+.toast-notification.success {
+    background-color: #4CAF50; /* Green for success */
+}
+
+.toast-notification.error {
+    background-color: #f44336; /* Red for error */
+}
+
+.toast-notification.info { /* Optional: Info type */
+    background-color: #2196F3; /* Blue for info */
+}
+
+.toast-close-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2em;
+    cursor: pointer;
+    margin-left: 15px;
+    padding: 0 5px;
+    flex-shrink: 0; /* Prevent button from shrinking */
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+    10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    90% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+}

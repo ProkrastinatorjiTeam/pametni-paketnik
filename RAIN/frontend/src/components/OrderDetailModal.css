@@ -45,3 +45,90 @@
 .detail-link:hover {
     text-decoration: underline;
 }
+
+/* Overlay za modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    overflow-y: auto; /* da scroll deluje, če je vsebina dolga */
+}
+
+/* Modal */
+.modal-content {
+    background-color: var(--bg-light);
+    border-radius: var(--border-radius);
+    width: 700px; /* ali po potrebi */
+    max-width: 95%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+
+/* Header */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
+/* Body */
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1 1 auto; /* da body raste in vzame prostor */
+}
+
+/* Actions */
+.modal-actions.order-detail-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 15px 20px;
+    border-top: 1px solid var(--border-color);
+    flex-shrink: 0; /* da ostane vidno */
+}
+
+.modal-actions.order-detail-actions button {
+    padding: 8px 16px;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+}
+
+.modal-actions.order-detail-actions button.primary {
+    background-color: var(--accent-color);
+    color: #fff;
+}
+
+.modal-actions.order-detail-actions button.primary:hover {
+    background-color: #0056b3;
+}
+
+.modal-actions.order-detail-actions button.danger {
+    background-color: var(--error-color);
+    color: #fff;
+}
+
+.modal-actions.order-detail-actions button.danger:hover {
+    background-color: #c82333;
+}

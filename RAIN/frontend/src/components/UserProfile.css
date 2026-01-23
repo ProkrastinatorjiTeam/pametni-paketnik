@@ -123,7 +123,7 @@
 
 /* Themed Status Colors */
 .status-pending { background-color: #ffc107; color: #333; }
-.status-printing { background-color: var(--accent-color); }
+.status-preparing { background-color: var(--accent-color); }
 .status-ready-to-pickup { background-color: #28a745; }
 .status-cancelled { background-color: var(--error-color); }
 .status-completed { background-color: var(--text-secondary); }

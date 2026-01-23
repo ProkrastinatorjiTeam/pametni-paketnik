@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Paketnik-app"
 include(":app")
+include(":opencv")
