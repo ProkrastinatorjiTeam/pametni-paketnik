@@ -92,7 +92,7 @@ function ProductView({currentUser}) {
 
     const getImageUrl = (imagePath) => {
         if (!imagePath) {
-            return 'placeholder.jpg';
+            return null;
         }
 
         const filename = imagePath.split('/').pop();
@@ -107,7 +107,7 @@ function ProductView({currentUser}) {
     if (!product) return <div className="page-status">Product data not available.</div>;
 
     const rawImagePath = product.images?.[currentImageIndex];
-    const currentImageUrl = rawImagePath ? getImageUrl(rawImagePath) : 'placeholder.jpg';
+    const currentImageUrl = rawImagePath ? getImageUrl(rawImagePath) : null;
 
     return (
         <div className="product-view-wrapper">
@@ -126,10 +126,16 @@ function ProductView({currentUser}) {
                             {product.images?.length > 1 && (
                                 <button onClick={handlePrevImage} className="carousel-arrow prev-arrow">❮</button>
                             )}
-                            <img src={currentImageUrl} alt={product.name} className="product-main-image"
-                                 loading="lazy" onError={(e) => {
-                                e.target.src = 'placeholder.jpg';
-                            }}/>
+                            <img
+                                src={currentImageUrl || '/placeholder.svg'}
+                                alt={product.name}
+                                className="product-main-image"
+                                loading="lazy"
+                                onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = '/placeholder.svg';
+                                }}
+                            />
                             {product.images?.length > 1 && (
                                 <button onClick={handleNextImage} className="carousel-arrow next-arrow">❯</button>
                             )}

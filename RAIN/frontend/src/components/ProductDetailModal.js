@@ -41,7 +41,7 @@ function ProductDetailModal({ product, isOpen, onClose, onProductUpdated }) {
   }, [imagePreviews]);
 
   const getImageUrl = (imagePath) => {
-    if (!imagePath) return 'placeholder.jpg';
+    if (!imagePath) return null;
     const filename = imagePath.split('/').pop();
     return `/product/image/${filename}`;
   };
@@ -174,9 +174,14 @@ function ProductDetailModal({ product, isOpen, onClose, onProductUpdated }) {
                         {currentImages.map((imgSrc, index) => (
                             <div key={index} className="image-item">
                               <img
-                                  src={getImageUrl(imgSrc)}
-                                  alt={`Izdelek ${index + 1}`}
-                                  onError={(e) => { e.target.src = 'placeholder.jpg'; }}
+                                  src={getImageUrl(product.images?.[index]) || 'placeholder.svg'}
+                                  alt={product.name}
+                                  className="model-card-image"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = 'placeholder.svg';
+                                  }}
                               />
                               <button type="button" className="delete-image-btn" onClick={() => handleDeleteExistingImage(imgSrc)} disabled={isLoading}>×</button>
                             </div>

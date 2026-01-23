@@ -157,7 +157,7 @@ function AdminPanel({currentUser}) {
 
     const getImageUrl = (imagePath) => {
         if (!imagePath) {
-            return 'placeholder.jpg';
+            return null;
         }
 
         const filename = imagePath.split('/').pop();
@@ -187,8 +187,16 @@ function AdminPanel({currentUser}) {
                         <li key={item._id} className="data-list-item product-item"
                             onClick={() => setSelectedProductDetails(item)}>
                             <div className="product-info-cell">
-                                <img src={getImageUrl(item.images?.[0]) || 'placeholder.jpg'} alt={item.name}
-                                     className="list-item-image" loading="lazy"/>
+                                <img
+                                    src={getImageUrl(item.images?.[0]) || 'placeholder.svg'}
+                                    alt={item.name}
+                                    className="list-item-image"
+                                    loading="lazy"
+                                    onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = 'placeholder.svg';
+                                    }}
+                                />
                                 <span>{item.name}</span>
                             </div>
                             <span>{item.quantityAvailable || 0} {item.unit || ''}</span>

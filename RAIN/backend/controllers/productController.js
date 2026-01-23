@@ -180,6 +180,7 @@ module.exports = {
 
             res.setHeader('ETag', etag);
             res.setHeader('Cache-Control', 'public, max-age=3600');
+            res.type('image/png');
 
             res.sendFile(finalImagePath, (err) => {
                 if (err && !res.headersSent) {
@@ -187,17 +188,17 @@ module.exports = {
                     res.status(500).end();
                 }
                 try {
-                    if (finalImagePath && fs.existsSync(finalImagePath)) {
-                        fs.unlinkSync(finalImagePath);
-                    }
-                } catch (unlinkErr) { console.error(unlinkErr); }
+                    fs.unlinkSync(finalImagePath);
+                } catch (e) {
+                }
             });
 
         } catch (err) {
             console.error('Serve Image Error:', err);
             try {
                 if (finalImagePath && fs.existsSync(finalImagePath)) fs.unlinkSync(finalImagePath);
-            } catch (e) {}
+            } catch (e) {
+            }
 
             if (!res.headersSent) {
                 res.status(500).send('Error serving image');

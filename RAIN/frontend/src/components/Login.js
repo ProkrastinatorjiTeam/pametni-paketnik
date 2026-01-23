@@ -3,8 +3,6 @@ import axios from 'axios';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import './Auth.css'; // Uvozimo nove, skupne stile
 
-
-
 function Login({ onLoginSuccess }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

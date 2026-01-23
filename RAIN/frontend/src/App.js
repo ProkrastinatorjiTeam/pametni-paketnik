@@ -11,6 +11,7 @@ import UserProfile from './components/UserProfile';
 import {ToastProvider} from './contexts/ToastContext';
 
 axios.defaults.withCredentials = true;
+//axios.defaults.baseURL = '/api';
 
 // --- GLAVNA POSTAVITEV Z NAVIGACIJO ---
 function MainLayout({currentUser, onLogout}) {
@@ -65,7 +66,7 @@ function HomePage({currentUser}) {
 
     const getImageUrl = (imagePath) => {
         if (!imagePath) {
-            return 'placeholder.jpg';
+            return null;
         }
 
         const filename = imagePath.split('/').pop();
@@ -86,8 +87,16 @@ function HomePage({currentUser}) {
             <div className="models-grid">
                 {!loading && !error && models.map((product) => (
                     <div key={product._id} className="model-card" onClick={() => handleProductClick(product._id)}>
-                        <img src={getImageUrl(product.images?.[0]) || 'placeholder.jpg'} alt={product.name}
-                             className="model-card-image" loading="lazy"/>
+                        <img
+                            src={getImageUrl(product.images?.[0]) || 'placeholder.svg'}
+                            alt={product.name}
+                            className="model-card-image"
+                            loading="lazy"
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = 'placeholder.svg';
+                            }}
+                        />
                         <div className="model-card-overlay">
                             <h3 className="model-card-title">{product.name}</h3>
                             <div className="model-card-details">
@@ -153,7 +162,7 @@ function App() {
     const handleLogout = () => setCurrentUser(null);
 
     if (loadingSession) {
-        return <div className="app-loading">Initializing Print Hub...</div>;
+        return <div className="app-loading">Initializing Farm Box...</div>;
     }
 
     return (
