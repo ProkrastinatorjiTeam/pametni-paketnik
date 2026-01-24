@@ -1,27 +1,201 @@
 [
   {
-    "lhs": ["onion"],
-    "rhs": "Tomato",
-    "confidence": 1.0
-  },
-  {
-    "lhs": ["onion"],
-    "rhs": "Carrots",
-    "confidence": 1.0
-  },
-  {
-    "lhs": ["beef steak"],
+    "lhs": [
+      "onion",
+      "carrots"
+    ],
     "rhs": "Potato",
-    "confidence": 0.9
+    "confidence": 0.88
   },
   {
-    "lhs": ["onion", "beef steak"],
+    "lhs": [
+      "beef steak",
+      "carrots"
+    ],
+    "rhs": "Potato",
+    "confidence": 0.88
+  },
+  {
+    "lhs": [
+      "potato",
+      "carrots"
+    ],
+    "rhs": "Onion",
+    "confidence": 0.85
+  },
+  {
+    "lhs": [
+      "homemade sausage",
+      "onion"
+    ],
+    "rhs": "Beef Steak",
+    "confidence": 0.85
+  },
+  {
+    "lhs": [
+      "potato",
+      "beef steak"
+    ],
+    "rhs": "Onion",
+    "confidence": 0.78
+  },
+  {
+    "lhs": [
+      "onion",
+      "beef steak"
+    ],
+    "rhs": "Potato",
+    "confidence": 0.74
+  },
+  {
+    "lhs": [
+      "carrots"
+    ],
+    "rhs": "Potato",
+    "confidence": 0.73
+  },
+  {
+    "lhs": [
+      "onion",
+      "potato"
+    ],
+    "rhs": "Beef Steak",
+    "confidence": 0.71
+  },
+  {
+    "lhs": [
+      "potato"
+    ],
+    "rhs": "Onion",
+    "confidence": 0.71
+  },
+  {
+    "lhs": [
+      "carrots"
+    ],
+    "rhs": "Onion",
+    "confidence": 0.7
+  },
+  {
+    "lhs": [
+      "onion"
+    ],
+    "rhs": "Potato",
+    "confidence": 0.69
+  },
+  {
+    "lhs": [
+      "beef steak"
+    ],
+    "rhs": "Onion",
+    "confidence": 0.68
+  },
+  {
+    "lhs": [
+      "homemade sausage",
+      "beef steak"
+    ],
+    "rhs": "Onion",
+    "confidence": 0.67
+  },
+  {
+    "lhs": [
+      "onion"
+    ],
+    "rhs": "Beef Steak",
+    "confidence": 0.66
+  },
+  {
+    "lhs": [
+      "potato"
+    ],
+    "rhs": "Beef Steak",
+    "confidence": 0.65
+  },
+  {
+    "lhs": [
+      "beef steak"
+    ],
+    "rhs": "Potato",
+    "confidence": 0.64
+  },
+  {
+    "lhs": [
+      "potato",
+      "carrots"
+    ],
+    "rhs": "Beef Steak",
+    "confidence": 0.62
+  },
+  {
+    "lhs": [
+      "carrots"
+    ],
+    "rhs": "Onion",
+    "confidence": 0.62
+  },
+  {
+    "lhs": [
+      "fresh milk"
+    ],
+    "rhs": "Eggs",
+    "confidence": 0.6
+  },
+  {
+    "lhs": [
+      "eggs"
+    ],
     "rhs": "Homemade Sausage",
-    "confidence": 1.0
+    "confidence": 0.6
   },
   {
-    "lhs": ["eggs", "gouda cheese"],
-    "rhs": "Fresh Milk",
-    "confidence": 1.0
+    "lhs": [
+      "tomato"
+    ],
+    "rhs": "Gouda Cheese",
+    "confidence": 0.58
+  },
+  {
+    "lhs": [
+      "fresh milk"
+    ],
+    "rhs": "Homemade Sausage",
+    "confidence": 0.57
+  },
+  {
+    "lhs": [
+      "onion",
+      "potato"
+    ],
+    "rhs": "Carrots",
+    "confidence": 0.56
+  },
+  {
+    "lhs": [
+      "gouda cheese"
+    ],
+    "rhs": "Tomato",
+    "confidence": 0.54
+  },
+  {
+    "lhs": [
+      "carrots"
+    ],
+    "rhs": "Beef Steak",
+    "confidence": 0.52
+  },
+  {
+    "lhs": [
+      "potato"
+    ],
+    "rhs": "Onion",
+    "confidence": 0.5
+  },
+  {
+    "lhs": [
+      "beef steak"
+    ],
+    "rhs": "Onion",
+    "confidence": 0.5
   }
 ]
