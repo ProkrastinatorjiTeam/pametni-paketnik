@@ -1,8 +1,8 @@
 import random
 import os
 
-OUTPUT_FILE = "farmer_box_monthly_orders.arff"
-NUM_ENTRIES = 1000
+OUTPUT_FILE = "example_dataset.arff"
+NUM_ENTRIES = 10000
 
 ITEMS = [
     "Forest honey",
