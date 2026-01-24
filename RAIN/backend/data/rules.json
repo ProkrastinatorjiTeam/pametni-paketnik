@@ -1,1 +1,27 @@
-[]
+[
+  {
+    "lhs": ["onion"],
+    "rhs": "Tomato",
+    "confidence": 1.0
+  },
+  {
+    "lhs": ["onion"],
+    "rhs": "Carrots",
+    "confidence": 1.0
+  },
+  {
+    "lhs": ["beef steak"],
+    "rhs": "Potato",
+    "confidence": 0.9
+  },
+  {
+    "lhs": ["onion", "beef steak"],
+    "rhs": "Homemade Sausage",
+    "confidence": 1.0
+  },
+  {
+    "lhs": ["eggs", "gouda cheese"],
+    "rhs": "Fresh Milk",
+    "confidence": 1.0
+  }
+]

@@ -61,7 +61,7 @@ app.use('/unlockEvent', unlockEventRouter);
 app.use('/product', productRouter);
 app.use('/order', orderRouter);
 app.use('/stats', statsRoutes);
-app.use('/recommendations', recommendationRouter);
+app.use('/recommendation', recommendationRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

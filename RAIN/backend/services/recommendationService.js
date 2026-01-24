@@ -16,7 +16,7 @@ function recommendProducts(userItems, rules, topN = 3) {
         return false;
       }
 
-      const rhsItem = rule.rhs[0];
+      const rhsItem = rule.rhs;
       if (userItemsSet.has(rhsItem)) {
         return false;
       }
@@ -24,7 +24,7 @@ function recommendProducts(userItems, rules, topN = 3) {
       return true;
     })
     .map(rule => ({
-      product: rule.rhs[0],
+      product: rule.rhs,
       confidence: rule.confidence,
     }));
 

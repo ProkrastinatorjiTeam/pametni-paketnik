@@ -9,6 +9,9 @@ import ProductView from './components/ProductView';
 import AdminPanel from './components/AdminPanel';
 import UserProfile from './components/UserProfile';
 import {ToastProvider} from './contexts/ToastContext';
+import RecommendationBanner from "./components/RecommendationBanner";
+import Footer from "./components/Footer";
+
 
 axios.defaults.withCredentials = true;
 //axios.defaults.baseURL = '/api';
@@ -21,6 +24,7 @@ function MainLayout({currentUser, onLogout}) {
             <div className="main-content-wrapper">
                 <Outlet/> {/* Tukaj se bodo prikazale vgnezdene komponente */}
             </div>
+            <Footer />
         </>
     );
 }
@@ -30,7 +34,7 @@ function AuthLayout() {
     return (
         <div className="auth-page-wrapper">
             <header className="auth-header">
-                <Link to="/" className="auth-logo-link">FoodBox</Link>
+                <div className="logo auth-logo-link"><Link to="/">FoodBox</Link></div>
             </header>
             <main className="auth-content">
                 <Outlet/> {/* Tukaj se bosta prikazala Login in Register */}
@@ -44,6 +48,8 @@ function HomePage({currentUser}) {
     const [models, setModels] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [recommendations, setRecommendations] = useState([]);
+    const [showBanner, setShowBanner] = useState(true);
 
     useEffect(() => {
         const fetchModels = async () => {
@@ -59,6 +65,15 @@ function HomePage({currentUser}) {
         };
         fetchModels();
     }, []);
+
+    useEffect(() => {
+        if (currentUser) {
+            axios.get('/recommendation')
+                .then(res => {
+                    setRecommendations(res.data.recommendations || []);
+                });
+        }
+    }, [currentUser]);
 
     const handleProductClick = (modelId) => {
         navigate(`/product/${modelId}`);
@@ -85,6 +100,12 @@ function HomePage({currentUser}) {
                 )}
             </section>
             <div className="models-grid">
+                {currentUser && recommendations.length > 0 && showBanner && (
+                    <RecommendationBanner
+                        product={recommendations[0]}
+                        onClose={() => setShowBanner(false)}
+                    />
+                )}
                 {!loading && !error && models.map((product) => (
                     <div key={product._id} className="model-card" onClick={() => handleProductClick(product._id)}>
                         <img

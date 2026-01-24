@@ -5,6 +5,7 @@
     --bg-surface: #FFFFFF;
     --accent-color: #007BFF;
     --accent-hover: #0056b3;
+    --accent-success: #27ae60;
     --text-primary: #2C3E50;
     --text-secondary: #6c757d;
     --border-color: #DEE2E6;
@@ -133,4 +134,17 @@
     color: #004085;
     background-color: #cce5ff;
     border: 1px solid #b8daff;
+}
+
+.logo a {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    text-decoration: none;
+    letter-spacing: -0.5px;
+}
+
+.logo a::after {
+    content: '.';
+    color: var(--accent-success);
 }
