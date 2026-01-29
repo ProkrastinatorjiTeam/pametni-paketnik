@@ -1,0 +1,7 @@
+configurable-objects==0.0.1
+jpype1==1.6.0
+numpy==2.4.1
+packaging==26.0
+python-weka-wrapper3==0.3.2
+simple-data-flow==0.0.1
+simple-range==0.0.3
